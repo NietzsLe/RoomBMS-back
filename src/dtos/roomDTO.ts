@@ -3,7 +3,6 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
-  IsDate,
   IsDateString,
   IsNumber,
   IsOptional,
@@ -65,9 +64,9 @@ class BaseUnitPrice {
   // Thông tin về giá cả các dịch vụ
 }
 
-class BaseAdditionInfo1 {
+class BaseAdditionInfo {
   @IsOptional()
-  @IsString()
+  @IsNumber()
   @ApiProperty({ required: false })
   moveInTime?: number;
   @IsOptional()
@@ -109,12 +108,9 @@ class BaseAdditionInfo1 {
   numberOfPeoples?: number;
   @IsOptional() @IsNumber() @ApiProperty({ required: false }) deposit?: number;
   @IsOptional()
-  @IsString()
+  @IsNumber()
   @ApiProperty({ required: false })
   depositReplenishmentTime?: number;
-}
-
-class BaseAdditionInfo2 {
   @IsOptional()
   @IsBoolean()
   @ApiProperty({ required: false })
@@ -170,7 +166,7 @@ class BaseAdditionInfo2 {
   @IsOptional()
   @IsString()
   @ApiProperty({ required: false })
-  otherInterior?: string;
+  note?: string;
   @IsOptional()
   @IsBoolean()
   @ApiProperty({ required: false })
@@ -191,8 +187,7 @@ export class BaseRoomDTO {
 
   @IsNumber() @ApiProperty({}) @Expose() commissionPer: number; // Tiền hoa hồng khi bán được phòng này
 
-  @IsDateString()
-  @Type(() => Date)
+  @IsNumber()
   @ApiProperty({})
   @Expose()
   agreementDuration: number; // Thời hạn hợp đồng
@@ -210,15 +205,10 @@ export class BaseRoomDTO {
   @Expose()
   unitPrice: BaseUnitPrice;
   @ValidateNested()
-  @Type(() => BaseAdditionInfo1)
-  @ApiProperty({ type: BaseAdditionInfo1 })
+  @Type(() => BaseAdditionInfo)
+  @ApiProperty({ type: BaseAdditionInfo })
   @Expose()
-  additionInfo1: BaseAdditionInfo1;
-  @ValidateNested()
-  @Type(() => BaseAdditionInfo2)
-  @ApiProperty({ type: BaseAdditionInfo2 })
-  @Expose()
-  additionInfo2: BaseAdditionInfo2;
+  additionInfo: BaseAdditionInfo;
 
   @IsString() @ApiProperty({}) @Expose() mapLink: string; // Liên kết đến một địa điểm trên Google Maps
 
@@ -286,8 +276,7 @@ export class CreateRoomDTO {
   @ApiProperty({ required: false })
   commissionPer?: number; // Tiền hoa hồng khi bán được phòng này
 
-  @IsDate()
-  @Type(() => Date)
+  @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
   agreementDuration?: number; // Thời hạn hợp đồng
@@ -306,15 +295,10 @@ export class CreateRoomDTO {
   @ApiProperty({ type: BaseUnitPrice, required: false })
   unitPrice?: BaseUnitPrice;
   @ValidateNested()
-  @IsOptional()
-  @Type(() => BaseAdditionInfo1)
-  @ApiProperty({ type: BaseAdditionInfo1, required: false })
-  additionInfo1?: BaseAdditionInfo1;
-  @ValidateNested()
-  @IsOptional()
-  @Type(() => BaseAdditionInfo2)
-  @ApiProperty({ type: BaseAdditionInfo2, required: false })
-  additionInfo2?: BaseAdditionInfo2;
+  @Type(() => BaseAdditionInfo)
+  @ApiProperty({ type: BaseAdditionInfo })
+  @Expose()
+  additionInfo: BaseAdditionInfo;
 
   @IsString() @IsOptional() @ApiProperty({ required: false }) mapLink?: string; // Liên kết đến một địa điểm trên Google Maps
 
@@ -343,8 +327,7 @@ export class UpdateRoomDTO {
   @ApiProperty({ required: false })
   commissionPer?: number; // Tiền hoa hồng khi bán được phòng này
 
-  @IsDateString()
-  @Type(() => Date)
+  @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
   agreementDuration?: number; // Thời hạn hợp đồng
@@ -362,13 +345,10 @@ export class UpdateRoomDTO {
   @ApiProperty({ type: BaseUnitPrice, required: false })
   unitPrice?: BaseUnitPrice;
   @ValidateNested()
-  @IsOptional()
-  @ApiProperty({ type: BaseAdditionInfo1, required: false })
-  additionInfo1?: BaseAdditionInfo1;
-  @ValidateNested()
-  @IsOptional()
-  @ApiProperty({ type: BaseAdditionInfo2, required: false })
-  additionInfo2?: BaseAdditionInfo2;
+  @Type(() => BaseAdditionInfo)
+  @ApiProperty({ type: BaseAdditionInfo })
+  @Expose()
+  additionInfo: BaseAdditionInfo;
 
   @IsString() @IsOptional() @ApiProperty({ required: false }) mapLink?: string; // Liên kết đến một địa điểm trên Google Maps
 

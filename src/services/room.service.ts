@@ -91,7 +91,7 @@ export class RoomService {
     const room = RoomMapper.DTOToEntity(updateRoomDTO);
     const result = await Promise.all([
       this.constraint.RoomIsAlive(room.roomID),
-      this.houseConstraint.HouseIsAlive(room.house.houseID),
+      this.houseConstraint.HouseIsAlive(room.house?.houseID),
       this.userConstraint.ManagerIsAlive(updateRoomDTO.managerID),
     ]);
 

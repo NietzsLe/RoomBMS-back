@@ -37,6 +37,10 @@ export class House {
   @Expose({ groups: ['TO-DTO'] })
   addressDetail: string; // Thông tin chi tiết về địa chỉ
 
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  note: string; // Thông tin chi tiết về địa chỉ
+
   @DeleteDateColumn()
   @Expose({ groups: ['NOT-TO-DTO'] })
   deletedAt: Date | null; // Xem nhà đã xóa chưa

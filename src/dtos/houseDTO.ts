@@ -34,6 +34,10 @@ export class BaseHouseDTO {
   @ApiProperty({})
   @Expose()
   addressDetail: string; // Thông tin chi tiết về địa chỉ
+  @IsString()
+  @ApiProperty({})
+  @Expose()
+  note: string;
   @IsDate()
   @ApiProperty({})
   @Expose()
@@ -104,6 +108,11 @@ export class CreateHouseDTO {
   @IsString()
   @ApiProperty({})
   addressDetail: string; // Thông tin chi tiết về địa chỉ
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  @Expose()
+  note?: string;
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @ArrayMinSize(3)
   @ArrayMaxSize(3)
@@ -147,6 +156,11 @@ export class UpdateHouseDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   addressDetail?: string; // Thông tin chi tiết về địa chỉ
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  @Expose()
+  note?: string;
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @ArrayMinSize(3)
   @ArrayMaxSize(3)

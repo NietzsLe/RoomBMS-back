@@ -98,8 +98,11 @@ export class RoomController {
       type: 'object',
       properties: {
         files: {
-          type: 'string',
-          format: 'binary',
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
         },
       },
     },

@@ -85,9 +85,9 @@ export class Room {
     parkingUnit?: string;
   }; // Thông tin về giá cả các dịch vụ
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'json', default: {} })
   @Expose({ groups: ['TO-DTO'] })
-  additionInfo1: {
+  additionInfo: {
     moveInTime?: number;
     roomType?: string;
     toilet?: string;
@@ -101,11 +101,6 @@ export class Room {
     numberOfPeoples?: number;
     deposit?: number;
     depositReplenishmentTime?: number;
-  }; // Thông tin bổ sung 1
-
-  @Column({ type: 'json', nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
-  additionInfo2: {
     kitchenShelf?: boolean;
     bed?: boolean;
     sharedOwner?: boolean;
@@ -122,7 +117,7 @@ export class Room {
     wardrobe?: boolean;
     security?: boolean;
     pet?: boolean;
-    otherInterior?: string;
+    note?: string;
     electricBike?: boolean;
     attic?: boolean;
     fridge?: boolean;

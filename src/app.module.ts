@@ -117,13 +117,15 @@ import { ResourceManageController } from './controllers/resourceManage.controlle
       DistrictUnit,
       ProvinceUnit,
     ]),
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 60000,
-        limit: 1000,
-      },
-    ]),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'short',
+          ttl: 60000,
+          limit: 1000,
+        },
+      ],
+    }),
     CacheModule.register({ ttl: 5000 }),
     MulterModule.register({
       limits: {
