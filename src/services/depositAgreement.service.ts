@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CreateDepositAgreementDTO,
+  MaxResponseDepositAgreementDTO,
   UpdateDepositAgreementDTO,
 } from 'src/dtos/depositAgreementDTO';
 import { DepositAgreementMapper } from 'src/mappers/depositAgreement.mapper';
@@ -15,7 +16,10 @@ import {
   Repository,
 } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
-import { DepositAgreementConstraint } from './constraints/depositAgreement.helper';
+import {
+  DepositAgreementConstraint,
+  DepositAgreementProcess,
+} from './constraints/depositAgreement.helper';
 import { RoomConstraint } from './constraints/room.helper';
 import { TenantConstraint } from './constraints/tenant.helper';
 
@@ -29,10 +33,12 @@ export class DepositAgreementService {
     private tenantConstraint: TenantConstraint,
     private roomConstraint: RoomConstraint,
     private userProcess: UserProcess,
+    private process: DepositAgreementProcess,
   ) {}
 
   async findAll(
     depositAgreementID: number,
+    name: string,
     offsetID: number,
     selectAndRelationOption: {
       select: FindOptionsSelect<DepositAgreement>;
@@ -44,6 +50,7 @@ export class DepositAgreementService {
         ...(depositAgreementID || depositAgreementID == 0
           ? { depositAgreementID: depositAgreementID }
           : { depositAgreementID: MoreThan(offsetID) }),
+        ...(name ? { name: name } : {}),
       },
       order: {
         depositAgreementID: 'ASC',
@@ -57,6 +64,37 @@ export class DepositAgreementService {
       DepositAgreementMapper.EntityToBaseDTO(depositAgreement),
     );
   }
+
+  async getMaxDepositAgreement(name: string) {
+    const query = this.depositAgreementRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.depositAgreementID)', 'depositAgreementID');
+
+    if (name) {
+      query.where('entity.name = :name', { name: name });
+    }
+    const dto = (await query.getRawOne()) as MaxResponseDepositAgreementDTO;
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: number) {
+    console.log('@Service: autocomplete');
+    const depositAgreements = await this.depositAgreementRepository.find({
+      where: {
+        depositAgreementID: MoreThan(offsetID),
+      },
+      order: {
+        depositAgreementID: 'ASC',
+      },
+      select: { depositAgreementID: true, name: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    console.log('@Service: \n', depositAgreements);
+    return depositAgreements.map((depositAgreement) =>
+      DepositAgreementMapper.EntityToBaseDTO(depositAgreement),
+    );
+  }
+
   async findInactiveAll(depositAgreementID: number, offsetID: number) {
     const depositAgreements = await this.depositAgreementRepository.find({
       where: {
@@ -98,7 +136,14 @@ export class DepositAgreementService {
     if (result[1]) depositAgreement.tenant = result[1];
     if (result[2]) depositAgreement.negotiator = result[2];
     this.userProcess.CreatorIsDefaultManager(requestorID, depositAgreement);
-    await this.depositAgreementRepository.insert(depositAgreement);
+
+    const insertResult =
+      await this.depositAgreementRepository.insert(depositAgreement);
+    return {
+      depositAgreementID: (
+        insertResult.identifiers[0] as { depositAgreementID: number }
+      ).depositAgreementID,
+    };
   }
 
   async update(

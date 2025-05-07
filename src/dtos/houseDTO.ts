@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { AdministrativeUnit } from 'src/models/administrativeUnit.model';
@@ -102,23 +103,20 @@ export class CreateHouseDTO {
   @ApiProperty({})
   name: string;
   @IsString()
-  @IsOptional()
-  @ApiProperty({ required: false })
-  ownerPhone?: string; // Số điện thoại của chủ sở hữu
-  @IsString()
   @ApiProperty({})
+  ownerPhone: string; // Số điện thoại của chủ sở hữu
+  @IsString()
+  @ApiProperty({ required: false })
   addressDetail: string; // Thông tin chi tiết về địa chỉ
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
-  @Expose()
   note?: string;
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @ArrayMinSize(3)
   @ArrayMaxSize(3)
   @IsNumber({}, { each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [Number], minItems: 3, maxItems: 3 })
-  @IsOptional()
   @Expose({ name: 'administrativeUnit', groups: ['relation'] })
   @Transform(
     ({ value }: { value: number[] }) => {
@@ -141,19 +139,19 @@ export class UpdateHouseDTO {
   @ApiProperty({})
   houseID: number; // Khóa chính, tự động tăng
   @IsString()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
-  name?: string; // Tên chủ sở hữu
+  name: string; // Tên chủ sở hữu
   @IsString()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
-  ownerName?: string; // Tên chủ sở hữu
+  ownerName: string; // Tên chủ sở hữu
   @IsString()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
-  ownerPhone?: string; // Số điện thoại của chủ sở hữu
+  ownerPhone: string; // Số điện thoại của chủ sở hữu
   @IsString()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   addressDetail?: string; // Thông tin chi tiết về địa chỉ
   @IsString()
@@ -172,9 +170,9 @@ export class UpdateHouseDTO {
     ({ value }: { value: number[] }) => {
       if (value) {
         const obj = new AdministrativeUnit();
-        obj.provinceCode = value[0];
+        obj.provinceCode = value[2];
         obj.districtCode = value[1];
-        obj.wardCode = value[2];
+        obj.wardCode = value[0];
         return obj;
       }
       return null;
@@ -193,4 +191,25 @@ export class HardDeleteAndRecoverHouseDTO {
   @ApiProperty({ type: [Number] })
   @ArrayNotEmpty()
   houseIDs: number[];
+}
+
+export class CreateResponseHouseDTO {
+  @IsNumber()
+  @ApiProperty()
+  houseID: number;
+}
+
+export class AutocompleteHouseDTO {
+  @IsNumber()
+  @ApiProperty()
+  houseID: number;
+  @IsString()
+  @ApiProperty()
+  name: string;
+}
+
+export class MaxResponseHouseDTO {
+  @IsNumber()
+  @ApiProperty()
+  houseID: number;
 }

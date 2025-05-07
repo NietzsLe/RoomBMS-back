@@ -1,7 +1,12 @@
-import { classToPlain, plainToClass } from '@nestjs/class-transformer';
+import {
+  ClassConstructor,
+  classToPlain,
+  plainToClass,
+} from '@nestjs/class-transformer';
 
 import {
   CreateAppointmentDTO,
+  OtherResourceDTO,
   UpdateAppointmentDTO,
 } from 'src/dtos/appointmentDTO';
 import { Appointment } from 'src/models/appointment.model';
@@ -14,6 +19,18 @@ export class AppointmentMapper {
     const plainObj = classToPlain(appointmentDTO);
     //console.log('@Mapper: \n', plainObj);
     return plainToClass(Appointment, plainObj, {
+      groups: ['TO-DTO', 'NOT-TO-DTO'],
+    });
+  }
+
+  static OtherResourceDTOToEntity<T>(
+    appointmentDTO: OtherResourceDTO,
+    cls: ClassConstructor<T>,
+  ) {
+    const plainObj = classToPlain(appointmentDTO);
+    delete plainObj.appointmentID;
+    //console.log('@Mapper: \n', plainObj);
+    return plainToClass(cls, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
     });
   }

@@ -22,6 +22,12 @@ export class User {
   @Column()
   @Expose({ groups: ['TO-DTO'] })
   name: string;
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  team: string;
+  @Column({ default: '0365518929' })
+  @Expose({ groups: ['TO-DTO'] })
+  phoneNumber: string;
   @Column()
   @Expose({ groups: ['NOT-TO-DTO'] })
   hashedPassword: string;
@@ -40,13 +46,19 @@ export class User {
   @UpdateDateColumn({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   updateAt: Date;
+  @Expose({ groups: ['NOT-TO-DTO'] })
+  @Column({ type: String, nullable: true })
+  hashedRefreshToken: string | null;
+  @Expose({ groups: ['NOT-TO-DTO'] })
+  @Column({ type: String, nullable: true })
+  hashedAccessToken: string | null;
   @ManyToMany(() => Role, (role) => role.users, {
     onDelete: 'CASCADE',
   })
   @Expose({ name: 'roleIDs', groups: ['TO-DTO'] })
   @Type(() => Role)
   @Transform(
-    ({ value }: { value: Role[] }) => value.map((role: Role) => role.roleID),
+    ({ value }: { value: Role[] }) => value?.map((role: Role) => role.roleID),
     {
       toPlainOnly: true,
     },
@@ -65,7 +77,7 @@ export class User {
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
-  manager: User;
+  manager: User | null;
   @OneToMany(() => Appointment, (appointment) => appointment.takenOverUser)
   @Expose({ groups: ['NOT-TO-DTO'] })
   takenOverAppointments: Appointment[];

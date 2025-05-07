@@ -32,9 +32,12 @@ export class UserConstraint {
       if (role == process.env.ADMIN_ROLEID) IsAdmin = 1;
     }
     if (requestorID == user.username) return IsAdmin;
-    if (!user.manager && IsAdmin) return 1;
-    if (user.manager && user.manager.username == requestorID) {
-      user.roles.forEach((role) => {
+
+    if (
+      (user.manager && user.manager.username == requestorID) ||
+      (!user.manager && IsAdmin)
+    ) {
+      (user.roles ?? []).forEach((role) => {
         if (
           role.roleID == process.env.SUPER_ADMIN_ROLEID ||
           role.roleID == process.env.ADMIN_ROLEID
@@ -69,7 +72,7 @@ export class UserConstraint {
     if (resource.manager)
       if (resource.manager.username != requestorID)
         throw new HttpException(
-          'You are not the manager of this house',
+          'You are not the manager of this resource',
           HttpStatus.FORBIDDEN,
         );
     return 0;
@@ -88,11 +91,11 @@ export class UserConstraint {
     if (exist)
       throw new HttpException(
         `username:${username}  already exists`,
-        HttpStatus.NOT_FOUND,
+        HttpStatus.CONFLICT,
       );
   }
 
-  async UserIsAlive(username: string | undefined) {
+  async UserIsAlive(username: string | undefined | null) {
     if (username || username == '') {
       const exist = await this.userRepository.findOne({
         where: {
@@ -115,7 +118,7 @@ export class UserConstraint {
     }
   }
 
-  async UsersIsNotAlive(usernames: string[] | undefined) {
+  async UsersIsNotAlive(usernames: string[] | undefined | null) {
     if (usernames) {
       const exists = await this.userRepository.find({
         where: {
@@ -141,7 +144,7 @@ export class UserConstraint {
     }
   }
 
-  async UserIsPersisted(username: string | undefined) {
+  async UserIsPersisted(username: string | undefined | null) {
     if (username || username == '') {
       const exist = await this.userRepository.findOne({
         where: {
@@ -163,7 +166,7 @@ export class UserConstraint {
 
   JustAdminCanAssignRoles(
     requestorRoleIDs: string[],
-    roleIDs: string[] | undefined,
+    roleIDs: string[] | undefined | null,
   ) {
     let IsAdmin = 0;
     for (const role of requestorRoleIDs) {
@@ -223,7 +226,7 @@ export class UserConstraint {
           HttpStatus.FORBIDDEN,
         );
       else if (IsAdmin == 1) {
-        user.roles.forEach((role) => {
+        (user.roles ?? []).forEach((role) => {
           if (
             role.roleID == process.env.SUPER_ADMIN_ROLEID ||
             role.roleID == process.env.ADMIN_ROLEID
@@ -245,7 +248,7 @@ export class UserConstraint {
         );
   }
 
-  async ManagerIsAlive(managerID: string | undefined) {
+  async ManagerIsAlive(managerID: string | undefined | null) {
     const manager = await this.UserIsAlive(managerID);
     return manager;
   }

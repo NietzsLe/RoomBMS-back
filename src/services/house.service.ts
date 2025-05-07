@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateHouseDTO, UpdateHouseDTO } from 'src/dtos/houseDTO';
+import {
+  CreateHouseDTO,
+  MaxResponseHouseDTO,
+  UpdateHouseDTO,
+} from 'src/dtos/houseDTO';
 import { HouseMapper } from 'src/mappers/house.mapper';
 import { House } from 'src/models/house.model';
 import {
@@ -30,6 +34,7 @@ export class HouseService {
 
   async findAll(
     houseID: number,
+    name: string,
     offsetID: number,
     selectAndRelationOption: {
       select: FindOptionsSelect<House>;
@@ -41,6 +46,7 @@ export class HouseService {
         ...(houseID || houseID == 0
           ? { houseID: houseID }
           : { houseID: MoreThan(offsetID) }),
+        ...(name ? { name: name } : {}),
       },
       order: {
         houseID: 'ASC',
@@ -52,6 +58,35 @@ export class HouseService {
     //console.log('@Service: \n', houses);
     return houses.map((house) => HouseMapper.EntityToBaseDTO(house));
   }
+
+  async getMaxHouse(name: string) {
+    const query = this.houseRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.houseID)', 'houseID');
+
+    if (name) {
+      query.where('entity.name = :name', { name: name });
+    }
+    const dto = (await query.getRawOne()) as MaxResponseHouseDTO;
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: number) {
+    console.log('@Service: autocomplete');
+    const houses = await this.houseRepository.find({
+      where: {
+        houseID: MoreThan(offsetID),
+      },
+      order: {
+        houseID: 'ASC',
+      },
+      select: { houseID: true, name: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    //console.log('@Service: \n', houses);
+    return houses.map((house) => HouseMapper.EntityToBaseDTO(house));
+  }
+
   async findInactiveAll(houseID: number, offsetID: number) {
     const houses = await this.houseRepository.find({
       where: {
@@ -82,7 +117,11 @@ export class HouseService {
     ]);
     if (result[0]) house.administrativeUnit = result[0];
     this.userProcess.CreatorIsDefaultManager(requestorID, house);
-    await this.houseRepository.insert(house);
+
+    const insertResult = await this.houseRepository.insert(house);
+    return {
+      houseID: (insertResult.identifiers[0] as { houseID: number }).houseID,
+    };
   }
 
   async update(
@@ -91,10 +130,12 @@ export class HouseService {
     updateHouseDTO: UpdateHouseDTO,
   ) {
     const house = HouseMapper.DTOToEntity(updateHouseDTO);
+
+    console.log('@Service: \n', updateHouseDTO);
     const result = await Promise.all([
-      this.constraint.HouseIsAlive(house.houseID),
+      this.constraint.HouseIsAlive(updateHouseDTO.houseID),
       this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
-        house.administrativeUnitID(),
+        updateHouseDTO.administrativeUnitID,
       ),
       this.userConstraint.ManagerIsAlive(updateHouseDTO.managerID),
     ]);
@@ -109,7 +150,6 @@ export class HouseService {
     this.userConstraint.JustAdminCanUpdateManagerField(IsAdmin, updateHouseDTO);
     if (result[1]) house.administrativeUnit = result[1];
     if (result[2]) house.manager = result[2];
-    //console.log('@Service: \n', house);
     await this.houseRepository.update(house.houseID, house);
   }
 

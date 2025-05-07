@@ -14,12 +14,24 @@ import { Room } from './room.model';
 import { DepositAgreement } from './depositAgreement.model';
 import { Tenant } from './tenant.model';
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
+import { House } from './house.model';
+
+export enum AppointmentStatus {
+  SUCCESS = 'success',
+  NOT_YET_RECEIVED = 'not-yet-received',
+  STOPPED = 'stopped',
+  EXTRA_CARE = 'extra-care',
+}
 
 @Entity('appointment') // Tên bảng trong cơ sở dữ liệu
 export class Appointment {
   @PrimaryGeneratedColumn()
   @Expose({ groups: ['TO-DTO'] })
   appointmentID: number; // Khóa chính, tự động tăng
+
+  @Column({ default: '' })
+  @Expose({ groups: ['TO-DTO'] })
+  name: string; // Khóa chính, tự động tăng
 
   @Column({ type: 'int', nullable: true })
   @Expose({ groups: ['TO-DTO'] })
@@ -33,7 +45,7 @@ export class Appointment {
   @Expose({ groups: ['TO-DTO'] })
   noVehicles: number; // Số lượng phương tiện
 
-  @Column({ nullable: true })
+  @Column({ default: false })
   @Expose({ groups: ['TO-DTO'] })
   pet: boolean; // Có mang theo thú cưng không
 
@@ -65,9 +77,13 @@ export class Appointment {
   @Expose({ groups: ['TO-DTO'] })
   failReason: string;
 
-  @Column({ default: 'not-yet-received' })
+  @Column({
+    default: 'not-yet-received',
+    type: 'enum',
+    enum: AppointmentStatus,
+  })
   @Expose({ groups: ['TO-DTO'] })
-  status: string;
+  status: AppointmentStatus;
 
   @ManyToOne(() => User, (user) => user.takenOverAppointments, {
     nullable: true,
@@ -75,14 +91,22 @@ export class Appointment {
   })
   @JoinColumn({ name: 'takenOverUsername' })
   @Expose({ name: 'takenOverUsername', groups: ['TO-DTO'] })
-  takenOverUser: User;
+  @Type(() => User)
+  @Transform(({ value }: { value: User }) => value?.username, {
+    toPlainOnly: true,
+  })
+  takenOverUser: User | null;
   @ManyToOne(() => User, (user) => user.madeAppointments, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'madeUsername' })
   @Expose({ name: 'madeUsername', groups: ['TO-DTO'] })
-  madeUser: User;
+  @Type(() => User)
+  @Transform(({ value }: { value: User }) => value?.username, {
+    toPlainOnly: true,
+  })
+  madeUser: User | null;
 
   @ManyToOne(() => Room, (room) => room.appointments, {
     nullable: true,
@@ -94,7 +118,19 @@ export class Appointment {
   })
   @Expose({ name: 'roomID', groups: ['TO-DTO'] })
   @JoinColumn({ name: 'roomID' })
-  room: Room; // Mối quan hệ với Room
+  room: Room | null; // Mối quan hệ với Room
+
+  @ManyToOne(() => House, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Type(() => House)
+  @Transform(({ value }: { value: House }) => value?.houseID, {
+    toPlainOnly: true,
+  })
+  @Expose({ name: 'houseID', groups: ['NOT-TO-DTO'] })
+  @JoinColumn({ name: 'houseID' })
+  house: House; // Mối quan hệ với Room
 
   @OneToOne(
     () => DepositAgreement,
@@ -108,9 +144,9 @@ export class Appointment {
       toPlainOnly: true,
     },
   )
-  @Expose({ name: 'depositAgreementID', groups: ['NOT-TO-DTO'] })
+  @Expose({ name: 'depositAgreementID', groups: ['TO-DTO'] })
   @JoinColumn({ name: 'depositAgreementID' })
-  depositAgreement: DepositAgreement; // Mối quan hệ với DepositAgreement
+  depositAgreement: DepositAgreement | null; // Mối quan hệ với DepositAgreement
 
   @ManyToOne(() => Tenant, (tenant) => tenant.appointments, {
     nullable: true,
@@ -122,7 +158,7 @@ export class Appointment {
   })
   @Expose({ name: 'tenantID', groups: ['TO-DTO'] })
   @JoinColumn({ name: 'tenantID' })
-  tenant: Tenant; // Mối quan hệ với Tenant
+  tenant: Tenant | null; // Mối quan hệ với Tenant
 
   @ManyToOne(() => User, {
     nullable: true,
@@ -134,5 +170,5 @@ export class Appointment {
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
-  manager: User;
+  manager: User | null;
 }

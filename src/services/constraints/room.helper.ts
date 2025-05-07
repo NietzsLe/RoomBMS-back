@@ -9,7 +9,7 @@ export class RoomConstraint {
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
   ) {}
-  async RoomIsAlive(roomID: number | undefined) {
+  async RoomIsAlive(roomID: number | undefined | null) {
     if (roomID || roomID == 0) {
       const exist = await this.roomRepository.findOne({
         where: {
@@ -32,7 +32,7 @@ export class RoomConstraint {
     }
   }
 
-  async RoomsIsNotAlive(roomIDs: number[] | undefined) {
+  async RoomsIsNotAlive(roomIDs: number[] | undefined | null) {
     if (roomIDs) {
       const exists = await this.roomRepository.find({
         where: {
@@ -57,7 +57,7 @@ export class RoomConstraint {
     }
   }
 
-  async RoomIsPersisted(roomID: number | undefined) {
+  async RoomIsPersisted(roomID: number | undefined | null) {
     if (roomID || roomID == 0) {
       const exist = await this.roomRepository.findOne({
         where: {

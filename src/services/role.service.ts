@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateRoleDTO } from 'src/dtos/roleDTO';
+import { CreateRoleDTO, MaxResponseRoleDTO } from 'src/dtos/roleDTO';
 import { RoleMapper } from 'src/mappers/role.mapper';
 import { Role } from 'src/models/role.model';
 
@@ -42,11 +42,39 @@ export class RoleService {
     return roles.map((role) => RoleMapper.EntityToBaseDTO(role));
   }
 
+  async getMaxRole() {
+    const dto = (await this.roleRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.roleID)', 'roleID')
+      .getRawOne()) as MaxResponseRoleDTO;
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: string) {
+    console.log('@Service: autocomplete');
+    const roles = await this.roleRepository.find({
+      where: {
+        roleID: MoreThan(offsetID),
+      },
+      order: {
+        roleID: 'ASC',
+      },
+      select: { roleID: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    //console.log('@Service: \n', roles);
+    return roles.map((role) => RoleMapper.EntityToBaseDTO(role));
+  }
+
   async create(createRoleDTOs: CreateRoleDTO) {
     const role = RoleMapper.DTOToEntity(createRoleDTOs);
     //console.log('@Service: \n', role);
     await this.constraint.RoleIsNotPersisted(role.roleID);
-    await this.roleRepository.insert(role);
+
+    const insertResult = await this.roleRepository.insert(role);
+    return {
+      roleID: (insertResult.identifiers[0] as { roleID: string }).roleID,
+    };
   }
 
   async hardRemove(ID: string): Promise<void> {

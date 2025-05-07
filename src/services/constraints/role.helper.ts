@@ -19,10 +19,10 @@ export class RoleConstraint {
       },
     });
     if (exist)
-      throw new HttpException(`${ID} already exist`, HttpStatus.NOT_FOUND);
+      throw new HttpException(`${ID} already exist`, HttpStatus.CONFLICT);
   }
 
-  async RoleIsPersisted(ID: string | undefined) {
+  async RoleIsPersisted(ID: string | undefined | null) {
     if (ID || ID == '') {
       const role = await this.roleRepository.findOne({
         where: {
@@ -50,7 +50,7 @@ export class RoleConstraint {
       );
   }
 
-  async RolesIsPersisted(roleIDs: string[] | undefined) {
+  async RolesIsPersisted(roleIDs: string[] | undefined | null) {
     if (roleIDs) {
       const roles = await this.roleRepository.find({
         select: {

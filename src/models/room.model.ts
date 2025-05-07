@@ -17,6 +17,7 @@ import { House } from './house.model';
 import { Appointment } from './appointment.model';
 import { Image } from './image.model';
 import { User } from './user.model';
+import { AdministrativeUnit } from './administrativeUnit.model';
 
 @Entity('room') // Tên bảng trong cơ sở dữ liệu
 export class Room {
@@ -32,7 +33,7 @@ export class Room {
   @Expose({ groups: ['TO-DTO'] })
   description: string; // Mô tả phòng (có thể null)
 
-  @Column({ type: 'decimal', nullable: true })
+  @Column({ type: 'int', nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   price: number; // Giá phòng
 
@@ -156,13 +157,13 @@ export class Room {
   @Transform(({ value }: { value: House }) => value?.houseID, {
     toPlainOnly: true,
   })
-  house: House; // Mối quan hệ với House
+  house: House | null; // Mối quan hệ với House
 
   @OneToMany(() => Image, (image) => image.room, {})
   @Expose({ name: 'imageNames', groups: ['TO-DTO'] })
   @Type(() => Image)
   @Transform(
-    ({ value }: { value: Image[] }) => value.map((image) => image.imageName),
+    ({ value }: { value: Image[] }) => value?.map((image) => image.imageName),
     {
       toPlainOnly: true,
     },
@@ -183,5 +184,17 @@ export class Room {
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
-  manager: User;
+  manager: User | null;
+
+  @ManyToOne(() => AdministrativeUnit, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Expose({ groups: ['NOT-TO-DTO'] })
+  @JoinColumn([
+    { name: 'provinceCode', referencedColumnName: 'provinceCode' },
+    { name: 'districtCode', referencedColumnName: 'districtCode' },
+    { name: 'wardCode', referencedColumnName: 'wardCode' },
+  ])
+  administrativeUnit: AdministrativeUnit; // Mối quan hệ với AdministrativeUnit
 }

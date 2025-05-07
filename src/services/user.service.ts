@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDTO, UpdateUserDTO } from 'src/dtos/userDTO';
+import {
+  CreateUserDTO,
+  MaxResponseUserDTO,
+  UpdateUserDTO,
+} from 'src/dtos/userDTO';
 import { UserMapper } from 'src/mappers/user.mapper';
 import { User } from 'src/models/user.model';
 import {
@@ -26,6 +30,7 @@ export class UserService {
 
   async findAll(
     username: string,
+    name: string,
     offsetUsername: string,
     selectAndRelationOption: {
       select: FindOptionsSelect<User>;
@@ -37,6 +42,7 @@ export class UserService {
         ...(username
           ? { username: username }
           : { username: MoreThan(offsetUsername) }),
+        ...(name ? { name: name } : {}),
       },
       order: {
         username: 'ASC',
@@ -48,6 +54,36 @@ export class UserService {
     //console.log('@Service: \n', users);
     return users.map((user) => UserMapper.EntityToBaseDTO(user));
   }
+
+  async getMaxUser(name: string) {
+    const query = this.userRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.username)', 'username');
+    if (name) {
+      query.where('entity.name = :name', { name: name });
+    }
+
+    const dto = (await query.getRawOne()) as MaxResponseUserDTO;
+
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: string) {
+    console.log('@Service: autocomplete');
+    const users = await this.userRepository.find({
+      where: {
+        username: MoreThan(offsetID),
+      },
+      order: {
+        username: 'ASC',
+      },
+      select: { username: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    //console.log('@Service: \n', users);
+    return users.map((user) => UserMapper.EntityToBaseDTO(user));
+  }
+
   async findInactiveAll(username: string, offsetUsername: string) {
     const users = await this.userRepository.find({
       where: {
@@ -73,7 +109,10 @@ export class UserService {
     //console.log('@Service: \n', user);
     await this.constraint.UserIsNotPersisted(user.username);
     this.proccess.CreatorIsDefaultManager(requestorID, user);
-    await this.userRepository.insert(user);
+    const insertResult = await this.userRepository.insert(user);
+    return {
+      username: (insertResult.identifiers[0] as { username: string }).username,
+    };
   }
 
   async update(
@@ -82,11 +121,13 @@ export class UserService {
     updateUserDTO: UpdateUserDTO,
   ) {
     const user = UserMapper.DTOToEntity(updateUserDTO);
+    if (updateUserDTO.managerID == null) user.manager = null;
     const result = await Promise.all([
       this.constraint.UserIsAlive(user.username),
       this.roleConstraint.RolesIsPersisted(updateUserDTO.roleIDs),
       this.constraint.ManagerIsAlive(updateUserDTO.managerID),
     ]);
+    console.log('@Service: \n', user);
     let IsAdmin = 0;
     if (result[0]) {
       IsAdmin = this.constraint.RequestorManageUser(
@@ -105,9 +146,13 @@ export class UserService {
       updateUserDTO.roleIDs,
     );
     this.constraint.CantChangeManagerByYourself(requestorID, user);
-    if (result[1]) user.roles = result[1];
+    if (result[1]) {
+      user.roles = result[1];
+      user.hashedAccessToken = null;
+      user.hashedRefreshToken = null;
+    }
     if (result[2]) user.manager = result[2];
-    //console.log('@Service: \n', user);
+
     await this.userRepository.save(user);
   }
 

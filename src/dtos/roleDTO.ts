@@ -13,3 +13,20 @@ export class CreateRoleDTO {
   @IsString()
   roleID: string;
 }
+export class CreateResponseRoleDTO {
+  @ApiProperty()
+  @IsString()
+  roleID: string;
+}
+
+export class AutocompleteRoleDTO {
+  @ApiProperty()
+  @IsString()
+  roleID: string;
+}
+
+export class MaxResponseRoleDTO {
+  @ApiProperty()
+  @IsString()
+  roleID: string;
+}

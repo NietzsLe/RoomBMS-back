@@ -2,8 +2,8 @@ import { Expose } from '@nestjs/class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsOptional,
   IsString,
+  ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -80,6 +80,16 @@ export class CreateAccessRuleDTO {
   @ApiProperty({ type: [String] })
   updateAttrDTOBlackList: string[];
 }
+
+export class CreateResponseAccessRuleDTO {
+  @IsString()
+  @ApiProperty()
+  resourceID: string;
+  @IsString()
+  @ApiProperty()
+  roleID: string;
+}
+
 export class UpdateAccessRuleDTO {
   @IsString()
   @ApiProperty()
@@ -87,33 +97,33 @@ export class UpdateAccessRuleDTO {
   @IsString()
   @ApiProperty()
   roleID: string;
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsBoolean()
   @ApiProperty({ required: false })
   readPerm?: boolean;
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsBoolean()
   @ApiProperty({ required: false })
   updatePerm?: boolean;
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsBoolean()
   @ApiProperty({ required: false })
   createPerm?: boolean;
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsBoolean()
   @ApiProperty({ required: false })
   unlinkPerm?: boolean;
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [String] })
   readAttrDTOBlackList?: string[];
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [String] })
   createAttrDTOBlackList?: string[];
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [String] })

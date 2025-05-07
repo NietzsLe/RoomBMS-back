@@ -65,6 +65,7 @@ export class AuthGuard implements CanActivate {
       payload.roleIDs,
       resourceID,
       perm,
+      jwt,
     );
     request['resourceRequestRoleIDs'] = payload.roleIDs;
     request['resourceRequestUserID'] = payload.username;

@@ -9,6 +9,10 @@ import { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestApplication>(AppModule);
+
+  // const myService = app.get(Appointment); // 👈 Lấy injectable từ DI container
+
+  // const bot = new Telegraf(process.env.BOT_TOKEN!);
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -16,7 +20,6 @@ async function bootstrap() {
       stopAtFirstError: true,
       forbidNonWhitelisted: true,
       enableDebugMessages: true,
-      // forbidUnknownValues: true,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,

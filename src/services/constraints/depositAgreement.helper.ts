@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
+import { User } from 'src/models/user.model';
 import { In, IsNull, Not, Repository } from 'typeorm';
 
 @Injectable()
@@ -61,7 +62,9 @@ export class DepositAgreementConstraint {
     }
   }
 
-  async DepositAgreementIsPersisted(depositAgreementID: number | undefined) {
+  async DepositAgreementIsPersisted(
+    depositAgreementID: number | undefined | null,
+  ) {
     if (depositAgreementID || depositAgreementID == 0) {
       const exist = await this.depositAgreementRepository.findOne({
         where: {
@@ -93,7 +96,7 @@ export class DepositAgreementConstraint {
     });
     if (!exist)
       throw new HttpException(
-        `depositAgreement:${depositAgreementID} already exists`,
+        `depositAgreement:${depositAgreementID} does not exist`,
         HttpStatus.NOT_FOUND,
       );
     return exist;
@@ -101,4 +104,13 @@ export class DepositAgreementConstraint {
 }
 
 @Injectable()
-export class DepositAgreementProcess {}
+export class DepositAgreementProcess {
+  RequestorIsNegotiatorWhenCreate(
+    requestorID: string,
+    depositAgreement: DepositAgreement,
+  ) {
+    const user = new User();
+    user.username = requestorID;
+    depositAgreement.negotiator = user;
+  }
+}

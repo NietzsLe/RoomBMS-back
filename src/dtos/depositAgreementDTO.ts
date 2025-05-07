@@ -3,11 +3,14 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDate,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { DepositAgreementStatus } from 'src/models/depositAgreement.model';
 import { Room } from 'src/models/room.model';
 import { Tenant } from 'src/models/tenant.model';
 import { User } from 'src/models/user.model';
@@ -17,6 +20,10 @@ export class BaseDepositAgreementDTO {
   @ApiProperty({})
   @Expose()
   depositAgreementID: number; // Khóa chính, tự động tăng
+  @IsString()
+  @ApiProperty({})
+  @Expose()
+  name: string;
   @IsNumber()
   @ApiProperty({})
   @Expose()
@@ -45,10 +52,14 @@ export class BaseDepositAgreementDTO {
   @Expose()
   @ApiProperty({})
   bonus: number;
-  @IsDate()
+  @IsNumber()
   @ApiProperty({})
   @Expose()
   duration: number; // Thời gian thỏa thuận
+  @IsEnum(DepositAgreementStatus)
+  @ApiProperty({})
+  @Expose()
+  status: DepositAgreementStatus;
   @IsString()
   @ApiProperty({})
   @Expose()
@@ -139,14 +150,13 @@ export class CreateDepositAgreementDTO {
   @ApiProperty({ required: false })
   depositCompleteDate?: Date; // Ngày hoàn tất tiền đặt cọc
   @IsNumber()
+  @ApiProperty({})
+  commissionPer: number;
+  @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
-  commissionPer?: number;
-  @IsNumber()
-  @Expose()
-  @ApiProperty({ required: false })
   bonus?: number;
-  @IsDate()
+  @IsNumber()
   @ApiProperty({})
   duration: number; // Thời gian thỏa thuận
   @IsString()
@@ -157,8 +167,7 @@ export class CreateDepositAgreementDTO {
   @ApiProperty({})
   price: number; // Giá thỏa thuận
   @IsNumber()
-  @IsOptional()
-  @ApiProperty({ required: false })
+  @ApiProperty({})
   roomID: number; // Mối quan hệ với Room
   @IsNumber()
   @ApiProperty({})
@@ -173,7 +182,7 @@ export class UpdateDepositAgreementDTO {
   @ApiProperty({})
   depositAgreementID: number; // Khóa chính, tự động tăng
   @IsNumber()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   depositPrice?: number; // Tiền đặt cọc
   @IsNumber()
@@ -185,7 +194,7 @@ export class UpdateDepositAgreementDTO {
   @ApiProperty({ required: false })
   depositDeliverDate?: Date; // Ngày giao tiền đặt cọc
   @IsDate()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   agreementDate?: Date; // Ngày ký thỏa thuận
   @IsDate()
@@ -193,15 +202,19 @@ export class UpdateDepositAgreementDTO {
   @ApiProperty({ required: false })
   depositCompleteDate?: Date; // Ngày hoàn tất tiền đặt cọc
   @IsNumber()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   commissionPer?: number;
   @IsNumber()
-  @Expose()
+  @IsOptional()
   @ApiProperty({ required: false })
   bonus?: number;
-  @IsDate()
-  @IsOptional()
+  @IsEnum(DepositAgreementStatus)
+  @ApiProperty({ required: false, enum: DepositAgreementStatus })
+  @ValidateIf((_, value) => value !== undefined)
+  status?: DepositAgreementStatus;
+  @IsNumber()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   duration?: number; // Thời gian thỏa thuận
   @IsString()
@@ -209,11 +222,11 @@ export class UpdateDepositAgreementDTO {
   @ApiProperty({ required: false })
   note?: string; // Ghi chú
   @IsNumber()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   price?: number; // Giá thỏa thuận
   @IsNumber()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   roomID?: number; // Mối quan hệ với Room
   @IsNumber()
@@ -236,4 +249,25 @@ export class HardDeleteAndRecoverDepositAgreementDTO {
   @ApiProperty({ type: [Number] })
   @ArrayNotEmpty()
   depositAgreementIDs: number[];
+}
+
+export class CreateResponseDepositAgreementDTO {
+  @IsNumber()
+  @ApiProperty()
+  depositAgreementID: number;
+}
+
+export class AutocompleteDepositAgreementDTO {
+  @IsNumber()
+  @ApiProperty()
+  depositAgreementID: number;
+  @IsString()
+  @ApiProperty()
+  name: string;
+}
+
+export class MaxResponseDepositAgreementDTO {
+  @IsNumber()
+  @ApiProperty()
+  depositAgreementID: number;
 }

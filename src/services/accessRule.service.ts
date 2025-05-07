@@ -76,7 +76,13 @@ export class AccessRuleService {
       this.roleConstraint.RoleIsPersisted(accessRule.roleID),
     ]);
     if (result[1]) accessRule.role = result[1];
-    await this.accessRuleRepository.insert(accessRule);
+    const insertResult = await this.accessRuleRepository.insert(accessRule);
+    return {
+      resourceID: (insertResult.identifiers[0] as { resourceID: string })
+        .resourceID,
+      roleID: (insertResult.identifiers[0] as { roleID: { roleID: string } })
+        .roleID.roleID,
+    };
   }
 
   async update(updateAccessRuleDTO: UpdateAccessRuleDTO) {
@@ -94,7 +100,7 @@ export class AccessRuleService {
     ]);
     if (!ARexist)
       throw new HttpException(
-        `(${updateAccessRuleDTO.roleID}, ${updateAccessRuleDTO.resourceID})  already exists`,
+        `(${updateAccessRuleDTO.roleID}, ${updateAccessRuleDTO.resourceID}) does not exists`,
         HttpStatus.NOT_FOUND,
       );
     await this.accessRuleRepository.update(

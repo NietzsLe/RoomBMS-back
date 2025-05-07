@@ -35,7 +35,7 @@ export class Tenant {
   @Expose({ groups: ['TO-DTO'] })
   addressDetail: string; // Thông tin chi tiết về địa chỉ
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ nullable: true })
   @Expose({ groups: ['NOT-TO-DTO'] })
   deletedAt: Date | null; // Xem người thuê đã xóa chưa
 
@@ -65,7 +65,7 @@ export class Tenant {
     { name: 'districtCode', referencedColumnName: 'districtCode' },
     { name: 'wardCode', referencedColumnName: 'wardCode' },
   ])
-  administrativeUnit: AdministrativeUnit; // Mối quan hệ với AdministrativeUnitt
+  administrativeUnit: AdministrativeUnit | null; // Mối quan hệ với AdministrativeUnitt
 
   @Expose({ groups: ['TO-DTO'] })
   administrativeUnitID() {
@@ -97,5 +97,5 @@ export class Tenant {
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
-  manager: User;
+  manager: User | null;
 }

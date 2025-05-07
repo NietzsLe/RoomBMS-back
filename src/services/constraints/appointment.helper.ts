@@ -11,7 +11,7 @@ export class AppointmentConstraint {
     private appointmentRepository: Repository<Appointment>,
   ) {}
 
-  async AppointmentIsAlive(appointmentID: number | undefined) {
+  async AppointmentIsAlive(appointmentID: number | undefined | null) {
     if (appointmentID || appointmentID == 0) {
       const exist = await this.appointmentRepository.findOne({
         where: {
@@ -25,6 +25,7 @@ export class AppointmentConstraint {
           madeUser: true,
           room: true,
           depositAgreement: true,
+          manager: true,
         },
       });
       if (!exist)
@@ -35,7 +36,7 @@ export class AppointmentConstraint {
       return exist;
     }
   }
-  async AppointmentsIsNotAlive(appointmentIDs: number[] | undefined) {
+  async AppointmentsIsNotAlive(appointmentIDs: number[] | undefined | null) {
     if (appointmentIDs) {
       const exists = await this.appointmentRepository.find({
         where: {
@@ -62,7 +63,7 @@ export class AppointmentConstraint {
     }
   }
 
-  async AppointmentIsPersisted(appointmentID: number | undefined) {
+  async AppointmentIsPersisted(appointmentID: number | undefined | null) {
     if (appointmentID || appointmentID == 0) {
       const exist = await this.appointmentRepository.findOne({
         where: {
@@ -94,7 +95,7 @@ export class AppointmentConstraint {
     });
     if (!exist)
       throw new HttpException(
-        `appointment:${appointmentID} already exists`,
+        `appointment:${appointmentID} does not exist`,
         HttpStatus.NOT_FOUND,
       );
     return exist;
@@ -105,6 +106,34 @@ export class AppointmentConstraint {
       throw new HttpException(
         'Another user has taken over appointment',
         HttpStatus.CONFLICT,
+      );
+    }
+  }
+
+  IsRelatedUser(
+    requestorRoleIDs: string[],
+    requestorID: string,
+    appointment: Appointment,
+  ) {
+    for (const role of requestorRoleIDs) {
+      if (
+        role == process.env.SUPER_ADMIN_ROLEID ||
+        role == process.env.ADMIN_ROLEID
+      )
+        return;
+    }
+    if (
+      !(
+        (appointment.takenOverUser &&
+          requestorID == appointment.takenOverUser.username) ||
+        (appointment.madeUser &&
+          requestorID == appointment.madeUser.username) ||
+        (appointment.manager && requestorID == appointment.manager.username)
+      )
+    ) {
+      throw new HttpException(
+        'You are not a related user of this resource',
+        HttpStatus.FORBIDDEN,
       );
     }
   }

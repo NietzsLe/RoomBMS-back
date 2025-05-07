@@ -10,7 +10,7 @@ export class HouseConstraint {
     private houseRepository: Repository<House>,
   ) {}
 
-  async HouseIsAlive(houseID: number | undefined) {
+  async HouseIsAlive(houseID: number | undefined | null) {
     if (houseID || houseID == 0) {
       const exist = await this.houseRepository.findOne({
         where: {
@@ -33,7 +33,7 @@ export class HouseConstraint {
       return exist;
     }
   }
-  async HousesIsNotAlive(houseIDs: number[] | undefined) {
+  async HousesIsNotAlive(houseIDs: number[] | undefined | null) {
     if (houseIDs) {
       const exists = await this.houseRepository.find({
         where: {
@@ -59,7 +59,7 @@ export class HouseConstraint {
     }
   }
 
-  async HouseIsPersisted(houseID: number | undefined) {
+  async HouseIsPersisted(houseID: number | undefined | null) {
     if (houseID || houseID == 0) {
       const exist = await this.houseRepository.findOne({
         where: {
@@ -92,7 +92,7 @@ export class HouseConstraint {
       });
       if (!exist)
         throw new HttpException(
-          `house:${houseID} already exists`,
+          `house:${houseID} does not exist`,
           HttpStatus.NOT_FOUND,
         );
       return exist;

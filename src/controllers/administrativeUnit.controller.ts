@@ -29,6 +29,7 @@ import {
 } from './pipes/notDuplicateValue.pipe';
 
 @Controller('administrative-units')
+@UseGuards(AuthGuard)
 @ApiCookieAuth('JWTAuth')
 export class AdministrativeUnitController {
   constructor(private administrativeUnitService: AdministrativeUnitService) {}

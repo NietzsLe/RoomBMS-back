@@ -1,15 +1,25 @@
 import { Expose, Transform } from '@nestjs/class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsDate,
+  IsEnum,
   IsNumber,
   IsOptional,
+  IsPhoneNumber,
   IsString,
+  ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { DepositAgreement } from 'src/models/depositAgreement.model';
+import { AdministrativeUnit } from 'src/models/administrativeUnit.model';
+import { AppointmentStatus } from 'src/models/appointment.model';
+import {
+  DepositAgreement,
+  DepositAgreementStatus,
+} from 'src/models/depositAgreement.model';
 import { Room } from 'src/models/room.model';
 import { Tenant } from 'src/models/tenant.model';
 import { User } from 'src/models/user.model';
@@ -19,6 +29,10 @@ export class BaseAppointmentDTO {
   @ApiProperty({})
   @Expose()
   appointmentID: number; // Khóa chính, tự động tăng
+  @IsString()
+  @ApiProperty({})
+  @Expose()
+  name: string;
   @IsNumber()
   @ApiProperty({})
   @Expose()
@@ -63,10 +77,10 @@ export class BaseAppointmentDTO {
   @ApiProperty({})
   @Expose()
   failReason: string;
-  @IsString()
+  @IsEnum(AppointmentStatus)
   @ApiProperty({})
   @Expose()
-  status: string;
+  status: AppointmentStatus;
   @IsString()
   @ApiProperty({})
   @Expose({ name: 'takenOverUser', groups: ['relation'] })
@@ -155,7 +169,7 @@ export class CreateAppointmentDTO {
   @ApiProperty({ required: false })
   noVehicles?: number; // Số lượng phương tiện
   @IsBoolean()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   pet?: boolean; // Có mang theo thú cưng không
   @IsString()
@@ -167,7 +181,6 @@ export class CreateAppointmentDTO {
   appointmentTime: Date; // Thời gian cuộc hẹn
   @IsString()
   @ApiProperty({})
-  @Expose()
   address: string;
   @IsNumber()
   @IsOptional()
@@ -195,7 +208,7 @@ export class UpdateAppointmentDTO {
   @ApiProperty({ required: false })
   noVehicles?: number; // Số lượng phương tiện
   @IsBoolean()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   pet?: boolean; // Có mang theo thú cưng không
   @IsString()
@@ -203,21 +216,21 @@ export class UpdateAppointmentDTO {
   @ApiProperty({ required: false })
   note?: string; // Ghi chú
   @IsDate()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   appointmentTime?: Date; // Thời gian cuộc hẹn
   @IsString()
   @ApiProperty({})
-  @Expose()
+  @ValidateIf((_, value) => value !== undefined)
   address?: string;
   @IsString()
   @ApiProperty({ required: false })
   @IsOptional()
   failReason?: string;
-  @IsString()
-  @ApiProperty({ required: false })
-  @Expose()
-  status?: string;
+  @IsEnum(AppointmentStatus)
+  @ApiProperty({ required: false, enum: AppointmentStatus })
+  @ValidateIf((_, value) => value !== undefined)
+  status?: AppointmentStatus;
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
@@ -244,14 +257,86 @@ export class UpdateAppointmentDTO {
   managerID?: string;
 }
 
-export class TakeOverAppointmentDTO {
+export class TakenOverAppointmentDTO {
   @IsNumber()
   @ApiProperty({})
   appointmentID: number;
+}
+
+export class UpdateAppointmentForRelatedUserDTO {
+  @IsNumber()
+  @ApiProperty({})
+  appointmentID: number; // Khóa chính, tự động tăng
+  @IsString()
+  @ApiProperty({ required: false })
+  @IsOptional()
+  failReason?: string;
+  @IsEnum(AppointmentStatus)
+  @ApiProperty({ required: false, enum: AppointmentStatus })
+  @IsOptional()
+  status?: AppointmentStatus;
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  depositAgreementID?: number; // Mối quan hệ với DepositAgreement
+}
+
+export class OtherResourceDTO {
+  @IsNumber()
+  @ApiProperty({})
+  appointmentID: number; // Khóa chính, tự động tăng
+}
+
+export class UpdateDepositAgreementForRelatedUserDTO extends OtherResourceDTO {
+  @IsNumber()
+  @ApiProperty({})
+  depositAgreementID: number; // Khóa chính, tự động tăng
+  @IsEnum(DepositAgreementStatus)
+  @ApiProperty({ enum: DepositAgreementStatus })
+  @IsOptional()
+  status: DepositAgreementStatus;
+}
+
+export class UpdateTenantForRelatedUserDTO extends OtherResourceDTO {
+  @IsNumber() @ApiProperty({}) tenantID: number; // Khóa chính, tự động tăng
+
   @IsString()
   @IsOptional()
-  @ApiProperty({})
-  takenOverUsername: string;
+  @ApiProperty({ required: false })
+  name?: string; // Tên người thuê
+
+  @IsString()
+  @IsPhoneNumber('VN')
+  @IsOptional()
+  @ApiProperty({ required: false })
+  phoneNumber?: string; // Số điện thoại
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  addressDetail?: string; // Thông tin chi tiết về địa chỉ
+
+  @IsArray() // Kiểm tra xem đây có phải là một mảng không
+  @ArrayMinSize(3)
+  @ArrayMaxSize(3)
+  @IsNumber({}, { each: true }) // Kiểm tra từng phần tử trong mảng phải là string
+  @ApiProperty({ type: [Number], minItems: 3, maxItems: 3 })
+  @IsOptional()
+  @Expose({ name: 'administrativeUnit', groups: ['relation'] })
+  @Transform(
+    ({ value }: { value: number[] }) => {
+      if (value) {
+        const obj = new AdministrativeUnit();
+        obj.provinceCode = value[0];
+        obj.districtCode = value[1];
+        obj.wardCode = value[2];
+        return obj;
+      }
+      return null;
+    },
+    { toPlainOnly: true },
+  )
+  administrativeUnitID?: number[]; // Mối quan hệ với administrativeUnit
 }
 
 export class HardDeleteAndRecoverAppointmentDTO {
@@ -260,4 +345,25 @@ export class HardDeleteAndRecoverAppointmentDTO {
   @ApiProperty({ type: [Number] })
   @ArrayNotEmpty()
   appointmentIDs: number[];
+}
+
+export class CreateResponseAppointmentDTO {
+  @IsNumber()
+  @ApiProperty()
+  appointmentID: number;
+}
+
+export class AutocompleteAppointmentDTO {
+  @IsNumber()
+  @ApiProperty()
+  appointmentID: number;
+  @IsString()
+  @ApiProperty()
+  name: string;
+}
+
+export class MaxResponseAppointmentDTO {
+  @IsNumber()
+  @ApiProperty()
+  appointmentID: number;
 }

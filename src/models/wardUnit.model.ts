@@ -5,7 +5,7 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { DistrictUnit } from './districtUnit.model';
 import { Expose } from '@nestjs/class-transformer';
@@ -32,6 +32,8 @@ export class WardUnit {
   @Expose({ groups: ['NOT-TO-DTO'] })
   district: DistrictUnit;
   @Expose({ groups: ['NOT-TO-DTO'] })
-  @OneToMany(() => AdministrativeUnit, (unit) => unit.ward, {})
+  @OneToOne(() => AdministrativeUnit, (unit) => unit.ward, {
+    cascade: ['soft-remove', 'remove', 'recover'],
+  })
   administrativeUnit: AdministrativeUnit;
 }

@@ -75,11 +75,12 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
+    console.log('@Controller: ', 'refresh');
     const refreshToken = isString(request.cookies['refreshToken'])
       ? request.cookies['refreshToken']
       : undefined;
     if (!refreshToken)
-      throw new HttpException('Missing refresh token', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Missing refresh token', HttpStatus.UNAUTHORIZED);
     const tokens = await this.authService.refreshToken(refreshToken);
     response.cookie('accessToken', tokens.accessToken, {
       ...this.cookieSecurityOption,

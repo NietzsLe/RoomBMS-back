@@ -19,13 +19,15 @@ export class AdministrativeUnitConstraint {
     private provinceUnitRepository: Repository<ProvinceUnit>,
   ) {}
 
-  async AdministrativeUnitIsAlive(administrativeUnitID: number[] | undefined) {
+  async AdministrativeUnitIsAlive(
+    administrativeUnitID: number[] | undefined | null,
+  ) {
     if (administrativeUnitID) {
       const exist = await this.administrativeUnitRepository.findOne({
         where: {
-          provinceCode: administrativeUnitID[0],
+          provinceCode: administrativeUnitID[2],
           districtCode: administrativeUnitID[1],
-          wardCode: administrativeUnitID[2],
+          wardCode: administrativeUnitID[0],
         },
         select: {
           provinceCode: true,
@@ -48,7 +50,7 @@ export class AdministrativeUnitConstraint {
   }
 
   async AdministrativeUnitIsPersisted(
-    administrativeUnitID: number[] | undefined,
+    administrativeUnitID: number[] | undefined | null,
   ) {
     if (administrativeUnitID) {
       const exist = await this.administrativeUnitRepository.findOne({
@@ -89,7 +91,7 @@ export class AdministrativeUnitConstraint {
     });
     if (!exist)
       throw new HttpException(
-        `${administrativeUnitID[0]}, ${administrativeUnitID[1]}, ${administrativeUnitID[2]}  already exists`,
+        `${administrativeUnitID[0]}, ${administrativeUnitID[1]}, ${administrativeUnitID[2]} does not exist`,
         HttpStatus.NOT_FOUND,
       );
     return exist;
@@ -102,6 +104,7 @@ export class AdministrativeUnitConstraint {
             wardCode: wardCodes[idx],
             wardName: wardNames[idx],
           },
+          relations: { administrativeUnit: true },
           select: {
             wardCode: true,
             wardName: true,
@@ -177,6 +180,7 @@ export class AdministrativeUnitConstraint {
             wardCode: wardCodes[idx],
             wardName: wardNames[idx],
           },
+          relations: { administrativeUnit: true },
           select: {
             deletedAt: true,
             wardCode: true,
@@ -272,7 +276,7 @@ export class AdministrativeUnitConstraint {
   ) {
     exists.forEach(
       (item: WardUnit | DistrictUnit | ProvinceUnit, idx: number) => {
-        if (item.deletedAt != null)
+        if (item.deletedAt == null)
           throw new HttpException(
             `Pair (${Codes[idx]}, ${Names[idx]}) has not been soft remove`,
             HttpStatus.NOT_FOUND,

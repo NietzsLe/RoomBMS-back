@@ -72,7 +72,7 @@ export class AuthService {
     return {
       ...(await this.refreshTokenByPayload(
         user.username,
-        user.roles.map((role) => role.roleID),
+        (user.roles ?? []).map((role) => role.roleID),
       )),
       account: UserMapper.EntityToBaseWithAccessRightDTO(user),
     };
@@ -110,10 +110,11 @@ export class AuthService {
       );
     const saltOrRounds = 10;
     const hash = bcrypt.hashSync(newPassword, saltOrRounds);
-    const RoleIDs = user.roles.map((role) => role.roleID);
+    const RoleIDs = (user.roles ?? []).map((role) => role.roleID);
     user = new User();
     user.username = username;
     user.hashedPassword = hash;
+    console.log('@Service Change Password', user);
     await this.usersRepository.update(username, user);
     return {
       ...(await this.refreshTokenByPayload(user.username, RoleIDs)),
@@ -123,8 +124,9 @@ export class AuthService {
 
   async refreshToken(refreshToken: string) {
     try {
+      console.log('@Service: ', process.env.REFRESH_TOKEN_SECRET);
       const payload: TokenPayload = await this.jwtService.verifyAsync(
-        refreshToken,
+        refreshToken.split(' ')[1],
         {
           secret: process.env.REFRESH_TOKEN_SECRET,
         },
@@ -141,6 +143,7 @@ export class AuthService {
     roleIDs: string[],
     resourceID: string,
     perm: PermTypeEnum,
+    accessToken: string,
   ) {
     const perms = {};
     perms[perm] = true;
@@ -149,7 +152,13 @@ export class AuthService {
         where: {
           username: username,
         },
-        select: { username: true, isDisabled: true, expiryTime: true },
+        select: {
+          username: true,
+          isDisabled: true,
+          expiryTime: true,
+          hashedAccessToken: true,
+        },
+        relations: { roles: true },
       }),
       this.accessRulesRepository.find({
         where: { roleID: In(roleIDs), resourceID: resourceID, ...perms },
@@ -174,8 +183,15 @@ export class AuthService {
     else if (user.expiryTime && user.expiryTime <= new Date())
       throw new HttpException(
         `user:${username} acccount was exprired`,
-        HttpStatus.FORBIDDEN,
+        HttpStatus.NOT_ACCEPTABLE,
       );
+    else if (
+      !user.hashedAccessToken ||
+      (user.hashedAccessToken &&
+        !bcrypt.compareSync('Bearer ' + accessToken, user.hashedAccessToken))
+    ) {
+      throw new UnauthorizedException();
+    }
 
     if (accessRules.length != 0) {
       //console.log('@Service: \n', accessRules);
@@ -221,7 +237,7 @@ export class AuthService {
       roleIDs: roleIDs,
       username: username,
     };
-    return {
+    const out = {
       accessToken:
         'Bearer ' +
         (await this.jwtService.signAsync(accessPayload, {
@@ -235,5 +251,15 @@ export class AuthService {
           expiresIn: process.env.REFRESH_TOKEN_EXPIRATION_TIME,
         })),
     };
+    const saltOrRounds = 10;
+    const hashes = await Promise.all([
+      await bcrypt.hash(out.refreshToken, saltOrRounds),
+      await bcrypt.hash(out.accessToken, saltOrRounds),
+    ]);
+    const updatedUser = new User();
+    updatedUser.hashedRefreshToken = hashes[0];
+    updatedUser.hashedAccessToken = hashes[1];
+    await this.usersRepository.update(username, updatedUser);
+    return out;
   }
 }

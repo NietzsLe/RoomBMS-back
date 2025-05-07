@@ -85,6 +85,9 @@ import { TenantController } from './controllers/tenant.controller';
 import { AdministrativeUnitController } from './controllers/administrativeUnit.controller';
 import { ResourceManageServive } from './services/resourceManage.service';
 import { ResourceManageController } from './controllers/resourceManage.controller';
+import { SupportServiceController } from './controllers/supportService.controller';
+import { ChatGroup } from './models/chatGroup.model';
+import { TelegramBotService } from './services/telegramBot.service';
 
 @Module({
   imports: [
@@ -116,6 +119,7 @@ import { ResourceManageController } from './controllers/resourceManage.controlle
       WardUnit,
       DistrictUnit,
       ProvinceUnit,
+      ChatGroup,
     ]),
     ThrottlerModule.forRoot({
       throttlers: [
@@ -126,7 +130,7 @@ import { ResourceManageController } from './controllers/resourceManage.controlle
         },
       ],
     }),
-    CacheModule.register({ ttl: 5000 }),
+    CacheModule.register({ ttl: 10000, isGlobal: true }),
     MulterModule.register({
       limits: {
         fileSize:
@@ -148,6 +152,7 @@ import { ResourceManageController } from './controllers/resourceManage.controlle
     TenantController,
     AdministrativeUnitController,
     ResourceManageController,
+    SupportServiceController,
   ],
   providers: [
     UserService,
@@ -183,6 +188,7 @@ import { ResourceManageController } from './controllers/resourceManage.controlle
     AdministrativeUnitConstraint,
     AdministrativeUnitProcess,
     ResourceManageServive,
+    TelegramBotService,
 
     {
       provide: APP_GUARD,

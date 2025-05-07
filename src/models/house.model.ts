@@ -33,7 +33,7 @@ export class House {
   @Expose({ groups: ['TO-DTO'] })
   ownerPhone: string; // Số điện thoại của chủ sở hữu
 
-  @Column({ nullable: true })
+  @Column()
   @Expose({ groups: ['TO-DTO'] })
   addressDetail: string; // Thông tin chi tiết về địa chỉ
 
@@ -54,7 +54,7 @@ export class House {
   updateAt: Date; // Thời điểm cập nhật thông tin nhà
 
   @OneToMany(() => Room, (room) => room.house)
-  @Expose({ groups: ['NOT-TO-DTO'] })
+  @Expose({ groups: ['TO-DTO'] })
   rooms: Room[]; // Mối quan hệ với Room
 
   @ManyToOne(() => AdministrativeUnit, {
@@ -67,7 +67,7 @@ export class House {
     { name: 'districtCode', referencedColumnName: 'districtCode' },
     { name: 'wardCode', referencedColumnName: 'wardCode' },
   ])
-  administrativeUnit: AdministrativeUnit; // Mối quan hệ với AdministrativeUnit
+  administrativeUnit: AdministrativeUnit | null; // Mối quan hệ với AdministrativeUnit
 
   @ManyToOne(() => User, {
     nullable: true,
@@ -79,7 +79,7 @@ export class House {
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
-  manager: User;
+  manager: User | null;
 
   @Expose({ groups: ['TO-DTO'] })
   administrativeUnitID() {

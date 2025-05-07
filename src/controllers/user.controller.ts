@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Patch,
   Post,
@@ -14,6 +15,7 @@ import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
   BaseUserDTO,
+  CreateResponseUserDTO,
   CreateUserDTO,
   HardDeleteAndRecoverUserDTO,
   UpdateUserDTO,
@@ -36,22 +38,26 @@ export class UserController {
   @Get()
   @ApiOkResponse({ type: [BaseUserDTO] })
   @ApiQuery({ name: 'username', required: false })
+  @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
     @Query('offsetID') offsetID: string = '',
     @Query('username') username: string = '',
+    @Query('name') name: string = '',
   ) {
     const blackList = request['resourceBlackListAttrs'] as string[];
     return await this.userService.findAll(
       username,
+      name,
       offsetID,
       createFindOptionSelectWithBlacklist(BaseUserDTO, blackList),
     );
   }
   @Get('inactive')
   @ApiOkResponse({ type: [BaseUserDTO] })
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'username', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   async findInactiveAll(
@@ -60,10 +66,11 @@ export class UserController {
   ) {
     return await this.userService.findInactiveAll(username, offsetID);
   }
+  @ApiOkResponse({ type: CreateResponseUserDTO })
   @Post()
   async create(@Req() request: Request, @Body() dto: CreateUserDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
-    await this.userService.create(requestorID, dto);
+    return await this.userService.create(requestorID, dto);
   }
   @Patch()
   async update(
@@ -89,7 +96,7 @@ export class UserController {
   async hardDelete(@Body(UsernamesCheckPipe) dto: HardDeleteAndRecoverUserDTO) {
     await this.userService.hardRemove(dto.usernames);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
   async recover(@Body(UsernamesCheckPipe) dto: HardDeleteAndRecoverUserDTO) {
     await this.userService.recover(dto.usernames);

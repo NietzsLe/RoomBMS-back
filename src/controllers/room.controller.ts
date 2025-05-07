@@ -3,7 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -15,13 +17,17 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
-import { DeleteImagesDTO } from 'src/dtos/roomImagesDTO';
+import {
+  DeleteImagesDTO,
+  UploadResponseImageDTO,
+} from 'src/dtos/roomImagesDTO';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RoomImageService } from 'src/services/roomImage.service';
 import { Request } from 'express';
 import { RoomService } from 'src/services/room.service';
 import {
   BaseRoomDTO,
+  CreateResponseRoomDTO,
   CreateRoomDTO,
   HardDeleteAndRecoverRoomDTO,
   UpdateRoomDTO,
@@ -53,33 +59,66 @@ export class RoomController {
   @ApiOkResponse({ type: [BaseRoomDTO] })
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
+  @ApiQuery({ name: 'provinceCode', required: false })
+  @ApiQuery({ name: 'districtCode', required: false })
+  @ApiQuery({ name: 'wardCode', required: false })
+  @ApiQuery({ name: 'houseID', required: false })
+  @ApiQuery({ name: 'minPrice', required: false })
+  @ApiQuery({ name: 'maxPrice', required: false })
+  @ApiQuery({ name: 'isHot', required: false })
+  @ApiQuery({ name: 'sortBy', required: false })
+  @ApiQuery({ name: 'name', required: false })
+  @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
-    @Query('offsetID') offsetID: number = 0,
-    @Query('roomID') roomID: number,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
+    @Query('provinceCode', new ParseIntPipe({ optional: true }))
+    provinceCode: number,
+    @Query('districtCode', new ParseIntPipe({ optional: true }))
+    districtCode: number,
+    @Query('wardCode', new ParseIntPipe({ optional: true })) wardCode: number,
+    @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
+    @Query('minPrice', new ParseIntPipe({ optional: true })) minPrice: number,
+    @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice: number,
+    @Query('isHot', new ParseBoolPipe({ optional: true })) isHot: boolean,
+    @Query('sortBy') sortBy: string,
+    @Query('name') name: string,
   ) {
     const blackList = request['resourceBlackListAttrs'] as string[];
     return await this.roomService.findAll(
       roomID,
       offsetID,
+      provinceCode,
+      districtCode,
+      wardCode,
+      houseID,
+      minPrice,
+      maxPrice,
+      isHot,
+      sortBy,
+      name,
       createFindOptionSelectWithBlacklist(BaseRoomDTO, blackList),
     );
   }
   @Get('inactive')
   @ApiOkResponse({ type: [BaseRoomDTO] })
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   async findInactiveAll(
-    @Query('offsetID') offsetID: number = 0,
-    @Query('roomID') roomID: number,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
   ) {
     return await this.roomService.findInactiveAll(roomID, offsetID);
   }
   @Post()
+  @ApiOkResponse({ type: CreateResponseRoomDTO })
   async create(@Req() request: Request, @Body() dto: CreateRoomDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
-    await this.roomService.create(requestorID, dto);
+    return await this.roomService.create(requestorID, dto);
   }
   @Patch()
   async update(@Req() request: Request, @Body() dto: UpdateRoomDTO) {
@@ -92,6 +131,7 @@ export class RoomController {
   @Post(':roomID/images')
   @UseInterceptors(FilesInterceptor('files'))
   @Post('upload')
+  @ApiOkResponse({ type: [UploadResponseImageDTO] })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

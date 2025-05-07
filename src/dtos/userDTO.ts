@@ -6,8 +6,10 @@ import {
   IsDate,
   IsOptional,
   IsString,
+  ValidateIf,
   ValidateNested,
 } from '@nestjs/class-validator';
+import { Optional } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
 import * as bcrypt from 'bcrypt';
@@ -23,6 +25,14 @@ export class BaseUserDTO {
   @IsString()
   @Expose()
   name: string;
+  @ApiProperty()
+  @IsString()
+  @Expose()
+  team: string;
+  @ApiProperty()
+  @IsString()
+  @Expose()
+  phoneNumber: string;
   @IsString()
   @Expose({ name: 'hashedPassword' })
   @Transform(
@@ -100,6 +110,9 @@ export class CreateUserDTO {
   name: string;
   @ApiProperty()
   @IsString()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsString()
   @Expose({ name: 'hashedPassword' })
   @Transform(
     ({ value }: { value: string }) => {
@@ -118,18 +131,24 @@ export class UpdateUserDTO {
   @IsString()
   username: string;
   @ApiProperty({ required: false })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   name?: string;
   @ApiProperty({ required: false })
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
-  @IsOptional()
+  phoneNumber?: string;
+  @ApiProperty({ required: false })
+  @IsString()
+  @ValidateIf((_, value) => value !== undefined)
   @Expose({ name: 'hashedPassword' })
   @Transform(
     ({ value }: { value: string }) => {
-      const saltOrRounds = 10;
-      const hash = bcrypt.hashSync(value, saltOrRounds);
-      return hash;
+      if (value) {
+        const saltOrRounds = 10;
+        const hash = bcrypt.hashSync(value, saltOrRounds);
+        return hash;
+      }
     },
     {
       toPlainOnly: true,
@@ -141,6 +160,10 @@ export class UpdateUserDTO {
   @IsOptional()
   @Type(() => Date)
   expiryTime?: Date;
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  team?: string;
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
@@ -151,15 +174,17 @@ export class UpdateUserDTO {
   @Expose({ name: 'manager' })
   @Transform(
     ({ value }: { value: string }) => {
-      const obj = new User();
-      obj.username = value;
-      return obj;
+      if (value) {
+        const obj = new User();
+        obj.username = value;
+        return obj;
+      } else if (value == null) return null;
     },
     { toPlainOnly: true },
   )
   managerID?: string;
   @ApiProperty({ type: [String], required: false })
-  @IsOptional()
+  @Optional()
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   roleIDs?: string[];
@@ -220,21 +245,6 @@ export class BaseUserWithAccessRightDTO {
   @IsString()
   @Expose()
   name: string;
-  @IsString()
-  @Expose({ name: 'hashedPassword' })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const saltOrRounds = 10;
-      const hash = bcrypt.hashSync(value, saltOrRounds);
-      return hash;
-    },
-    {
-      toPlainOnly: true,
-    },
-  )
-  @ApiProperty()
-  @Expose()
-  password: string;
   @IsDate()
   @Type(() => Date)
   @ApiProperty()
@@ -242,33 +252,13 @@ export class BaseUserWithAccessRightDTO {
   expiryTime: Date;
   @ApiProperty()
   @IsString()
-  @Expose({ name: 'manager', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const obj = new User();
-      obj.username = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
+  @Expose()
   managerID: string;
   @ApiProperty({ type: [String] })
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
-  @ArrayNotEmpty() // Kiểm tra mảng không rỗng
   @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
-  @Expose({ name: 'roles', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string[] }) => {
-      return value.map((item) => {
-        const obj = new Role();
-        obj.roleID = item;
-        return obj;
-      });
-    },
-    { toPlainOnly: true },
-  )
+  @Expose()
   roleIDs: string[];
-
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @ArrayNotEmpty() // Kiểm tra mảng không rỗng
   @ValidateNested()
@@ -276,4 +266,22 @@ export class BaseUserWithAccessRightDTO {
   @ApiProperty({ type: [AccessRuleWithoutRoleDTO] })
   @Expose()
   accessRights: AccessRuleWithoutRoleDTO[];
+}
+
+export class CreateResponseUserDTO {
+  @IsString()
+  @ApiProperty()
+  username: string;
+}
+
+export class AutocompleteUserDTO {
+  @ApiProperty()
+  @IsString()
+  username: string;
+}
+
+export class MaxResponseUserDTO {
+  @IsString()
+  @ApiProperty()
+  username: string;
 }

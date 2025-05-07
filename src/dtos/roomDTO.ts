@@ -7,9 +7,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
   ValidateNested,
 } from '@nestjs/class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { House } from 'src/models/house.model';
 import { Image } from 'src/models/image.model';
 import { User } from 'src/models/user.model';
@@ -257,7 +258,7 @@ export class BaseRoomDTO {
   managerID: string;
 }
 export class CreateRoomDTO {
-  @IsString() @IsOptional() @ApiProperty({ required: false }) name?: string; // Tên phòng
+  @IsString() @ApiProperty({}) name: string; // Tên phòng
 
   @IsString()
   @IsOptional()
@@ -281,12 +282,18 @@ export class CreateRoomDTO {
   @ApiProperty({ required: false })
   agreementDuration?: number; // Thời hạn hợp đồng
 
-  @IsString() @IsOptional() @ApiProperty({ required: false }) note?: string; // Ghi chú
-
-  @IsBoolean() @IsOptional() @ApiProperty({ required: false }) isHot?: boolean; // Phòng hiện tại có đang hot sale không
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  note?: string; // Ghi chú
 
   @IsBoolean()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
+  @ApiProperty({ required: false })
+  isHot?: boolean; // Phòng hiện tại có đang hot sale không
+
+  @IsBoolean()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   isEmpty?: boolean; // Phòng hiện tại có trống không
   @ValidateNested()
@@ -297,8 +304,8 @@ export class CreateRoomDTO {
   @ValidateNested()
   @Type(() => BaseAdditionInfo)
   @ApiProperty({ type: BaseAdditionInfo })
-  @Expose()
-  additionInfo: BaseAdditionInfo;
+  @IsOptional()
+  additionInfo?: BaseAdditionInfo;
 
   @IsString() @IsOptional() @ApiProperty({ required: false }) mapLink?: string; // Liên kết đến một địa điểm trên Google Maps
 
@@ -308,7 +315,10 @@ export class CreateRoomDTO {
 export class UpdateRoomDTO {
   @IsNumber() @ApiProperty({}) roomID: number; // Khóa chính, tự động tăng
 
-  @IsString() @IsOptional() @ApiProperty({ required: false }) name?: string; // Tên phòng
+  @IsString()
+  @ValidateIf((_, value) => value !== undefined)
+  @ApiProperty({ required: false })
+  name?: string; // Tên phòng
 
   @IsString()
   @IsOptional()
@@ -332,9 +342,15 @@ export class UpdateRoomDTO {
   @ApiProperty({ required: false })
   agreementDuration?: number; // Thời hạn hợp đồng
 
-  @IsString() @IsOptional() @ApiProperty({ required: false }) note?: string; // Ghi chú
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  note?: string; // Ghi chú
 
-  @IsBoolean() @IsOptional() @ApiProperty({ required: false }) isHot?: boolean; // Phòng hiện tại có đang hot sale không
+  @IsBoolean()
+  @ValidateIf((_, value) => value !== undefined)
+  @ApiProperty({ required: false })
+  isHot?: boolean; // Phòng hiện tại có đang hot sale không
 
   @IsBoolean()
   @IsOptional()
@@ -347,8 +363,8 @@ export class UpdateRoomDTO {
   @ValidateNested()
   @Type(() => BaseAdditionInfo)
   @ApiProperty({ type: BaseAdditionInfo })
-  @Expose()
-  additionInfo: BaseAdditionInfo;
+  @IsOptional()
+  additionInfo?: BaseAdditionInfo;
 
   @IsString() @IsOptional() @ApiProperty({ required: false }) mapLink?: string; // Liên kết đến một địa điểm trên Google Maps
 
@@ -371,4 +387,74 @@ export class HardDeleteAndRecoverRoomDTO {
   @ApiProperty({ type: [Number] })
   @ArrayNotEmpty()
   roomIDs: number[];
+}
+
+export class CreateResponseRoomDTO {
+  @IsNumber()
+  @ApiProperty()
+  roomID: number;
+}
+export class MaxResponseRoomDTO {
+  @IsNumber()
+  @ApiProperty()
+  roomID: number;
+}
+
+export class AutocompleteRoomDTO {
+  @ApiProperty()
+  @IsNumber()
+  roomID: number;
+  @ApiProperty()
+  @IsString()
+  name: string;
+}
+
+export class HouseProvinceDTO {
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty()
+  provinceCode: number;
+}
+export class HouseDistrictDTO {
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty()
+  districtCode: number;
+}
+export class HouseWardDTO {
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty()
+  wardCode: number;
+}
+export class HouseIDDTO {
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty()
+  houseID: number;
+}
+
+export class RoomFilterDTO {
+  @ValidateNested()
+  @IsOptional()
+  @ApiProperty({
+    oneOf: [
+      { $ref: getSchemaPath(HouseIDDTO) },
+      {
+        $ref: getSchemaPath(HouseWardDTO),
+      },
+      {
+        $ref: getSchemaPath(HouseDistrictDTO),
+      },
+      {
+        $ref: getSchemaPath(HouseProvinceDTO),
+      },
+    ],
+    required: false,
+  })
+  house?: HouseIDDTO | HouseWardDTO | HouseDistrictDTO | HouseProvinceDTO;
+  minPrice?: number;
+  maxPrice?: number;
+  hot?: boolean;
+  sortBy?: string; //min-price, min-duration
 }

@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { AdministrativeUnit } from 'src/models/administrativeUnit.model';
@@ -78,7 +79,7 @@ export class CreateTenantDTO {
 
   @IsString() @IsPhoneNumber('VN') @ApiProperty({}) phoneNumber: string; // Số điện thoại
 
-  @IsString() @ApiProperty({}) addressDetail: string; // Thông tin chi tiết về địa chỉ
+  @IsString() @ApiProperty({}) @IsOptional() addressDetail?: string; // Thông tin chi tiết về địa chỉ
 
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
   @ArrayMinSize(3)
@@ -107,13 +108,13 @@ export class UpdateTenantDTO {
   @IsNumber() @ApiProperty({}) tenantID: number; // Khóa chính, tự động tăng
 
   @IsString()
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   name?: string; // Tên người thuê
 
   @IsString()
   @IsPhoneNumber('VN')
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   phoneNumber?: string; // Số điện thoại
 
@@ -133,9 +134,9 @@ export class UpdateTenantDTO {
     ({ value }: { value: number[] }) => {
       if (value) {
         const obj = new AdministrativeUnit();
-        obj.provinceCode = value[0];
+        obj.provinceCode = value[2];
         obj.districtCode = value[1];
-        obj.wardCode = value[2];
+        obj.wardCode = value[0];
         return obj;
       }
       return null;
@@ -156,4 +157,25 @@ export class HardDeleteAndRecoverTenantDTO {
   @ApiProperty({ type: [Number] })
   @ArrayNotEmpty()
   tenantIDs: number[];
+}
+
+export class CreateResponseTenantDTO {
+  @IsNumber()
+  @ApiProperty()
+  tenantID: number;
+}
+
+export class AutocompleteTenantDTO {
+  @ApiProperty()
+  @IsNumber()
+  tenantID: number;
+  @ApiProperty()
+  @IsString()
+  name: string;
+}
+
+export class MaxResponseTenantDTO {
+  @IsNumber()
+  @ApiProperty()
+  tenantID: number;
 }

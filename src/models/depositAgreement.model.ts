@@ -15,21 +15,38 @@ import { User } from './user.model';
 import { Appointment } from './appointment.model';
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 
+export enum DepositAgreementStatus {
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+}
+
 @Entity('deposit_agreement') // Tên bảng trong cơ sở dữ liệu
 export class DepositAgreement {
   @PrimaryGeneratedColumn()
   @Expose({ groups: ['TO-DTO'] })
   depositAgreementID: number; // Khóa chính, tự động tăng
 
+  @Column({ default: '' })
+  @Expose({ groups: ['TO-DTO'] })
+  name: string; // Khóa chính, tự động tăng
+
   @Column({ type: 'int' })
   @Expose({ groups: ['TO-DTO'] })
   depositPrice: number; // Tiền đặt cọc
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   deliveredDeposit: number; // Tiền đặt cọc đã giao
 
-  @Column()
+  @Column({
+    default: 'active',
+    type: 'enum',
+    enum: DepositAgreementStatus,
+  })
+  @Expose({ groups: ['TO-DTO'] })
+  status: DepositAgreementStatus;
+
+  @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   depositDeliverDate: Date; // Ngày giao tiền đặt cọc
 
@@ -37,11 +54,11 @@ export class DepositAgreement {
   @Expose({ groups: ['TO-DTO'] })
   agreementDate: Date; // Ngày ký thỏa thuận
 
-  @Column()
+  @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   depositCompleteDate: Date; // Ngày hoàn tất tiền đặt cọc
 
-  @Column({ nullable: true })
+  @Column({})
   @Expose({ groups: ['TO-DTO'] })
   commissionPer: number;
 
@@ -49,11 +66,11 @@ export class DepositAgreement {
   @Expose({ groups: ['TO-DTO'] })
   bonus: number;
 
-  @Column({ nullable: true })
+  @Column()
   @Expose({ groups: ['TO-DTO'] })
   duration: number; // Thời gian thỏa thuận
 
-  @Column()
+  @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   note: string; // Ghi chú
 
@@ -83,7 +100,7 @@ export class DepositAgreement {
     toPlainOnly: true,
   })
   @JoinColumn({ name: 'roomID' })
-  room: Room; // Mối quan hệ với Room
+  room: Room | null; // Mối quan hệ với Room
 
   @OneToOne(() => Appointment, (appointment) => appointment.depositAgreement, {
     nullable: true,
@@ -102,9 +119,9 @@ export class DepositAgreement {
     toPlainOnly: true,
   })
   @JoinColumn({ name: 'tenantID' })
-  tenant: Tenant; // Mối quan hệ với Tenant
+  tenant: Tenant | null; // Mối quan hệ với Tenant
 
-  @OneToOne(() => User, (user) => user.username, {
+  @ManyToOne(() => User, (user) => user.username, {
     nullable: true,
     onDelete: 'SET NULL',
   })
@@ -114,7 +131,7 @@ export class DepositAgreement {
     toPlainOnly: true,
   })
   @JoinColumn({ name: 'negotiatorUsename' })
-  negotiator: User;
+  negotiator: User | null;
 
   @ManyToOne(() => User, {
     nullable: true,
@@ -126,5 +143,5 @@ export class DepositAgreement {
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
-  manager: User;
+  manager: User | null;
 }

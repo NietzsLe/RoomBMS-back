@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateTenantDTO, UpdateTenantDTO } from 'src/dtos/tenantDTO';
+import {
+  CreateTenantDTO,
+  MaxResponseTenantDTO,
+  UpdateTenantDTO,
+} from 'src/dtos/tenantDTO';
 
 import { Tenant } from 'src/models/tenant.model';
 import {
@@ -29,6 +33,7 @@ export class TenantService {
 
   async findAll(
     tenantID: number,
+    name: string,
     offsetID: number,
     selectAndRelationOption: {
       select: FindOptionsSelect<Tenant>;
@@ -40,12 +45,41 @@ export class TenantService {
         ...(tenantID || tenantID == 0
           ? { tenantID: tenantID }
           : { tenantID: MoreThan(offsetID) }),
+        ...(name ? { name: name } : {}),
       },
       order: {
         tenantID: 'ASC',
       },
       select: { tenantID: true, ...selectAndRelationOption.select },
       relations: { ...selectAndRelationOption.relations },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    //console.log('@Service: \n', tenants);
+    return tenants.map((tenant) => TenantMapper.EntityToBaseDTO(tenant));
+  }
+
+  async getMaxTenant(name: string) {
+    const query = this.tenantRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.tenantID)', 'tenantID');
+
+    if (name) {
+      query.where('entity.name = :name', { name: name });
+    }
+    const dto = (await query.getRawOne()) as MaxResponseTenantDTO;
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: number) {
+    console.log('@Service: autocomplete');
+    const tenants = await this.tenantRepository.find({
+      where: {
+        tenantID: MoreThan(offsetID),
+      },
+      order: {
+        tenantID: 'ASC',
+      },
+      select: { tenantID: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', tenants);
@@ -84,7 +118,11 @@ export class TenantService {
     if (result[0]) tenant.administrativeUnit = result[0];
     //console.log('@Service: \n', tenant);
     this.userProcess.CreatorIsDefaultManager(requestorID, tenant);
-    await this.tenantRepository.insert(tenant);
+
+    const insertResult = await this.tenantRepository.insert(tenant);
+    return {
+      tenantID: (insertResult.identifiers[0] as { tenantID: number }).tenantID,
+    };
   }
 
   async update(

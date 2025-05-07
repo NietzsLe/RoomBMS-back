@@ -31,6 +31,20 @@ export class AdministrativeUnitService {
       ProvinceUnitMapper.EntityToBaseDTO(province),
     );
   }
+  async getProvinceAutocomplete() {
+    const provinces = await this.provinceUnitRepository.find({
+      select: {
+        provinceCode: true,
+        provinceName: true,
+      },
+      order: {
+        provinceCode: 'ASC',
+      },
+    });
+    return provinces.map((province) =>
+      ProvinceUnitMapper.EntityToBaseDTO(province),
+    );
+  }
   async findInactiveAllProvince() {
     const provinces = await this.provinceUnitRepository.find({
       where: { deletedAt: Not(IsNull()) },
@@ -58,6 +72,21 @@ export class AdministrativeUnitService {
       DistrictUnitMapper.EntityToBaseDTO(district),
     );
   }
+  async getDistrictAutocomplete(provinceCode: number) {
+    const districts = await this.districtUnitRepository.find({
+      where: {
+        provinceCode: provinceCode,
+      },
+      select: { districtCode: true, districtName: true },
+      order: {
+        districtCode: 'ASC',
+      },
+    });
+    //console.log('@Service: \n', districts);
+    return districts.map((district) =>
+      DistrictUnitMapper.EntityToBaseDTO(district),
+    );
+  }
   async findInactiveAllDistrict(provinceCode: number) {
     const districts = await this.districtUnitRepository.find({
       where: {
@@ -75,6 +104,19 @@ export class AdministrativeUnitService {
     );
   }
   async findAllWard(districtCode: number) {
+    const wards = await this.wardUnitRepository.find({
+      where: {
+        districtCode: districtCode,
+      },
+      select: { wardCode: true, wardName: true },
+      order: {
+        wardCode: 'ASC',
+      },
+    });
+    //console.log('@Service: \n', wards);
+    return wards.map((ward) => WardUnitMapper.EntityToBaseDTO(ward));
+  }
+  async getWardAutocomplete(districtCode: number) {
     const wards = await this.wardUnitRepository.find({
       where: {
         districtCode: districtCode,
@@ -114,17 +156,19 @@ export class AdministrativeUnitService {
   async trustSoftRemoveWards(districtCodes: number[]) {
     const result = await this.wardUnitRepository.find({
       where: { districtCode: In(districtCodes) },
-      select: { districtCode: true },
+      relations: { administrativeUnit: true },
+      select: { wardCode: true },
     });
     await this.wardUnitRepository.softRemove(result);
   }
   async trustHardRemoveWards(districtCodes: number[]) {
     const result = await this.wardUnitRepository.find({
       where: { districtCode: In(districtCodes) },
-      select: { districtCode: true },
+      relations: { administrativeUnit: true },
+      select: { wardCode: true },
       withDeleted: true,
     });
-    await this.wardUnitRepository.softRemove(result);
+    await this.wardUnitRepository.remove(result);
   }
   async softRemoveDistricts(districtCodes: number[], districtNames: string[]) {
     this.constraint.NamesAndCodesIsSameSize(districtCodes, districtNames);
@@ -163,6 +207,7 @@ export class AdministrativeUnitService {
     await this.trustSoftRemoveWards(result.map((item) => item.districtCode));
     await this.districtUnitRepository.remove(result);
   }
+
   async softRemoveProvinces(provinceCodes: number[], provinceNames: string[]) {
     this.constraint.NamesAndCodesIsSameSize(provinceCodes, provinceNames);
     const result = await this.constraint.ProvincesIsAlive(
@@ -194,6 +239,7 @@ export class AdministrativeUnitService {
       provinceNames,
     );
     //console.log('@Constraint: \n', result);
+    await this.trustRecoverDistricts(provinceCodes);
     await this.provinceUnitRepository.recover(result as ProvinceUnit[]);
   }
 
@@ -208,6 +254,7 @@ export class AdministrativeUnitService {
       districtCodes,
       districtNames,
     );
+    await this.trustRecoverWards(districtCodes);
     await this.districtUnitRepository.recover(result as DistrictUnit[]);
   }
   async recoverWards(wardCodes: number[], wardNames: string[]) {
@@ -219,5 +266,23 @@ export class AdministrativeUnitService {
       wardNames,
     );
     await this.wardUnitRepository.recover(result as WardUnit[]);
+  }
+  async trustRecoverDistricts(provinceCodes: number[]) {
+    const result = await this.districtUnitRepository.find({
+      where: { provinceCode: In(provinceCodes), deletedAt: Not(IsNull()) },
+      select: { districtCode: true },
+      withDeleted: true,
+    });
+    await this.trustRecoverWards(result.map((item) => item.districtCode));
+    await this.districtUnitRepository.recover(result);
+  }
+  async trustRecoverWards(districtCodes: number[]) {
+    const result = await this.wardUnitRepository.find({
+      where: { districtCode: In(districtCodes), deletedAt: Not(IsNull()) },
+      select: { wardCode: true },
+      relations: { administrativeUnit: true },
+      withDeleted: true,
+    });
+    await this.wardUnitRepository.recover(result);
   }
 }

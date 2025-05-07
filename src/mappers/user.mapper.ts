@@ -96,7 +96,7 @@ export class UserMapper {
   // Chuyển đổi từ CreateAppointmentDTO sang Appointment entity
   static DTOToEntity(userDTO: CreateUserDTO | UpdateUserDTO) {
     const plainObj = classToPlain(userDTO);
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(User, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
   }
 
@@ -112,9 +112,8 @@ export class UserMapper {
     const plainObj = classToPlain(user, {
       groups: ['TO-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
     let accessRuleMap = new Map<string, AccessRuleWithoutRoleDTO>();
-    for (const role of user.roles) {
+    for (const role of user.roles ?? []) {
       const tempAccessRuleMap = new Map<string, AccessRuleWithoutRoleDTO>(
         role.accessRules.map((item) => {
           const accessRule = AccessRuleMapper.EntityToBaseDTO(item);
@@ -128,11 +127,11 @@ export class UserMapper {
       accessRuleMap = mergeAccessRuleMap(accessRuleMap, tempAccessRuleMap);
     }
     plainObj.accessRights = [...accessRuleMap].map((item) => item[1]);
-
+    // console.log('@Mapper: \n', plainObj);
     const dto = plainToClass(BaseUserWithAccessRightDTO, plainObj, {
       excludeExtraneousValues: true,
     });
-    console.log('@Mapper: ', dto);
+    // console.log('@Mapper: ', dto);
     return dto;
   }
 }

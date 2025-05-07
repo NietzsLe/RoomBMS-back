@@ -11,7 +11,7 @@ import { HttpMethodToPerm, PermTypeEnum } from 'src/services/auth.service';
 
 export class BlackListFilterInterceptors implements NestInterceptor {
   intercept(context: ExecutionContext, handler: CallHandler): Observable<any> {
-    //console.log('Before...');
+    console.log('Before...');
     const now = Date.now();
     const request: Request = context.switchToHttp().getRequest();
     const perm = HttpMethodToPerm(request.method);

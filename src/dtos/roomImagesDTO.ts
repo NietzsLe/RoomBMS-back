@@ -10,3 +10,12 @@ export class DeleteImagesDTO {
   @ArrayNotEmpty()
   imageNames: string[];
 }
+
+export class UploadResponseImageDTO {
+  @IsArray()
+  @IsString({ each: true })
+  @ApiProperty({ type: [String] })
+  @Expose()
+  @ArrayNotEmpty()
+  imageNames: string[];
+}

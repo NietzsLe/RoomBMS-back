@@ -2,41 +2,67 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CreateAppointmentDTO,
+  MaxResponseAppointmentDTO,
   UpdateAppointmentDTO,
+  UpdateAppointmentForRelatedUserDTO,
+  UpdateDepositAgreementForRelatedUserDTO,
+  UpdateTenantForRelatedUserDTO,
 } from 'src/dtos/appointmentDTO';
 import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { Appointment } from 'src/models/appointment.model';
 import {
+  And,
   FindOptionsRelations,
   FindOptionsSelect,
   IsNull,
+  LessThanOrEqual,
   MoreThan,
+  MoreThanOrEqual,
   Not,
   Repository,
 } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
-import { AppointmentConstraint } from './constraints/appointment.helper';
+import {
+  AppointmentConstraint,
+  AppointmentProcess,
+} from './constraints/appointment.helper';
 import { RoomConstraint } from './constraints/room.helper';
 import { TenantConstraint } from './constraints/tenant.helper';
 import { DepositAgreementConstraint } from './constraints/depositAgreement.helper';
 import { User } from 'src/models/user.model';
+import { DepositAgreement } from 'src/models/depositAgreement.model';
+import { Tenant } from 'src/models/tenant.model';
+import { TelegramBotService } from './telegramBot.service';
 
 @Injectable()
 export class AppointmentService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(DepositAgreement)
+    private depositAgreementRepository: Repository<DepositAgreement>,
+    @InjectRepository(Tenant)
+    private tenantRepository: Repository<Tenant>,
     private constraint: AppointmentConstraint,
     private userConstraint: UserConstraint,
     private tenantConstraint: TenantConstraint,
     private roomConstraint: RoomConstraint,
     private depositAgreementConstraint: DepositAgreementConstraint,
     private userProcess: UserProcess,
+    private process: AppointmentProcess,
+    private telegramBotService: TelegramBotService,
   ) {}
 
   async findAll(
     appointmentID: number,
     offsetID: number,
+    name: string,
+    houseID: number,
+    roomID: number,
+    fromDate: Date,
+    toDate: Date,
+    takenOverUsername: string,
+    endID: number,
     selectAndRelationOption: {
       select: FindOptionsSelect<Appointment>;
       relations: FindOptionsRelations<Appointment>;
@@ -46,7 +72,27 @@ export class AppointmentService {
       where: {
         ...(appointmentID || appointmentID == 0
           ? { appointmentID: appointmentID }
-          : { appointmentID: MoreThan(offsetID) }),
+          : endID
+            ? { appointmentID: And(MoreThan(offsetID), LessThanOrEqual(endID)) }
+            : { appointmentID: MoreThan(offsetID) }),
+        ...(name ? { name: name } : {}),
+        ...(houseID ? { house: { houseID: houseID } } : {}),
+        ...(roomID ? { room: { roomID: roomID } } : {}),
+        ...(fromDate || toDate
+          ? fromDate && !toDate
+            ? { appointmentTime: MoreThanOrEqual(fromDate) }
+            : !fromDate && toDate
+              ? { appointmentTime: LessThanOrEqual(toDate) }
+              : {
+                  appointmentTime: And(
+                    MoreThanOrEqual(fromDate),
+                    LessThanOrEqual(toDate),
+                  ),
+                }
+          : {}),
+        ...(takenOverUsername
+          ? { takenOverUser: { username: takenOverUsername } }
+          : {}),
       },
       order: {
         appointmentID: 'ASC',
@@ -55,7 +101,37 @@ export class AppointmentService {
       relations: { ...selectAndRelationOption.relations },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    console.log('@Service: \n', appointments);
+    // console.log('@Service: \n', appointments);
+    return appointments.map((appointment) =>
+      AppointmentMapper.EntityToBaseDTO(appointment),
+    );
+  }
+
+  async getMaxAppointment(name: string) {
+    const query = this.appointmentRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.appointmentID)', 'appointmentID');
+
+    if (name) {
+      query.where('entity.name = :name', { name: name });
+    }
+    const dto = (await query.getRawOne()) as MaxResponseAppointmentDTO;
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: number) {
+    console.log('@Service: autocomplete', offsetID);
+    const appointments = await this.appointmentRepository.find({
+      where: {
+        appointmentID: MoreThan(offsetID),
+      },
+      order: {
+        appointmentID: 'ASC',
+      },
+      select: { appointmentID: true, name: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    //console.log('@Service: \n', appointments);
     return appointments.map((appointment) =>
       AppointmentMapper.EntityToBaseDTO(appointment),
     );
@@ -100,10 +176,19 @@ export class AppointmentService {
     if (result[0]) appointment.room = result[0];
     if (result[1]) appointment.tenant = result[1];
     this.userProcess.CreatorIsDefaultManager(requestorID, appointment);
-    await this.appointmentRepository.insert(appointment);
+    this.process.RequestorIsMadeUserWhenCreate(requestorID, appointment);
+
+    const insertResult = await this.appointmentRepository.insert(appointment);
+    await this.telegramBotService.notifyCreateAppointment(
+      (insertResult.identifiers[0] as { appointmentID: number }).appointmentID,
+    );
+    return {
+      appointmentID: (insertResult.identifiers[0] as { appointmentID: number })
+        .appointmentID,
+    };
   }
 
-  async takeOver(requestorID: string, appointmentID: number) {
+  async takenOver(requestorID: string, appointmentID: number) {
     const appointment = new Appointment();
     appointment.appointmentID = appointmentID;
     appointment.takenOverUser = new User();
@@ -117,6 +202,83 @@ export class AppointmentService {
       appointment.appointmentID,
       appointment,
     );
+  }
+
+  async updateByRelatedUser(
+    requestorRoleIDs: string[],
+    requestorID: string,
+    updateAppointmentDTO: UpdateAppointmentForRelatedUserDTO,
+  ) {
+    const appointment = AppointmentMapper.DTOToEntity(updateAppointmentDTO);
+    const result = await Promise.all([
+      this.constraint.AppointmentIsAlive(appointment.appointmentID),
+      this.depositAgreementConstraint.DepositAgreementIsAlive(
+        updateAppointmentDTO.depositAgreementID,
+      ),
+    ]);
+
+    if (result[0])
+      this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
+    if (result[1]) appointment.depositAgreement = result[1];
+    //console.log('@Service: \n', appointment);
+    await this.appointmentRepository.update(
+      appointment.appointmentID,
+      appointment,
+    );
+    await this.telegramBotService.notifyReturnDepositAgreementResult(
+      appointment.appointmentID,
+    );
+  }
+
+  async updateTenantByRelatedUser(
+    requestorRoleIDs: string[],
+    requestorID: string,
+    updateTenantDTO: UpdateTenantForRelatedUserDTO,
+  ) {
+    const tenant = AppointmentMapper.OtherResourceDTOToEntity(
+      updateTenantDTO,
+      Tenant,
+    );
+    const result = await Promise.all([
+      this.constraint.AppointmentIsAlive(updateTenantDTO.appointmentID),
+      this.tenantConstraint.TenantIsAlive(updateTenantDTO.tenantID),
+    ]);
+
+    if (result[0])
+      this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
+    if (result[1]) {
+      //console.log('@Service: \n', appointment);
+      await this.tenantRepository.update(tenant.tenantID, tenant);
+    }
+  }
+  async updateDepositAgreementByRelatedUser(
+    requestorRoleIDs: string[],
+    requestorID: string,
+    updateDepositAgreementDTO: UpdateDepositAgreementForRelatedUserDTO,
+  ) {
+    const depositAgreement = AppointmentMapper.OtherResourceDTOToEntity(
+      updateDepositAgreementDTO,
+      DepositAgreement,
+    );
+    const result = await Promise.all([
+      this.constraint.AppointmentIsAlive(
+        updateDepositAgreementDTO.appointmentID,
+      ),
+      this.depositAgreementConstraint.DepositAgreementIsAlive(
+        updateDepositAgreementDTO.depositAgreementID,
+      ),
+    ]);
+
+    if (result[0])
+      this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
+
+    if (result[1]) {
+      //console.log('@Service: \n', appointment);
+      await this.depositAgreementRepository.update(
+        depositAgreement.depositAgreementID,
+        depositAgreement,
+      );
+    }
   }
 
   async update(

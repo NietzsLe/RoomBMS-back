@@ -24,7 +24,7 @@ export class AccessRuleConstraint {
     });
     if (exist)
       throw new HttpException(
-        `(${roleID}, ${resourceID})  already exists`,
+        `(${roleID}, ${resourceID}) already exists`,
         HttpStatus.CONFLICT,
       );
   }

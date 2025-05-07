@@ -9,7 +9,7 @@ export class TenantConstraint {
     @InjectRepository(Tenant)
     private tenantRepository: Repository<Tenant>,
   ) {}
-  async TenantIsAlive(tenantID: number | undefined) {
+  async TenantIsAlive(tenantID: number | undefined | null) {
     if (tenantID || tenantID == 0) {
       const exist = await this.tenantRepository.findOne({
         where: {
@@ -32,7 +32,7 @@ export class TenantConstraint {
     }
   }
 
-  async TenantsIsNotAlive(tenantIDs: number[] | undefined) {
+  async TenantsIsNotAlive(tenantIDs: number[] | undefined | null) {
     if (tenantIDs) {
       const exists = await this.tenantRepository.find({
         where: {
@@ -57,7 +57,7 @@ export class TenantConstraint {
     }
   }
 
-  async TenantIsPersisted(tenantID: number | undefined) {
+  async TenantIsPersisted(tenantID: number | undefined | null) {
     if (tenantID || tenantID == 0) {
       const exist = await this.tenantRepository.findOne({
         where: {

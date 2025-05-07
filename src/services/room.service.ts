@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateRoomDTO, UpdateRoomDTO } from 'src/dtos/roomDTO';
+import {
+  CreateRoomDTO,
+  MaxResponseRoomDTO,
+  UpdateRoomDTO,
+} from 'src/dtos/roomDTO';
 import { RoomMapper } from 'src/mappers/room.mapper';
 import { Room } from 'src/models/room.model';
 import {
+  And,
   FindOptionsRelations,
   FindOptionsSelect,
   IsNull,
+  LessThanOrEqual,
   MoreThan,
+  MoreThanOrEqual,
   Not,
   Repository,
 } from 'typeorm';
@@ -32,6 +39,15 @@ export class RoomService {
   async findAll(
     roomID: number,
     offsetID: number,
+    provinceCode: number,
+    districtCode: number,
+    wardCode: number,
+    houseID: number,
+    minPrice: number,
+    maxPrice: number,
+    isHot: boolean,
+    sortBy: string,
+    name: string,
     selectAndRelationOption: {
       select: FindOptionsSelect<Room>;
       relations: FindOptionsRelations<Room>;
@@ -42,9 +58,35 @@ export class RoomService {
         ...(roomID || roomID == 0
           ? { roomID: roomID }
           : { roomID: MoreThan(offsetID) }),
+        ...(provinceCode
+          ? { administrativeUnit: { provinceCode: provinceCode } }
+          : {}),
+        ...(districtCode
+          ? { administrativeUnit: { districtCode: districtCode } }
+          : {}),
+        ...(wardCode ? { administrativeUnit: { wardCode: wardCode } } : {}),
+        ...(houseID ? { house: { houseID: houseID } } : {}),
+        ...(minPrice || maxPrice
+          ? minPrice && !maxPrice
+            ? { price: MoreThanOrEqual(minPrice) }
+            : !minPrice && maxPrice
+              ? { price: LessThanOrEqual(maxPrice) }
+              : {
+                  price: And(
+                    MoreThanOrEqual(minPrice),
+                    LessThanOrEqual(maxPrice),
+                  ),
+                }
+          : {}),
+        ...(isHot ? { isHot: isHot } : {}),
+        ...(name ? { name: name } : {}),
       },
       order: {
-        roomID: 'ASC',
+        ...(sortBy
+          ? sortBy == 'price'
+            ? { price: 'ASC' }
+            : { agreementDuration: 'ASC' }
+          : { roomID: 'ASC' }),
       },
       select: { roomID: true, ...selectAndRelationOption.select },
       relations: { ...selectAndRelationOption.relations },
@@ -53,6 +95,38 @@ export class RoomService {
     //console.log('@Service: \n', rooms);
     return rooms.map((room) => RoomMapper.EntityToBaseDTO(room));
   }
+
+  async getMaxRoom(houseID: number, name: string) {
+    const query = this.roomRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.roomID)', 'roomID');
+    if (houseID) {
+      query.where('entity.houseID = :houseID', { houseID: houseID });
+    }
+    if (name) {
+      query.where('entity.name = :name', { name: name });
+    }
+    const dto = (await query.getRawOne()) as MaxResponseRoomDTO;
+    return dto;
+  }
+
+  async getAutocomplete(offsetID: number, houseID: number) {
+    console.log('@Service: autocomplete');
+    const rooms = await this.roomRepository.find({
+      where: {
+        roomID: MoreThan(offsetID),
+        ...(houseID ? { house: { houseID: houseID } } : {}),
+      },
+      order: {
+        roomID: 'ASC',
+      },
+      select: { roomID: true, name: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    console.log('@Service: \n', rooms);
+    return rooms.map((room) => RoomMapper.EntityToBaseDTO(room));
+  }
+
   async findInactiveAll(roomID: number, offsetID: number) {
     const rooms = await this.roomRepository.find({
       where: {
@@ -80,7 +154,11 @@ export class RoomService {
     ]);
     if (result[0]) room.house = result[0];
     this.userProcess.CreatorIsDefaultManager(requestorID, room);
-    await this.roomRepository.insert(room);
+
+    const insertResult = await this.roomRepository.insert(room);
+    return {
+      roomID: (insertResult.identifiers[0] as { roomID: number }).roomID,
+    };
   }
 
   async update(
@@ -106,7 +184,7 @@ export class RoomService {
     this.userConstraint.JustAdminCanUpdateManagerField(IsAdmin, updateRoomDTO);
     if (result[1]) room.house = result[1];
     if (result[2]) room.manager = result[2];
-    //console.log('@Service: \n', room);
+    console.log('@Service: \n', room);
     await this.roomRepository.save(room);
   }
 

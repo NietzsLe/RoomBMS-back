@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   ParseIntPipe,
   Patch,
@@ -16,6 +17,7 @@ import { Request } from 'express';
 import {
   BaseHouseDTO,
   CreateHouseDTO,
+  CreateResponseHouseDTO,
   HardDeleteAndRecoverHouseDTO,
   UpdateHouseDTO,
 } from 'src/dtos/houseDTO';
@@ -33,34 +35,41 @@ export class HouseController {
   @Get()
   @ApiOkResponse({ type: [BaseHouseDTO] })
   @ApiQuery({ name: 'houseID', required: false })
+  @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
-    @Query('offsetID') offsetID: number = 0,
-    @Query('houseID') houseID: number,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
+    @Query('name') name: string,
   ) {
     const blackList = request['resourceBlackListAttrs'] as string[];
     return await this.houseService.findAll(
       houseID,
+      name,
       offsetID,
       createFindOptionSelectWithBlacklist(BaseHouseDTO, blackList),
     );
   }
   @Get('inactive')
   @ApiOkResponse({ type: [BaseHouseDTO] })
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   async findInactiveAll(
-    @Query('offsetID') offsetID: number = 0,
-    @Query('houseID') houseID: number,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
   ) {
     return await this.houseService.findInactiveAll(houseID, offsetID);
   }
   @Post()
+  @ApiOkResponse({ type: CreateResponseHouseDTO })
   async create(@Req() request: Request, @Body() dto: CreateHouseDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
-    await this.houseService.create(requestorID, dto);
+    return await this.houseService.create(requestorID, dto);
   }
   @Patch()
   async update(@Req() request: Request, @Body() dto: UpdateHouseDTO) {
@@ -83,7 +92,7 @@ export class HouseController {
   async hardDelete(@Body(HouseIDsCheckPipe) dto: HardDeleteAndRecoverHouseDTO) {
     await this.houseService.hardRemove(dto.houseIDs);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
   async recover(@Body(HouseIDsCheckPipe) dto: HardDeleteAndRecoverHouseDTO) {
     await this.houseService.recover(dto.houseIDs);

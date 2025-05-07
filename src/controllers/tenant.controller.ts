@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   ParseIntPipe,
   Patch,
@@ -15,6 +16,7 @@ import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
   BaseTenantDTO,
+  CreateResponseTenantDTO,
   CreateTenantDTO,
   HardDeleteAndRecoverTenantDTO,
   UpdateTenantDTO,
@@ -33,34 +35,41 @@ export class TenantController {
   @Get()
   @ApiOkResponse({ type: [BaseTenantDTO] })
   @ApiQuery({ name: 'tenantID', required: false })
+  @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
-    @Query('offsetID') offsetID: number = 0,
-    @Query('tenantID') tenantID: number,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('tenantID', new ParseIntPipe({ optional: true })) tenantID: number,
+    @Query('name') name: string,
   ) {
     const blackList = request['resourceBlackListAttrs'] as string[];
     return await this.tenantService.findAll(
       tenantID,
+      name,
       offsetID,
       createFindOptionSelectWithBlacklist(BaseTenantDTO, blackList),
     );
   }
   @Get('inactive')
   @ApiOkResponse({ type: [BaseTenantDTO] })
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'tenantID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   async findInactiveAll(
-    @Query('offsetID') offsetID: number = 0,
-    @Query('tenantID') tenantID: number,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('tenantID', new ParseIntPipe({ optional: true })) tenantID: number,
   ) {
     return await this.tenantService.findInactiveAll(tenantID, offsetID);
   }
+  @ApiOkResponse({ type: CreateResponseTenantDTO })
   @Post()
   async create(@Req() request: Request, @Body() dto: CreateTenantDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
-    await this.tenantService.create(requestorID, dto);
+    return await this.tenantService.create(requestorID, dto);
   }
   @Patch()
   async update(@Req() request: Request, @Body() dto: UpdateTenantDTO) {
@@ -89,7 +98,7 @@ export class TenantController {
   ) {
     await this.tenantService.hardRemove(dto.tenantIDs);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
+  // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
   async recover(@Body(TenantIDsCheckPipe) dto: HardDeleteAndRecoverTenantDTO) {
     await this.tenantService.recover(dto.tenantIDs);

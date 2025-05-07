@@ -55,9 +55,10 @@ export class AccessRuleController {
     );
   }
   @UseGuards(JustSuperAdminRoleGuard)
+  @ApiOkResponse({ type: CreateAccessRuleDTO })
   @Post()
   async create(@Body() dto: CreateAccessRuleDTO) {
-    await this.accessRuleService.create(dto);
+    return await this.accessRuleService.create(dto);
   }
   @UseGuards(JustSuperAdminRoleGuard)
   @Patch()
