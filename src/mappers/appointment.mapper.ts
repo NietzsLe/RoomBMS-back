@@ -7,6 +7,7 @@ import {
 import {
   CreateAppointmentDTO,
   OtherResourceDTO,
+  ReadAppointmentDTO,
   UpdateAppointmentDTO,
 } from 'src/dtos/appointmentDTO';
 import { Appointment } from 'src/models/appointment.model';
@@ -35,11 +36,18 @@ export class AppointmentMapper {
     });
   }
 
-  static EntityToBaseDTO(appointment: Appointment) {
+  static EntityToReadDTO(appointment: Appointment) {
     const plainObj = classToPlain(appointment, {
       groups: ['TO-DTO'],
     });
+    // console.log('@Mapper: \n', plainToClass(ReadAppointmentDTO, plainObj));
+    return plainToClass(ReadAppointmentDTO, plainObj);
+  }
+  static EntityToReadForDepositAgreementDTO(appointment: Appointment) {
+    const plainObj = classToPlain(appointment, {
+      groups: ['TO-DEPOSITAGREEMENT-DTO'],
+    });
     //console.log('@Mapper: \n', plainObj);
-    return plainObj;
+    return plainToClass(ReadAppointmentDTO, plainObj);
   }
 }

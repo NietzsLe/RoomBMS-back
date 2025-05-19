@@ -7,18 +7,13 @@ import {
 } from 'src/dtos/tenantDTO';
 
 import { Tenant } from 'src/models/tenant.model';
-import {
-  FindOptionsRelations,
-  FindOptionsSelect,
-  IsNull,
-  MoreThan,
-  Not,
-  Repository,
-} from 'typeorm';
+import { IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { TenantConstraint } from './constraints/tenant.helper';
 import { AdministrativeUnitConstraint } from './constraints/administrativeUnit.helper';
 import { TenantMapper } from 'src/mappers/tenant.mapper';
+import { AuthService, PermTypeEnum } from './auth.service';
+import { removeByBlacklist } from './helper';
 
 @Injectable()
 export class TenantService {
@@ -29,43 +24,48 @@ export class TenantService {
     private userConstraint: UserConstraint,
     private administrativeUnitConstraint: AdministrativeUnitConstraint,
     private userProcess: UserProcess,
+    private authService: AuthService,
   ) {}
 
   async findAll(
     tenantID: number,
     name: string,
     offsetID: number,
-    selectAndRelationOption: {
-      select: FindOptionsSelect<Tenant>;
-      relations: FindOptionsRelations<Tenant>;
-    },
+    requestorRoleIDs: string[],
   ) {
-    const tenants = await this.tenantRepository.find({
-      where: {
-        ...(tenantID || tenantID == 0
-          ? { tenantID: tenantID }
-          : { tenantID: MoreThan(offsetID) }),
-        ...(name ? { name: name } : {}),
-      },
-      order: {
-        tenantID: 'ASC',
-      },
-      select: { tenantID: true, ...selectAndRelationOption.select },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
-    });
+    const [tenants, tenantBlacklist] = await Promise.all([
+      this.tenantRepository.find({
+        where: {
+          ...(tenantID || tenantID == 0
+            ? { tenantID: tenantID }
+            : { tenantID: MoreThan(offsetID) }),
+          ...(name ? { name: name } : {}),
+        },
+        order: {
+          tenantID: 'ASC',
+        },
+        relations: { manager: true },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'tenants',
+        PermTypeEnum.READ,
+      ),
+    ]);
     //console.log('@Service: \n', tenants);
-    return tenants.map((tenant) => TenantMapper.EntityToBaseDTO(tenant));
+    return tenants.map((tenant) => {
+      const dto = TenantMapper.EntityToReadDTO(tenant);
+      removeByBlacklist(dto, tenantBlacklist.blacklist);
+      return dto;
+    });
   }
 
-  async getMaxTenant(name: string) {
+  async getMaxTenant() {
     const query = this.tenantRepository
       .createQueryBuilder('entity')
       .select('MAX(entity.tenantID)', 'tenantID');
 
-    if (name) {
-      query.where('entity.name = :name', { name: name });
-    }
     const dto = (await query.getRawOne()) as MaxResponseTenantDTO;
     return dto;
   }
@@ -83,7 +83,7 @@ export class TenantService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', tenants);
-    return tenants.map((tenant) => TenantMapper.EntityToBaseDTO(tenant));
+    return tenants.map((tenant) => TenantMapper.EntityToReadDTO(tenant));
   }
 
   async findInactiveAll(tenantID: number, offsetID: number) {
@@ -98,24 +98,18 @@ export class TenantService {
         tenantID: 'ASC',
       },
       relations: {
-        administrativeUnit: true,
         manager: true,
       },
       withDeleted: true,
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', tenants);
-    return tenants.map((tenant) => TenantMapper.EntityToBaseDTO(tenant));
+    return tenants.map((tenant) => TenantMapper.EntityToReadDTO(tenant));
   }
 
   async create(requestorID: string, createTenantDTOs: CreateTenantDTO) {
     const tenant = TenantMapper.DTOToEntity(createTenantDTOs);
-    const result = await Promise.all([
-      this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
-        createTenantDTOs.administrativeUnitID,
-      ),
-    ]);
-    if (result[0]) tenant.administrativeUnit = result[0];
+
     //console.log('@Service: \n', tenant);
     this.userProcess.CreatorIsDefaultManager(requestorID, tenant);
 
@@ -133,9 +127,6 @@ export class TenantService {
     const tenant = TenantMapper.DTOToEntity(updateTenantDTO);
     const result = await Promise.all([
       this.constraint.TenantIsAlive(tenant.tenantID),
-      this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
-        tenant.administrativeUnitID(),
-      ),
       this.userConstraint.ManagerIsAlive(updateTenantDTO.managerID),
     ]);
     let IsAdmin = 0;
@@ -149,8 +140,7 @@ export class TenantService {
       IsAdmin,
       updateTenantDTO,
     );
-    if (result[1]) tenant.administrativeUnit = result[1];
-    if (result[2]) tenant.manager = result[2];
+    if (result[1]) tenant.manager = result[1];
     //console.log('@Service: \n', tenant);
     await this.tenantRepository.save(tenant);
   }

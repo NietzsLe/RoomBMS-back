@@ -19,7 +19,6 @@ export class TenantConstraint {
           tenantID: true,
         },
         relations: {
-          administrativeUnit: true,
           manager: true,
         },
       });
@@ -43,7 +42,6 @@ export class TenantConstraint {
           tenantID: true,
         },
         relations: {
-          administrativeUnit: true,
           manager: true,
         },
         withDeleted: true,

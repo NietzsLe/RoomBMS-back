@@ -15,7 +15,7 @@ export class AccessRuleMapper {
     });
   }
 
-  static EntityToBaseDTO(accessRule: AccessRule) {
+  static EntityToReadDTO(accessRule: AccessRule) {
     const plainObj = classToPlain(accessRule, {
       groups: ['TO-DTO'],
     });

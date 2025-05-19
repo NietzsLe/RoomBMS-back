@@ -12,7 +12,7 @@ export class RoleMapper {
     });
   }
 
-  static EntityToBaseDTO(role: Role) {
+  static EntityToReadDTO(role: Role) {
     const plainObj = classToPlain(role, {
       groups: ['TO-DTO'],
     });

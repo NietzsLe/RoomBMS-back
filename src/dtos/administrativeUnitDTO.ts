@@ -7,7 +7,7 @@ import {
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class BaseProvinceUnitDTO {
+export class ReadProvinceUnitDTO {
   @IsNumber()
   @ApiProperty()
   @Expose()
@@ -18,7 +18,7 @@ export class BaseProvinceUnitDTO {
   @Expose()
   provinceName: string; // Tên tỉnh
 }
-export class BaseDistrictUnitDTO {
+export class ReadDistrictUnitDTO {
   @IsNumber()
   @ApiProperty()
   @Expose()
@@ -29,7 +29,7 @@ export class BaseDistrictUnitDTO {
   @Expose()
   districtName: string; // Tên quận
 }
-export class BaseWardUnitDTO {
+export class ReadWardUnitDTO {
   @IsNumber()
   @ApiProperty()
   @Expose()

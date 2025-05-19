@@ -16,7 +16,12 @@ import {
   AutocompleteDepositAgreementDTO,
   MaxResponseDepositAgreementDTO,
 } from 'src/dtos/depositAgreementDTO';
-import { AutocompleteUserDTO, MaxResponseUserDTO } from 'src/dtos/userDTO';
+import {
+  AutocompleteTeamDTO,
+  AutocompleteUserDTO,
+  MaxResponseTeamDTO,
+  MaxResponseUserDTO,
+} from 'src/dtos/userDTO';
 import { AutocompleteRoleDTO, MaxResponseRoleDTO } from 'src/dtos/roleDTO';
 import { RoomService } from 'src/services/room.service';
 import { RoleService } from 'src/services/role.service';
@@ -26,9 +31,9 @@ import { DepositAgreementService } from 'src/services/depositAgreement.service';
 import { TenantService } from 'src/services/tenant.service';
 import { AdministrativeUnitService } from 'src/services/administrativeUnit.service';
 import {
-  BaseDistrictUnitDTO,
-  BaseProvinceUnitDTO,
-  BaseWardUnitDTO,
+  ReadDistrictUnitDTO,
+  ReadProvinceUnitDTO,
+  ReadWardUnitDTO,
 } from 'src/dtos/administrativeUnitDTO';
 import { NotEmptyCheckPipe } from './pipes/notEmptyCheck.pipe';
 
@@ -109,7 +114,16 @@ export class SupportServiceController {
   @Header('Cache-Control', 'max-age=10')
   async getUsers(@Query('offsetID', NotEmptyCheckPipe) offsetID: string = '') {
     console.log('@Controller: autocomplete');
-    return await this.userService.getAutocomplete(offsetID);
+    return await this.userService.getUserAutocomplete(offsetID);
+  }
+  @Get('autocomplete/teams')
+  @ApiOkResponse({ type: [AutocompleteTeamDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @CacheTTL(10000)
+  @Header('Cache-Control', 'max-age=10')
+  async getTeams(@Query('offsetID', NotEmptyCheckPipe) offsetID: string = '') {
+    console.log('@Controller: autocomplete');
+    return await this.userService.getTeamAutocomplete(offsetID);
   }
   @Get('autocomplete/roles')
   @ApiOkResponse({ type: [AutocompleteRoleDTO] })
@@ -121,7 +135,7 @@ export class SupportServiceController {
     return await this.roleService.getAutocomplete(offsetID);
   }
   @Get('autocomplete/districts')
-  @ApiOkResponse({ type: [BaseDistrictUnitDTO] })
+  @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
   @ApiQuery({ name: 'provinceUnitID', required: false })
   @CacheTTL(5 * 60 * 1000)
   @Header('Cache-Control', 'max-age=360')
@@ -134,7 +148,7 @@ export class SupportServiceController {
     );
   }
   @Get('autocomplete/wards')
-  @ApiOkResponse({ type: [BaseWardUnitDTO] })
+  @ApiOkResponse({ type: [ReadWardUnitDTO] })
   @ApiQuery({ name: 'districtUnitID', required: false })
   @CacheTTL(5 * 60 * 1000)
   @Header('Cache-Control', 'max-age=360')
@@ -147,7 +161,7 @@ export class SupportServiceController {
     );
   }
   @Get('autocomplete/provinces')
-  @ApiOkResponse({ type: [BaseProvinceUnitDTO] })
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   @CacheTTL(5 * 60 * 1000)
   @Header('Cache-Control', 'max-age=360')
   async getProvinces() {
@@ -157,17 +171,14 @@ export class SupportServiceController {
   @Get('max/rooms')
   @ApiOkResponse({ type: MaxResponseRoomDTO })
   @ApiQuery({ name: 'houseID', required: false })
-  @ApiQuery({ name: 'name', required: false })
   @CacheTTL(5000)
   @Header('Cache-Control', 'max-age=5')
   async getMaxRoom(
     @Query('houseID', new ParseIntPipe({ optional: true }))
     houseID: number,
-    @Query('name')
-    name: string,
   ) {
     console.log('@Controller: autocomplete');
-    return await this.roomService.getMaxRoom(houseID, name);
+    return await this.roomService.getMaxRoom(houseID);
   }
   @Get('max/roles')
   @ApiOkResponse({ type: MaxResponseRoleDTO })
@@ -179,62 +190,50 @@ export class SupportServiceController {
   }
   @Get('max/houses')
   @ApiOkResponse({ type: MaxResponseHouseDTO })
-  @ApiQuery({ name: 'name', required: false })
   @CacheTTL(5000)
   @Header('Cache-Control', 'max-age=5')
-  async getMaxHouse(
-    @Query('name')
-    name: string,
-  ) {
+  async getMaxHouse() {
     console.log('@Controller: autocomplete');
-    return await this.houseService.getMaxHouse(name);
+    return await this.houseService.getMaxHouse();
   }
   @Get('max/tenants')
   @ApiOkResponse({ type: MaxResponseTenantDTO })
-  @ApiQuery({ name: 'name', required: false })
   @CacheTTL(5000)
   @Header('Cache-Control', 'max-age=5')
-  async getMaxTenant(
-    @Query('name')
-    name: string,
-  ) {
+  async getMaxTenant() {
     console.log('@Controller: autocomplete');
-    return await this.tenantService.getMaxTenant(name);
+    return await this.tenantService.getMaxTenant();
   }
   @Get('max/appointments')
   @ApiOkResponse({ type: MaxResponseAppointmentDTO })
-  @ApiQuery({ name: 'name', required: false })
   @CacheTTL(5000)
   @Header('Cache-Control', 'max-age=5')
-  async getMaxAppointment(
-    @Query('name')
-    name: string,
-  ) {
+  async getMaxAppointment() {
     console.log('@Controller: autocomplete');
-    return await this.appointmentService.getMaxAppointment(name);
+    return await this.appointmentService.getMaxAppointment();
   }
   @Get('max/deposit-agreements')
   @ApiOkResponse({ type: MaxResponseDepositAgreementDTO })
-  @ApiQuery({ name: 'name', required: false })
   @CacheTTL(5000)
   @Header('Cache-Control', 'max-age=5')
-  async getMaxDepositAgreement(
-    @Query('name')
-    name: string,
-  ) {
+  async getMaxDepositAgreement() {
     console.log('@Controller: autocomplete');
-    return await this.depositAgreementService.getMaxDepositAgreement(name);
+    return await this.depositAgreementService.getMaxDepositAgreement();
   }
   @Get('max/users')
   @ApiOkResponse({ type: [MaxResponseUserDTO] })
-  @ApiQuery({ name: 'name', required: false })
   @CacheTTL(5000)
   @Header('Cache-Control', 'max-age=5')
-  async getMaxUser(
-    @Query('name')
-    name: string,
-  ) {
+  async getMaxUser() {
     console.log('@Controller: autocomplete');
-    return await this.userService.getMaxUser(name);
+    return await this.userService.getMaxUser();
+  }
+  @Get('max/teams')
+  @ApiOkResponse({ type: [MaxResponseTeamDTO] })
+  @CacheTTL(5000)
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxTeam() {
+    console.log('@Controller: autocomplete');
+    return await this.userService.getMaxTeam();
   }
 }

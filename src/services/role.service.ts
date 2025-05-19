@@ -4,13 +4,10 @@ import { CreateRoleDTO, MaxResponseRoleDTO } from 'src/dtos/roleDTO';
 import { RoleMapper } from 'src/mappers/role.mapper';
 import { Role } from 'src/models/role.model';
 
-import {
-  FindOptionsRelations,
-  FindOptionsSelect,
-  MoreThan,
-  Repository,
-} from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { RoleConstraint } from './constraints/role.helper';
+import { AuthService, PermTypeEnum } from './auth.service';
+import { removeByBlacklist } from './helper';
 
 @Injectable()
 export class RoleService {
@@ -18,28 +15,31 @@ export class RoleService {
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
     private constraint: RoleConstraint,
+    private authService: AuthService,
   ) {}
 
-  async findAll(
-    roleID: string,
-    offsetID: string,
-    selectAndRelationOption: {
-      select: FindOptionsSelect<Role>;
-      relations: FindOptionsRelations<Role>;
-    },
-  ) {
-    const roles = await this.roleRepository.find({
-      where: {
-        ...(roleID ? { roleID: roleID } : { roleID: MoreThan(offsetID) }),
-      },
-      order: {
-        roleID: 'ASC',
-      },
-      select: { roleID: true, ...selectAndRelationOption.select },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+  async findAll(roleID: string, offsetID: string, requestorRoleIDs: string[]) {
+    const [roles, roleBlacklist] = await Promise.all([
+      this.roleRepository.find({
+        where: {
+          ...(roleID ? { roleID: roleID } : { roleID: MoreThan(offsetID) }),
+        },
+        order: {
+          roleID: 'ASC',
+        },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'roles',
+        PermTypeEnum.READ,
+      ),
+    ]);
+    return roles.map((role) => {
+      const dto = RoleMapper.EntityToReadDTO(role);
+      removeByBlacklist(dto, roleBlacklist.blacklist);
+      return dto;
     });
-    return roles.map((role) => RoleMapper.EntityToBaseDTO(role));
   }
 
   async getMaxRole() {
@@ -63,7 +63,7 @@ export class RoleService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', roles);
-    return roles.map((role) => RoleMapper.EntityToBaseDTO(role));
+    return roles.map((role) => RoleMapper.EntityToReadDTO(role));
   }
 
   async create(createRoleDTOs: CreateRoleDTO) {

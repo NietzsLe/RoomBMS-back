@@ -1,6 +1,7 @@
 // import { getMetadataStorage } from '@nestjs/class-validator';
 import type { MetadataStorage } from '@nestjs/class-transformer/types/MetadataStorage';
 import { defaultMetadataStorage } from '@nestjs/class-transformer/cjs/storage';
+import * as crypto from 'crypto';
 
 export function createFindOptionSelectWithBlacklist(
   dto: any,
@@ -40,3 +41,23 @@ export function createFindOptionSelectWithBlacklist(
 // B1: Lấy tất cả thuộc tính từ DTO kèm theo với expose relation và tên entity
 // B2: Lọc chúng qua blacklist
 // B3: tách thuộc tính làm hai loại relation và non-relation, đổi tên các relation
+export function removeByBlacklist(obj: object, blackList: string[]) {
+  for (const key of blackList) {
+    if (key in obj) {
+      delete obj[key];
+    }
+  }
+}
+
+export function hashText(text: string) {
+  const sha256 = crypto.createHash('sha256').update(text).digest('hex');
+  return sha256;
+}
+
+export function compareHash(text: string, hash: string) {
+  const hashed = hashText(text);
+  return crypto.timingSafeEqual(
+    Buffer.from(hashed, 'hex'),
+    Buffer.from(hash, 'hex'),
+  );
+}

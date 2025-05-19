@@ -1,5 +1,9 @@
 import { classToPlain, plainToClass } from '@nestjs/class-transformer';
-import { CreateHouseDTO, UpdateHouseDTO } from 'src/dtos/houseDTO';
+import {
+  CreateHouseDTO,
+  ReadHouseDTO,
+  UpdateHouseDTO,
+} from 'src/dtos/houseDTO';
 import { House } from 'src/models/house.model';
 
 export class HouseMapper {
@@ -10,11 +14,18 @@ export class HouseMapper {
     return plainToClass(House, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
   }
 
-  static EntityToBaseDTO(house: House) {
+  static EntityToReadDTO(house: House) {
     const plainObj = classToPlain(house, {
       groups: ['TO-DTO'],
     });
     //console.log('@Mapper: \n', plainObj);
     return plainObj;
+  }
+  static EntityToReadForRoomDTO(house: House) {
+    const plainObj = classToPlain(house, {
+      groups: ['TO-ROOM-DTO'],
+    });
+    // console.log('@Mapper: \n', plainObj);
+    return plainToClass(ReadHouseDTO, plainObj);
   }
 }

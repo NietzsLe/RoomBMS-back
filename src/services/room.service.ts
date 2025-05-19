@@ -9,8 +9,6 @@ import { RoomMapper } from 'src/mappers/room.mapper';
 import { Room } from 'src/models/room.model';
 import {
   And,
-  FindOptionsRelations,
-  FindOptionsSelect,
   IsNull,
   LessThanOrEqual,
   MoreThan,
@@ -23,6 +21,8 @@ import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { HouseConstraint } from './constraints/house.helper';
 import { House } from 'src/models/house.model';
 import { RoomImageService } from './roomImage.service';
+import { removeByBlacklist } from './helper';
+import { AuthService, PermTypeEnum } from './auth.service';
 
 @Injectable()
 export class RoomService {
@@ -34,6 +34,7 @@ export class RoomService {
     private houseConstraint: HouseConstraint,
     private userProcess: UserProcess,
     private roomImageService: RoomImageService,
+    private authService: AuthService,
   ) {}
 
   async findAll(
@@ -46,65 +47,84 @@ export class RoomService {
     minPrice: number,
     maxPrice: number,
     isHot: boolean,
+    isEmpty: boolean,
     sortBy: string,
     name: string,
-    selectAndRelationOption: {
-      select: FindOptionsSelect<Room>;
-      relations: FindOptionsRelations<Room>;
-    },
+    requestorRoleIDs: string[],
   ) {
-    const rooms = await this.roomRepository.find({
-      where: {
-        ...(roomID || roomID == 0
-          ? { roomID: roomID }
-          : { roomID: MoreThan(offsetID) }),
-        ...(provinceCode
-          ? { administrativeUnit: { provinceCode: provinceCode } }
-          : {}),
-        ...(districtCode
-          ? { administrativeUnit: { districtCode: districtCode } }
-          : {}),
-        ...(wardCode ? { administrativeUnit: { wardCode: wardCode } } : {}),
-        ...(houseID ? { house: { houseID: houseID } } : {}),
-        ...(minPrice || maxPrice
-          ? minPrice && !maxPrice
-            ? { price: MoreThanOrEqual(minPrice) }
-            : !minPrice && maxPrice
-              ? { price: LessThanOrEqual(maxPrice) }
-              : {
-                  price: And(
-                    MoreThanOrEqual(minPrice),
-                    LessThanOrEqual(maxPrice),
-                  ),
-                }
-          : {}),
-        ...(isHot ? { isHot: isHot } : {}),
-        ...(name ? { name: name } : {}),
-      },
-      order: {
-        ...(sortBy
-          ? sortBy == 'price'
-            ? { price: 'ASC' }
-            : { agreementDuration: 'ASC' }
-          : { roomID: 'ASC' }),
-      },
-      select: { roomID: true, ...selectAndRelationOption.select },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    const [rooms, roomBlacklist, houseBlacklist] = await Promise.all([
+      this.roomRepository.find({
+        where: {
+          ...(roomID || roomID == 0
+            ? { roomID: roomID }
+            : { roomID: MoreThan(offsetID) }),
+          ...(provinceCode
+            ? { administrativeUnit: { provinceCode: provinceCode } }
+            : {}),
+          ...(districtCode
+            ? { administrativeUnit: { districtCode: districtCode } }
+            : {}),
+          ...(wardCode ? { administrativeUnit: { wardCode: wardCode } } : {}),
+          ...(houseID ? { house: { houseID: houseID } } : {}),
+          ...(minPrice || maxPrice
+            ? minPrice && !maxPrice
+              ? { price: MoreThanOrEqual(minPrice) }
+              : !minPrice && maxPrice
+                ? { price: LessThanOrEqual(maxPrice) }
+                : {
+                    price: And(
+                      MoreThanOrEqual(minPrice),
+                      LessThanOrEqual(maxPrice),
+                    ),
+                  }
+            : {}),
+          ...(isHot ? { isHot: isHot } : {}),
+          ...(isEmpty ? { isEmpty: isEmpty } : {}),
+          ...(name ? { name: name } : {}),
+        },
+        order: {
+          ...(sortBy
+            ? sortBy == 'price'
+              ? { price: 'ASC' }
+              : { agreementDuration: 'ASC' }
+            : { roomID: 'ASC' }),
+        },
+        relations: {
+          house: {
+            administrativeUnit: true,
+          },
+          manager: true,
+          images: true,
+        },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'rooms',
+        PermTypeEnum.READ,
+      ),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'houses',
+        PermTypeEnum.READ,
+      ),
+    ]);
+    return rooms.map((room) => {
+      const dto = RoomMapper.EntityToReadDTO(room);
+      removeByBlacklist(dto, roomBlacklist.blacklist);
+      if (dto.house) {
+        removeByBlacklist(dto.house, houseBlacklist.blacklist);
+      }
+      return dto;
     });
-    //console.log('@Service: \n', rooms);
-    return rooms.map((room) => RoomMapper.EntityToBaseDTO(room));
   }
 
-  async getMaxRoom(houseID: number, name: string) {
+  async getMaxRoom(houseID: number) {
     const query = this.roomRepository
       .createQueryBuilder('entity')
       .select('MAX(entity.roomID)', 'roomID');
     if (houseID) {
       query.where('entity.houseID = :houseID', { houseID: houseID });
-    }
-    if (name) {
-      query.where('entity.name = :name', { name: name });
     }
     const dto = (await query.getRawOne()) as MaxResponseRoomDTO;
     return dto;
@@ -124,7 +144,7 @@ export class RoomService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     console.log('@Service: \n', rooms);
-    return rooms.map((room) => RoomMapper.EntityToBaseDTO(room));
+    return rooms.map((room) => RoomMapper.EntityToReadDTO(room));
   }
 
   async findInactiveAll(roomID: number, offsetID: number) {
@@ -143,7 +163,7 @@ export class RoomService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', rooms);
-    return rooms.map((room) => RoomMapper.EntityToBaseDTO(room));
+    return rooms.map((room) => RoomMapper.EntityToReadDTO(room));
   }
 
   async create(requestorID: string, createRoomDTOs: CreateRoomDTO) {

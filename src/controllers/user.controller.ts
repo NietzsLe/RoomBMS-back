@@ -14,7 +14,7 @@ import {
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
-  BaseUserDTO,
+  ReadUserDTO,
   CreateResponseUserDTO,
   CreateUserDTO,
   HardDeleteAndRecoverUserDTO,
@@ -27,7 +27,6 @@ import {
   RoleIDsCheckPipe,
   UsernamesCheckPipe,
 } from './pipes/notDuplicateValue.pipe';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 
 @Controller('users')
@@ -36,7 +35,7 @@ import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 export class UserController {
   constructor(private userService: UserService) {}
   @Get()
-  @ApiOkResponse({ type: [BaseUserDTO] })
+  @ApiOkResponse({ type: [ReadUserDTO] })
   @ApiQuery({ name: 'username', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
@@ -47,16 +46,16 @@ export class UserController {
     @Query('username') username: string = '',
     @Query('name') name: string = '',
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.userService.findAll(
       username,
       name,
       offsetID,
-      createFindOptionSelectWithBlacklist(BaseUserDTO, blackList),
+      requestorRoleIDs,
     );
   }
   @Get('inactive')
-  @ApiOkResponse({ type: [BaseUserDTO] })
+  @ApiOkResponse({ type: [ReadUserDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'username', required: false })
   @ApiQuery({ name: 'offsetID', required: false })

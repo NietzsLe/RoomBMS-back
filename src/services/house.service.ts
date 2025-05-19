@@ -7,18 +7,13 @@ import {
 } from 'src/dtos/houseDTO';
 import { HouseMapper } from 'src/mappers/house.mapper';
 import { House } from 'src/models/house.model';
-import {
-  FindOptionsRelations,
-  FindOptionsSelect,
-  IsNull,
-  MoreThan,
-  Not,
-  Repository,
-} from 'typeorm';
+import { IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { HouseConstraint } from './constraints/house.helper';
 import { AdministrativeUnitConstraint } from './constraints/administrativeUnit.helper';
 import { RoomService } from './room.service';
+import { AuthService, PermTypeEnum } from './auth.service';
+import { removeByBlacklist } from './helper';
 
 @Injectable()
 export class HouseService {
@@ -30,43 +25,48 @@ export class HouseService {
     private administrativeUnitConstraint: AdministrativeUnitConstraint,
     private userProcess: UserProcess,
     private roomService: RoomService,
+    private authService: AuthService,
   ) {}
 
   async findAll(
     houseID: number,
     name: string,
     offsetID: number,
-    selectAndRelationOption: {
-      select: FindOptionsSelect<House>;
-      relations: FindOptionsRelations<House>;
-    },
+    requestorRoleIDs: string[],
   ) {
-    const houses = await this.houseRepository.find({
-      where: {
-        ...(houseID || houseID == 0
-          ? { houseID: houseID }
-          : { houseID: MoreThan(offsetID) }),
-        ...(name ? { name: name } : {}),
-      },
-      order: {
-        houseID: 'ASC',
-      },
-      select: { houseID: true, ...selectAndRelationOption.select },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
-    });
+    const [houses, houseBlacklist] = await Promise.all([
+      this.houseRepository.find({
+        where: {
+          ...(houseID || houseID == 0
+            ? { houseID: houseID }
+            : { houseID: MoreThan(offsetID) }),
+          ...(name ? { name: name } : {}),
+        },
+        order: {
+          houseID: 'ASC',
+        },
+        relations: { manager: true },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'houses',
+        PermTypeEnum.READ,
+      ),
+    ]);
     //console.log('@Service: \n', houses);
-    return houses.map((house) => HouseMapper.EntityToBaseDTO(house));
+    return houses.map((house) => {
+      const dto = HouseMapper.EntityToReadDTO(house);
+      removeByBlacklist(dto, houseBlacklist.blacklist);
+      return dto;
+    });
   }
 
-  async getMaxHouse(name: string) {
+  async getMaxHouse() {
     const query = this.houseRepository
       .createQueryBuilder('entity')
       .select('MAX(entity.houseID)', 'houseID');
 
-    if (name) {
-      query.where('entity.name = :name', { name: name });
-    }
     const dto = (await query.getRawOne()) as MaxResponseHouseDTO;
     return dto;
   }
@@ -84,7 +84,7 @@ export class HouseService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', houses);
-    return houses.map((house) => HouseMapper.EntityToBaseDTO(house));
+    return houses.map((house) => HouseMapper.EntityToReadDTO(house));
   }
 
   async findInactiveAll(houseID: number, offsetID: number) {
@@ -104,7 +104,7 @@ export class HouseService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', houses);
-    return houses.map((house) => HouseMapper.EntityToBaseDTO(house));
+    return houses.map((house) => HouseMapper.EntityToReadDTO(house));
   }
 
   async create(requestorID: string, createHouseDTOs: CreateHouseDTO) {

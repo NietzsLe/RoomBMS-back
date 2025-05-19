@@ -1,4 +1,3 @@
-import { Expose } from '@nestjs/class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -7,45 +6,24 @@ import {
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class BaseAccessRuleDTO {
-  @IsString()
+export class ReadAccessRuleDTO {
   @ApiProperty()
-  @Expose()
   resourceID: string;
-  @IsString()
   @ApiProperty()
-  @Expose()
   roleID: string;
-  @IsBoolean()
   @ApiProperty()
-  @Expose()
   readPerm: boolean;
-  @IsBoolean()
   @ApiProperty()
-  @Expose()
   updatePerm: boolean;
-  @IsBoolean()
   @ApiProperty()
-  @Expose()
   createPerm: boolean;
-  @IsBoolean()
   @ApiProperty()
-  @Expose()
   unlinkPerm: boolean;
-  @IsArray() // Kiểm tra xem đây có phải là một mảng không
-  @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [String] })
-  @Expose()
   readAttrDTOBlackList: string[];
-  @IsArray() // Kiểm tra xem đây có phải là một mảng không
-  @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [String] })
-  @Expose()
   createAttrDTOBlackList: string[];
-  @IsArray() // Kiểm tra xem đây có phải là một mảng không
-  @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
   @ApiProperty({ type: [String] })
-  @Expose()
   updateAttrDTOBlackList: string[];
 }
 export class CreateAccessRuleDTO {

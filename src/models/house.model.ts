@@ -18,27 +18,144 @@ import { User } from './user.model';
 @Entity('house') // Tên bảng trong cơ sở dữ liệu
 export class House {
   @PrimaryGeneratedColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
   houseID: number; // Khóa chính, tự động tăng
-
-  @Column()
-  @Expose({ groups: ['TO-DTO'] })
-  name: string; // Tên chủ sở hữu
-
-  @Column()
-  @Expose({ groups: ['TO-DTO'] })
-  ownerName: string; // Tên chủ sở hữu
-
-  @Column()
-  @Expose({ groups: ['TO-DTO'] })
-  ownerPhone: string; // Số điện thoại của chủ sở hữu
-
-  @Column()
-  @Expose({ groups: ['TO-DTO'] })
-  addressDetail: string; // Thông tin chi tiết về địa chỉ
 
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
+  room_price: number;
+
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  room_depositPrice: string;
+
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  room_commissionPer: string;
+
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  room_agreementDuration: string;
+
+  @Column({ type: 'json', nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  room_unitPrice: {
+    management?: number;
+    managementUnit?: string;
+    other?: number;
+    otherUnit?: string;
+    card?: number;
+    cardUnit?: string;
+    electricity?: number;
+    electricityUnit?: string;
+    water?: number;
+    waterUnit?: string;
+    internet?: number;
+    internetUnit?: string;
+    washingMachine?: number;
+    washingMachineUnit?: string;
+    parking?: number;
+    parkingUnit?: string;
+  }; // Thông tin về giá cả các dịch vụ
+
+  @Column({ type: 'json', default: {} })
+  @Expose({ groups: ['TO-DTO'] })
+  room_additionInfo: {
+    moveInTime?: number;
+    roomType?: string;
+    toilet?: string;
+    position?: string;
+    gateLock?: string;
+    dryingYard?: string;
+    activityHours?: string;
+    numberOfVehicles?: number;
+    parkingSpace?: string; // Có thể là số lượng hoặc mô tả
+    area?: string; // Diện tích
+    numberOfPeoples?: number;
+    deposit?: number;
+    depositReplenishmentTime?: number;
+    kitchenShelf?: boolean;
+    bed?: boolean;
+    sharedOwner?: boolean;
+    airConditioner?: boolean;
+    window?: boolean;
+    tv?: boolean;
+    dishWasher?: boolean;
+    mattress?: boolean;
+    elevator?: boolean;
+    skylight?: boolean;
+    balcony?: boolean;
+    washingMachine?: boolean;
+    waterHeater?: boolean;
+    wardrobe?: boolean;
+    security?: boolean;
+    pet?: boolean;
+    note?: string;
+    electricBike?: boolean;
+    attic?: boolean;
+    fridge?: boolean;
+  }; // Thông tin bổ sung 2
+
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO', 'TO-ROOM-DTO', 'TO-APPOINTMENT-DTO'] })
+  mapLink: string;
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO', 'TO-ROOM-DTO', 'TO-APPOINTMENT-DTO'] })
+  zaloLink: string;
+
+  @Column()
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
+  name: string; // Tên chủ sở hữu
+
+  @Column()
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
+  ownerName: string; // Tên chủ sở hữu
+
+  @Column()
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
+  ownerPhone: string; // Số điện thoại của chủ sở hữu
+
+  @Column()
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
+  addressDetail: string; // Thông tin chi tiết về địa chỉ
+
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO', 'TO-ROOM-DTO', 'TO-APPOINTMENT-DTO'] })
   note: string; // Thông tin chi tiết về địa chỉ
 
   @DeleteDateColumn()
@@ -81,7 +198,14 @@ export class House {
   })
   manager: User | null;
 
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
   administrativeUnitID() {
     if (this.administrativeUnit)
       return [
@@ -91,7 +215,14 @@ export class House {
       ];
     return undefined;
   }
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
   administrativeUnitName() {
     if (this.administrativeUnit)
       return [

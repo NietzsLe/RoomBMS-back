@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import {
-  BaseRoleDTO,
+  ReadRoleDTO,
   CreateResponseRoleDTO,
   CreateRoleDTO,
 } from 'src/dtos/roleDTO';
@@ -20,7 +20,6 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { NotEmptyCheckPipe } from 'src/controllers/pipes/notEmptyCheck.pipe';
 import { RoleService } from 'src/services/role.service';
 import { Request } from 'express';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 
 @Controller('roles')
@@ -29,7 +28,7 @@ import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 export class RoleController {
   constructor(private roleService: RoleService) {}
   @Get()
-  @ApiOkResponse({ type: [BaseRoleDTO] })
+  @ApiOkResponse({ type: [ReadRoleDTO] })
   @ApiQuery({ name: 'roleID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   @Header('Cache-Control', 'max-age=2')
@@ -38,12 +37,8 @@ export class RoleController {
     @Query('offsetID') offsetID: string = '',
     @Query('roleID') roleID: string = '',
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
-    return await this.roleService.findAll(
-      roleID,
-      offsetID,
-      createFindOptionSelectWithBlacklist(BaseRoleDTO, blackList),
-    );
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+    return await this.roleService.findAll(roleID, offsetID, requestorRoleIDs);
   }
   @UseGuards(JustSuperAdminRoleGuard)
   @Post()

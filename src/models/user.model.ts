@@ -13,20 +13,24 @@ import {
 import { Role } from './role.model';
 import { Appointment } from './appointment.model';
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
+import { Team } from './team.model';
 
 @Entity('user')
 export class User {
   @PrimaryColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   username: string;
   @Column()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   name: string;
-  @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
-  team: string;
   @Column({ default: '0365518929' })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   phoneNumber: string;
   @Column()
   @Expose({ groups: ['NOT-TO-DTO'] })
@@ -52,6 +56,16 @@ export class User {
   @Expose({ groups: ['NOT-TO-DTO'] })
   @Column({ type: String, nullable: true })
   hashedAccessToken: string | null;
+  @ManyToOne(() => Team, (team) => team.members, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'teamID' })
+  @Type(() => Team)
+  @Expose({
+    groups: ['NOT-TO-DTO'],
+  })
+  team: Team | null;
   @ManyToMany(() => Role, (role) => role.users, {
     onDelete: 'CASCADE',
   })
@@ -72,8 +86,8 @@ export class User {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'managerID' })
-  @Type(() => User)
   @Expose({ name: 'managerID', groups: ['TO-DTO'] })
+  @Type(() => User)
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
@@ -84,4 +98,12 @@ export class User {
   @OneToMany(() => Appointment, (appointment) => appointment.madeUser)
   @Expose({ groups: ['NOT-TO-DTO'] })
   madeAppointments: Appointment[];
+
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
+  teamID() {
+    if (this.team?.teamID) return this.team.teamID;
+    return undefined;
+  }
 }
