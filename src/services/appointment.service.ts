@@ -12,13 +12,14 @@ import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { Appointment } from 'src/models/appointment.model';
 import {
   And,
-  FindOptionsRelations,
-  FindOptionsSelect,
+  Equal,
+  FindOptionsWhere,
   IsNull,
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
   Not,
+  Or,
   Repository,
 } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
@@ -33,6 +34,14 @@ import { User } from 'src/models/user.model';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
 import { Tenant } from 'src/models/tenant.model';
 import { TelegramBotService } from './telegramBot.service';
+import { AuthService, PermTypeEnum } from './auth.service';
+import { removeByBlacklist } from './helper';
+import { ReadRoomDTO } from 'src/dtos/roomDTO';
+import { ReadHouseDTO } from 'src/dtos/houseDTO';
+import { ReadTenantDTO } from 'src/dtos/tenantDTO';
+import { ReadUserDTO } from 'src/dtos/userDTO';
+import { ReadDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
+import { AppointmentStatus } from 'src/models/helper';
 
 @Injectable()
 export class AppointmentService {
@@ -51,6 +60,7 @@ export class AppointmentService {
     private userProcess: UserProcess,
     private process: AppointmentProcess,
     private telegramBotService: TelegramBotService,
+    private authService: AuthService,
   ) {}
 
   async findAll(
@@ -61,60 +71,200 @@ export class AppointmentService {
     roomID: number,
     fromDate: Date,
     toDate: Date,
-    takenOverUsername: string,
-    endID: number,
-    selectAndRelationOption: {
-      select: FindOptionsSelect<Appointment>;
-      relations: FindOptionsRelations<Appointment>;
-    },
+    status: string,
+    requestorRoleIDs: string[],
+    requestorID: string,
   ) {
-    const appointments = await this.appointmentRepository.find({
-      where: {
-        ...(appointmentID || appointmentID == 0
-          ? { appointmentID: appointmentID }
-          : endID
-            ? { appointmentID: And(MoreThan(offsetID), LessThanOrEqual(endID)) }
-            : { appointmentID: MoreThan(offsetID) }),
-        ...(name ? { name: name } : {}),
-        ...(houseID ? { house: { houseID: houseID } } : {}),
-        ...(roomID ? { room: { roomID: roomID } } : {}),
-        ...(fromDate || toDate
-          ? fromDate && !toDate
-            ? { appointmentTime: MoreThanOrEqual(fromDate) }
-            : !fromDate && toDate
-              ? { appointmentTime: LessThanOrEqual(toDate) }
-              : {
-                  appointmentTime: And(
-                    MoreThanOrEqual(fromDate),
-                    LessThanOrEqual(toDate),
-                  ),
-                }
-          : {}),
-        ...(takenOverUsername
-          ? { takenOverUser: { username: takenOverUsername } }
-          : {}),
-      },
-      order: {
-        appointmentID: 'ASC',
-      },
-      select: { appointmentID: true, ...selectAndRelationOption.select },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    let isAdmin = false;
+    for (const roleID of requestorRoleIDs) {
+      if (
+        roleID == process.env.SUPER_ADMIN_ROLEID ||
+        roleID == process.env.ADMIN_ROLEID
+      ) {
+        isAdmin = true;
+        break;
+      }
+    }
+    const basicWhere:
+      | FindOptionsWhere<Appointment>
+      | FindOptionsWhere<Appointment>[]
+      | undefined = {
+      ...(name ? { name: name } : {}),
+      ...(houseID ? { house: { houseID: houseID } } : {}),
+      ...(roomID ? { room: { roomID: roomID } } : {}),
+      ...(fromDate || toDate
+        ? fromDate && !toDate
+          ? { appointmentTime: MoreThanOrEqual(fromDate) }
+          : !fromDate && toDate
+            ? { appointmentTime: LessThanOrEqual(toDate) }
+            : {
+                appointmentTime: And(
+                  MoreThanOrEqual(fromDate),
+                  LessThanOrEqual(toDate),
+                ),
+              }
+        : {}),
+      ...(status
+        ? status == 'not-end'
+          ? {
+              status: Or(
+                Equal(AppointmentStatus.EXTRA_CARE),
+                Equal(AppointmentStatus.NOT_YET_RECEIVED),
+                Equal(AppointmentStatus.RECEIVED),
+              ),
+            }
+          : {
+              status: Or(
+                Equal(AppointmentStatus.SUCCESS),
+                Equal(AppointmentStatus.STOPPED),
+              ),
+            }
+        : {}),
+    };
+    let where:
+      | FindOptionsWhere<Appointment>
+      | FindOptionsWhere<Appointment>[]
+      | undefined;
+    if (appointmentID || appointmentID == 0) {
+      basicWhere.appointmentID = appointmentID;
+      where = basicWhere;
+    } else {
+      basicWhere.appointmentID = MoreThan(offsetID);
+      if (isAdmin) {
+        where = basicWhere;
+      } else {
+        where = [
+          {
+            takenOverUser: [
+              { team: { leader: { username: requestorID } } },
+              { manager: { username: requestorID } },
+              { username: requestorID },
+            ],
+            ...basicWhere,
+          },
+          {
+            madeUser: [
+              { team: { leader: { username: requestorID } } },
+              { manager: { username: requestorID } },
+              { username: requestorID },
+            ],
+            ...basicWhere,
+          },
+        ];
+      }
+    }
+
+    const [
+      appointments,
+      tenantBlacklist,
+      roomBlacklist,
+      depositAgreementBlacklist,
+      userBlacklist,
+      houseBlacklist,
+      appointmentBlacklist,
+    ] = await Promise.all([
+      this.appointmentRepository.find({
+        where: where,
+        order: {
+          appointmentID: 'ASC',
+        },
+        relations: {
+          room: { house: { administrativeUnit: true } },
+          depositAgreement: true,
+          takenOverUser: { team: true },
+          madeUser: { team: true },
+          tenant: true,
+          manager: true,
+        },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'tenants',
+        PermTypeEnum.READ,
+      ),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'rooms',
+        PermTypeEnum.READ,
+      ),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'deposit-agreements',
+        PermTypeEnum.READ,
+      ),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'users',
+        PermTypeEnum.READ,
+      ),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'houses',
+        PermTypeEnum.READ,
+      ),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'appointments',
+        PermTypeEnum.READ,
+      ),
+    ]);
+    const dto = appointments.map((appointment) => {
+      const dto = AppointmentMapper.EntityToReadDTO(appointment);
+      removeByBlacklist(dto, appointmentBlacklist.blacklist);
+
+      if (dto.room) {
+        if (roomBlacklist.canAccess)
+          removeByBlacklist(dto.room, roomBlacklist.blacklist);
+        else dto.room = new ReadRoomDTO();
+      }
+      if (dto?.room?.house) {
+        if (houseBlacklist.canAccess)
+          removeByBlacklist(dto.room.house, houseBlacklist.blacklist);
+        else dto.room.house = new ReadHouseDTO();
+      }
+      if (dto.tenant) {
+        if (tenantBlacklist.canAccess) {
+          removeByBlacklist(dto.tenant, tenantBlacklist.blacklist);
+          if (
+            !this.constraint.JustRelatedUserCanSeeTenantPhone(
+              appointment,
+              requestorID,
+            )
+          )
+            delete dto.tenant['phoneNumber'];
+        } else dto.tenant = new ReadTenantDTO();
+      }
+      if (dto.takenOverUser) {
+        if (userBlacklist.canAccess)
+          removeByBlacklist(dto.takenOverUser, userBlacklist.blacklist);
+        else dto.takenOverUser = new ReadUserDTO();
+      }
+      if (dto.madeUser) {
+        if (userBlacklist.canAccess) {
+          removeByBlacklist(dto.madeUser, userBlacklist.blacklist);
+        } else dto.madeUser = new ReadUserDTO();
+      }
+      if (dto.depositAgreement) {
+        if (depositAgreementBlacklist.canAccess)
+          removeByBlacklist(
+            dto.depositAgreement,
+            depositAgreementBlacklist.blacklist,
+          );
+        else dto.depositAgreement = new ReadDepositAgreementDTO();
+      }
+      // console.log('@Service: \n', dto);
+
+      return dto;
     });
-    // console.log('@Service: \n', appointments);
-    return appointments.map((appointment) =>
-      AppointmentMapper.EntityToBaseDTO(appointment),
-    );
+    console.log(roomBlacklist.blacklist);
+    return dto;
   }
 
-  async getMaxAppointment(name: string) {
+  async getMaxAppointment() {
     const query = this.appointmentRepository
       .createQueryBuilder('entity')
       .select('MAX(entity.appointmentID)', 'appointmentID');
-
-    if (name) {
-      query.where('entity.name = :name', { name: name });
-    }
     const dto = (await query.getRawOne()) as MaxResponseAppointmentDTO;
     return dto;
   }
@@ -133,7 +283,7 @@ export class AppointmentService {
     });
     //console.log('@Service: \n', appointments);
     return appointments.map((appointment) =>
-      AppointmentMapper.EntityToBaseDTO(appointment),
+      AppointmentMapper.EntityToReadDTO(appointment),
     );
   }
 
@@ -159,7 +309,7 @@ export class AppointmentService {
     });
     //console.log('@Service: \n', appointments);
     return appointments.map((appointment) =>
-      AppointmentMapper.EntityToBaseDTO(appointment),
+      AppointmentMapper.EntityToReadDTO(appointment),
     );
   }
 
@@ -198,6 +348,7 @@ export class AppointmentService {
       appointment.appointmentID,
     );
     if (result) this.constraint.NoUserTakeOver(result);
+    appointment.status = AppointmentStatus.RECEIVED;
     await this.appointmentRepository.update(
       appointment.appointmentID,
       appointment,
@@ -220,11 +371,8 @@ export class AppointmentService {
     if (result[0])
       this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
     if (result[1]) appointment.depositAgreement = result[1];
-    //console.log('@Service: \n', appointment);
-    await this.appointmentRepository.update(
-      appointment.appointmentID,
-      appointment,
-    );
+    console.log('@Service: \n', appointment);
+    await this.appointmentRepository.save(appointment);
     await this.telegramBotService.notifyReturnDepositAgreementResult(
       appointment.appointmentID,
     );

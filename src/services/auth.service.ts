@@ -13,6 +13,7 @@ import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { UserMapper } from 'src/mappers/user.mapper';
+import { compareHash, hashText } from './helper';
 
 export enum PermTypeEnum {
   READ = 'readPerm',
@@ -74,7 +75,7 @@ export class AuthService {
         user.username,
         (user.roles ?? []).map((role) => role.roleID),
       )),
-      account: UserMapper.EntityToBaseWithAccessRightDTO(user),
+      account: UserMapper.EntityToReadWithAccessRightDTO(user),
     };
   }
   async changePassword(
@@ -118,7 +119,7 @@ export class AuthService {
     await this.usersRepository.update(username, user);
     return {
       ...(await this.refreshTokenByPayload(user.username, RoleIDs)),
-      account: UserMapper.EntityToBaseWithAccessRightDTO(user),
+      account: UserMapper.EntityToReadWithAccessRightDTO(user),
     };
   }
 
@@ -131,6 +132,40 @@ export class AuthService {
           secret: process.env.REFRESH_TOKEN_SECRET,
         },
       );
+      const user = await this.usersRepository.findOne({
+        where: {
+          username: payload.username,
+        },
+        select: {
+          username: true,
+          isDisabled: true,
+          expiryTime: true,
+          hashedRefreshToken: true,
+        },
+        relations: { roles: true },
+      });
+      if (!user)
+        throw new HttpException(
+          `user:${payload.username} is inactive or has been disabled`,
+          HttpStatus.NOT_FOUND,
+        );
+      else if (user.isDisabled == true)
+        throw new HttpException(
+          `user:${payload.username} has been disabled`,
+          HttpStatus.LOCKED,
+        );
+      else if (user.expiryTime && user.expiryTime <= new Date())
+        throw new HttpException(
+          `user:${payload.username} acccount was exprired`,
+          HttpStatus.NOT_ACCEPTABLE,
+        );
+      else if (
+        !user.hashedRefreshToken ||
+        (user.hashedRefreshToken &&
+          !compareHash('Bearer ' + refreshToken, user.hashedRefreshToken))
+      ) {
+        throw new UnauthorizedException();
+      }
       return this.refreshTokenByPayload(payload.username, payload.roleIDs);
     } catch {
       throw new UnauthorizedException();
@@ -188,9 +223,24 @@ export class AuthService {
     else if (
       !user.hashedAccessToken ||
       (user.hashedAccessToken &&
-        !bcrypt.compareSync('Bearer ' + accessToken, user.hashedAccessToken))
+        !compareHash('Bearer ' + accessToken, user.hashedAccessToken))
     ) {
       throw new UnauthorizedException();
+    }
+    console.log(
+      '@Service: checkAuthorization\n',
+      accessToken,
+      compareHash('Bearer ' + accessToken, user.hashedAccessToken),
+    );
+
+    for (const roleID of roleIDs) {
+      if (
+        roleID == process.env.SUPER_ADMIN_ROLEID ||
+        roleID == process.env.ADMIN_ROLEID
+      ) {
+        request['resourceBlackListAttrs'] = [];
+        return true;
+      }
     }
 
     if (accessRules.length != 0) {
@@ -251,15 +301,68 @@ export class AuthService {
           expiresIn: process.env.REFRESH_TOKEN_EXPIRATION_TIME,
         })),
     };
-    const saltOrRounds = 10;
-    const hashes = await Promise.all([
-      await bcrypt.hash(out.refreshToken, saltOrRounds),
-      await bcrypt.hash(out.accessToken, saltOrRounds),
-    ]);
+    console.log('@Service: \n', out);
+    const hashes = [hashText(out.refreshToken), hashText(out.accessToken)];
     const updatedUser = new User();
     updatedUser.hashedRefreshToken = hashes[0];
     updatedUser.hashedAccessToken = hashes[1];
     await this.usersRepository.update(username, updatedUser);
     return out;
+  }
+
+  async getBlacklist(
+    roleIDs: string[],
+    resourceID: string,
+    perm: PermTypeEnum,
+  ) {
+    for (const roleID of roleIDs) {
+      if (
+        roleID == process.env.SUPER_ADMIN_ROLEID ||
+        roleID == process.env.ADMIN_ROLEID
+      )
+        return { canAccess: true, blacklist: [] };
+    }
+    const perms = {};
+    perms[perm] = true;
+    const accessRules = await this.accessRulesRepository.find({
+      where: { roleID: In(roleIDs), resourceID: resourceID, ...perms },
+      select: {
+        readAttrDTOBlackList: true,
+        updateAttrDTOBlackList: true,
+        createAttrDTOBlackList: true,
+        roleID: true,
+      },
+    });
+    if (accessRules.length != 0) {
+      //console.log('@Service: \n', accessRules);
+      let attrBlackList: Set<string>;
+      if (perm == PermTypeEnum.READ)
+        attrBlackList = new Set<string>(accessRules[0].readAttrDTOBlackList);
+      else if (perm == PermTypeEnum.CREATE)
+        attrBlackList = new Set<string>(accessRules[0].createAttrDTOBlackList);
+      else if (perm == PermTypeEnum.UPDATE)
+        attrBlackList = new Set<string>(accessRules[0].updateAttrDTOBlackList);
+      else {
+        return { canAccess: false, blacklist: [] };
+      }
+      for (let i = 1; i < accessRules.length; i = i + 1) {
+        if (attrBlackList.size == 0) break;
+        const tempSet = new Set<string>();
+        if (perm == PermTypeEnum.READ)
+          accessRules[i].readAttrDTOBlackList.forEach((item) => {
+            if (attrBlackList.has(item)) tempSet.add(item);
+          });
+        else if (perm == PermTypeEnum.CREATE)
+          accessRules[i].createAttrDTOBlackList.forEach((item) => {
+            if (attrBlackList.has(item)) tempSet.add(item);
+          });
+        else if (perm == PermTypeEnum.UPDATE)
+          accessRules[i].updateAttrDTOBlackList.forEach((item) => {
+            if (attrBlackList.has(item)) tempSet.add(item);
+          });
+        attrBlackList = tempSet;
+      }
+      return { canAccess: true, blacklist: Array.from(attrBlackList) };
+    } else return { canAccess: false, blacklist: [] };
   }
 }

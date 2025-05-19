@@ -15,7 +15,7 @@ import {
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
-  BaseAppointmentDTO,
+  ReadAppointmentDTO,
   CreateAppointmentDTO,
   CreateResponseAppointmentDTO,
   HardDeleteAndRecoverAppointmentDTO,
@@ -28,7 +28,6 @@ import {
 import { AuthGuard } from 'src/guards/auth.guard';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 import { AppointmentService } from 'src/services/appointment.service';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { AppointmentIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 import { ParseDatePipe } from './pipes/date.pipe';
 
@@ -38,7 +37,7 @@ import { ParseDatePipe } from './pipes/date.pipe';
 export class AppointmentController {
   constructor(private appointmentService: AppointmentService) {}
   @Get()
-  @ApiOkResponse({ type: [BaseAppointmentDTO] })
+  @ApiOkResponse({ type: [ReadAppointmentDTO] })
   @ApiQuery({ name: 'appointmentID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -46,7 +45,7 @@ export class AppointmentController {
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
   @ApiQuery({ name: 'toDate', required: false })
-  @ApiQuery({ name: 'takenOverUsername', required: false })
+  @ApiQuery({ name: 'status', required: false })
   @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
@@ -59,10 +58,10 @@ export class AppointmentController {
     @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
     @Query('fromDate', ParseDatePipe) fromDate: Date,
     @Query('toDate', ParseDatePipe) toDate: Date,
-    @Query('takenOverUsername') takenOverUsername: string,
-    @Query('endID', new ParseIntPipe({ optional: true })) endID: number,
+    @Query('status') status: string,
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+    const requestorID = request['resourceRequestUserID'] as string;
     return await this.appointmentService.findAll(
       appointmentID,
       offsetID,
@@ -71,13 +70,13 @@ export class AppointmentController {
       roomID,
       fromDate,
       toDate,
-      takenOverUsername,
-      endID,
-      createFindOptionSelectWithBlacklist(BaseAppointmentDTO, blackList),
+      status,
+      requestorRoleIDs,
+      requestorID,
     );
   }
   @Get('inactive')
-  @ApiOkResponse({ type: [BaseAppointmentDTO] })
+  @ApiOkResponse({ type: [ReadAppointmentDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'appointmentID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
@@ -124,7 +123,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    console.log('@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateByRelatedUser(
       requestorRoleIDs,
       requestorID,
@@ -139,7 +138,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    console.log('@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateDepositAgreementByRelatedUser(
       requestorRoleIDs,
       requestorID,

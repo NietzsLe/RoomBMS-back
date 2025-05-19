@@ -6,15 +6,11 @@ import {
 } from 'src/dtos/accessRuleDTO';
 import { AccessRuleMapper } from 'src/mappers/accessRule.mapper';
 import { AccessRule } from 'src/models/accessRule.model';
-import {
-  FindOptionsRelations,
-  FindOptionsSelect,
-  MoreThan,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { AccessRuleConstraint } from './constraints/accessRule.helper';
 import { RoleConstraint } from './constraints/role.helper';
+import { removeByBlacklist } from './helper';
+import { AuthService, PermTypeEnum } from './auth.service';
 
 @Injectable()
 export class AccessRuleService {
@@ -23,6 +19,7 @@ export class AccessRuleService {
     private accessRuleRepository: Repository<AccessRule>,
     private roleConstraint: RoleConstraint,
     private constraint: AccessRuleConstraint,
+    private authService: AuthService,
   ) {}
 
   async findAll(
@@ -34,35 +31,35 @@ export class AccessRuleService {
       roleID: string;
       resourceID: string;
     },
-    selectAndRelationOption: {
-      select: FindOptionsSelect<AccessRule>;
-      relations: FindOptionsRelations<AccessRule>;
-    },
+    requestorRoleIDs: string[],
   ) {
-    const accessRules = await this.accessRuleRepository.find({
-      where: {
-        ...(ID.roleID
-          ? { roleID: offsetID.roleID, resourceID: offsetID.resourceID }
-          : {
-              roleID: MoreThanOrEqual(offsetID.roleID),
-              resourceID: MoreThan(offsetID.resourceID),
-            }),
-      },
-      order: {
-        roleID: 'ASC',
-        resourceID: 'ASC',
-      },
-      select: {
-        roleID: true,
-        resourceID: true,
-        ...selectAndRelationOption.select,
-      },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    const [accessRules, accessRuleBlacklist] = await Promise.all([
+      this.accessRuleRepository.find({
+        where: {
+          ...(ID.roleID
+            ? { roleID: offsetID.roleID, resourceID: offsetID.resourceID }
+            : {
+                roleID: MoreThanOrEqual(offsetID.roleID),
+                resourceID: MoreThan(offsetID.resourceID),
+              }),
+        },
+        order: {
+          roleID: 'ASC',
+          resourceID: 'ASC',
+        },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'access-rules',
+        PermTypeEnum.READ,
+      ),
+    ]);
+    return accessRules.map((accessRule) => {
+      const dto = AccessRuleMapper.EntityToReadDTO(accessRule);
+      removeByBlacklist(dto, accessRuleBlacklist.blacklist);
+      return dto;
     });
-    return accessRules.map((accessRule) =>
-      AccessRuleMapper.EntityToBaseDTO(accessRule),
-    );
   }
 
   async create(createAccessRuleDTOs: CreateAccessRuleDTO) {

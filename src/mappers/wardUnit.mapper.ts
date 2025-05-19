@@ -5,7 +5,7 @@ import { WardUnit } from 'src/models/wardUnit.model';
 export class WardUnitMapper {
   // Chuyển đổi từ CreateAppointmentDTO sang Appointment entity
 
-  static EntityToBaseDTO(wardUnit: WardUnit) {
+  static EntityToReadDTO(wardUnit: WardUnit) {
     const plainObj = classToPlain(wardUnit, {
       groups: ['TO-DTO'],
     });

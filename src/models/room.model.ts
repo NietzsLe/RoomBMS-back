@@ -18,20 +18,21 @@ import { Appointment } from './appointment.model';
 import { Image } from './image.model';
 import { User } from './user.model';
 import { AdministrativeUnit } from './administrativeUnit.model';
+import { HouseMapper } from 'src/mappers/house.mapper';
 
 @Entity('room') // Tên bảng trong cơ sở dữ liệu
 export class Room {
   @PrimaryGeneratedColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   roomID: number; // Khóa chính, tự động tăng
 
   @Column()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   name: string; // Tên phòng
-
-  @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
-  description: string; // Mô tả phòng (có thể null)
 
   @Column({ type: 'int', nullable: true })
   @Expose({ groups: ['TO-DTO'] })
@@ -118,15 +119,10 @@ export class Room {
     wardrobe?: boolean;
     security?: boolean;
     pet?: boolean;
-    note?: string;
     electricBike?: boolean;
     attic?: boolean;
     fridge?: boolean;
   }; // Thông tin bổ sung 2
-
-  @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
-  mapLink: string; // Liên kết đến một địa điểm trên Google Maps
 
   @CreateDateColumn()
   @Expose({ groups: ['TO-DTO'] })
@@ -152,11 +148,20 @@ export class Room {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'houseID' })
-  @Expose({ name: 'houseID', groups: ['TO-DTO'] })
-  @Type(() => House)
-  @Transform(({ value }: { value: House }) => value?.houseID, {
-    toPlainOnly: true,
+  @Expose({
+    name: 'house',
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
   })
+  @Type(() => House)
+  @Transform(
+    ({ value }: { value: House }) => {
+      // console.log('\n@Model: ', HouseMapper.EntityToReadForRoomDTO(value));
+      return value ? HouseMapper.EntityToReadForRoomDTO(value) : undefined;
+    },
+    {
+      toPlainOnly: true,
+    },
+  )
   house: House | null; // Mối quan hệ với House
 
   @OneToMany(() => Image, (image) => image.room, {})
@@ -185,6 +190,18 @@ export class Room {
     toPlainOnly: true,
   })
   manager: User | null;
+
+  @ManyToOne(() => User, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'creatorID' })
+  @Type(() => User)
+  @Expose({ name: 'creatorID', groups: ['TO-DTO'] })
+  @Transform(({ value }: { value: User }) => value?.username, {
+    toPlainOnly: true,
+  })
+  creator: User | null;
 
   @ManyToOne(() => AdministrativeUnit, {
     nullable: true,

@@ -26,7 +26,7 @@ import { RoomImageService } from 'src/services/roomImage.service';
 import { Request } from 'express';
 import { RoomService } from 'src/services/room.service';
 import {
-  BaseRoomDTO,
+  ReadRoomDTO,
   CreateResponseRoomDTO,
   CreateRoomDTO,
   HardDeleteAndRecoverRoomDTO,
@@ -39,7 +39,6 @@ import {
   ApiOkResponse,
   ApiQuery,
 } from '@nestjs/swagger';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 import {
   ImageNamesCheckPipe,
@@ -56,7 +55,7 @@ export class RoomController {
     private roomService: RoomService,
   ) {}
   @Get()
-  @ApiOkResponse({ type: [BaseRoomDTO] })
+  @ApiOkResponse({ type: [ReadRoomDTO] })
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   @ApiQuery({ name: 'provinceCode', required: false })
@@ -66,6 +65,7 @@ export class RoomController {
   @ApiQuery({ name: 'minPrice', required: false })
   @ApiQuery({ name: 'maxPrice', required: false })
   @ApiQuery({ name: 'isHot', required: false })
+  @ApiQuery({ name: 'isEmpty', required: false })
   @ApiQuery({ name: 'sortBy', required: false })
   @ApiQuery({ name: 'name', required: false })
   @Header('Cache-Control', 'max-age=2')
@@ -83,10 +83,11 @@ export class RoomController {
     @Query('minPrice', new ParseIntPipe({ optional: true })) minPrice: number,
     @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice: number,
     @Query('isHot', new ParseBoolPipe({ optional: true })) isHot: boolean,
+    @Query('isEmpty', new ParseBoolPipe({ optional: true })) isEmpty: boolean,
     @Query('sortBy') sortBy: string,
     @Query('name') name: string,
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.roomService.findAll(
       roomID,
       offsetID,
@@ -97,13 +98,61 @@ export class RoomController {
       minPrice,
       maxPrice,
       isHot,
+      isEmpty,
       sortBy,
       name,
-      createFindOptionSelectWithBlacklist(BaseRoomDTO, blackList),
+      requestorRoleIDs,
     );
   }
+  // @Get('for-saler')
+  // @ApiOkResponse({ type: [ReadRoomDTO] })
+  // @ApiQuery({ name: 'roomID', required: false })
+  // @ApiQuery({ name: 'offsetID', required: false })
+  // @ApiQuery({ name: 'provinceCode', required: false })
+  // @ApiQuery({ name: 'districtCode', required: false })
+  // @ApiQuery({ name: 'wardCode', required: false })
+  // @ApiQuery({ name: 'houseID', required: false })
+  // @ApiQuery({ name: 'minPrice', required: false })
+  // @ApiQuery({ name: 'maxPrice', required: false })
+  // @ApiQuery({ name: 'isHot', required: false })
+  // @ApiQuery({ name: 'sortBy', required: false })
+  // @ApiQuery({ name: 'name', required: false })
+  // @Header('Cache-Control', 'max-age=2')
+  // async findAllForSaler(
+  //   @Req() request: Request,
+  //   @Query('offsetID', new ParseIntPipe({ optional: true }))
+  //   offsetID: number = 0,
+  //   @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
+  //   @Query('provinceCode', new ParseIntPipe({ optional: true }))
+  //   provinceCode: number,
+  //   @Query('districtCode', new ParseIntPipe({ optional: true }))
+  //   districtCode: number,
+  //   @Query('wardCode', new ParseIntPipe({ optional: true })) wardCode: number,
+  //   @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
+  //   @Query('minPrice', new ParseIntPipe({ optional: true })) minPrice: number,
+  //   @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice: number,
+  //   @Query('isHot', new ParseBoolPipe({ optional: true })) isHot: boolean,
+  //   @Query('sortBy') sortBy: string,
+  //   @Query('name') name: string,
+  // ) {
+  //   const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+  //   return await this.roomService.findAllForSaler(
+  //     roomID,
+  //     offsetID,
+  //     provinceCode,
+  //     districtCode,
+  //     wardCode,
+  //     houseID,
+  //     minPrice,
+  //     maxPrice,
+  //     isHot,
+  //     sortBy,
+  //     name,
+  //     requestorRoleIDs,
+  //   );
+  // }
   @Get('inactive')
-  @ApiOkResponse({ type: [BaseRoomDTO] })
+  @ApiOkResponse({ type: [ReadRoomDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })

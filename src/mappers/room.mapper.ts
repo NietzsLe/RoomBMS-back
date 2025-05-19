@@ -1,6 +1,6 @@
 import { classToPlain, plainToClass } from '@nestjs/class-transformer';
 
-import { CreateRoomDTO, UpdateRoomDTO } from 'src/dtos/roomDTO';
+import { CreateRoomDTO, ReadRoomDTO, UpdateRoomDTO } from 'src/dtos/roomDTO';
 import { Room } from 'src/models/room.model';
 
 export class RoomMapper {
@@ -11,11 +11,27 @@ export class RoomMapper {
     return plainToClass(Room, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
   }
 
-  static EntityToBaseDTO(room: Room) {
+  static EntityToReadDTO(room: Room) {
     const plainObj = classToPlain(room, {
       groups: ['TO-DTO'],
     });
+
     //console.log('@Mapper: \n', plainObj);
-    return plainObj;
+    return plainToClass(ReadRoomDTO, plainObj);
+  }
+
+  static EntityToReadForAppointmentDTO(room: Room) {
+    const plainObj = classToPlain(room, {
+      groups: ['TO-APPOINTMENT-DTO'],
+    });
+
+    return plainToClass(ReadRoomDTO, plainObj);
+  }
+  static EntityToReadForDepositAgreementDTO(room: Room) {
+    const plainObj = classToPlain(room, {
+      groups: ['TO-DEPOSITAGREEMENT-DTO'],
+    });
+
+    return plainToClass(ReadRoomDTO, plainObj);
   }
 }

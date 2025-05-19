@@ -2,6 +2,7 @@ import { classToPlain, plainToClass } from '@nestjs/class-transformer';
 
 import {
   CreateDepositAgreementDTO,
+  ReadDepositAgreementDTO,
   UpdateDepositAgreementDTO,
 } from 'src/dtos/depositAgreementDTO';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
@@ -18,11 +19,18 @@ export class DepositAgreementMapper {
     });
   }
 
-  static EntityToBaseDTO(depositAgreement: DepositAgreement) {
+  static EntityToReadForAppointmentDTO(depositAgreement: DepositAgreement) {
+    const plainObj = classToPlain(depositAgreement, {
+      groups: ['TO-APPOINTMENT-DTO'],
+    });
+    //console.log('@Mapper: \n', plainObj);
+    return plainToClass(ReadDepositAgreementDTO, plainObj);
+  }
+  static EntityToReadDTO(depositAgreement: DepositAgreement) {
     const plainObj = classToPlain(depositAgreement, {
       groups: ['TO-DTO'],
     });
     //console.log('@Mapper: \n', plainObj);
-    return plainObj;
+    return plainToClass(ReadDepositAgreementDTO, plainObj);
   }
 }

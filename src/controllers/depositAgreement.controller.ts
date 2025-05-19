@@ -15,7 +15,7 @@ import {
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
-  BaseDepositAgreementDTO,
+  ReadDepositAgreementDTO,
   CreateDepositAgreementDTO,
   CreateResponseDepositAgreementDTO,
   HardDeleteAndRecoverDepositAgreementDTO,
@@ -24,7 +24,6 @@ import {
 import { AuthGuard } from 'src/guards/auth.guard';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 import { DepositAgreementService } from 'src/services/depositAgreement.service';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { DepositAgreementIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 
 @Controller('deposit-agreements')
@@ -33,7 +32,7 @@ import { DepositAgreementIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 export class DepositAgreementController {
   constructor(private depositAgreementService: DepositAgreementService) {}
   @Get()
-  @ApiOkResponse({ type: [BaseDepositAgreementDTO] })
+  @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
   @ApiQuery({ name: 'depositAgreementID', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
@@ -47,16 +46,16 @@ export class DepositAgreementController {
     @Query('name')
     name: string,
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.depositAgreementService.findAll(
       depositAgreementID,
       name,
       offsetID,
-      createFindOptionSelectWithBlacklist(BaseDepositAgreementDTO, blackList),
+      requestorRoleIDs,
     );
   }
   @Get('inactive')
-  @ApiOkResponse({ type: [BaseDepositAgreementDTO] })
+  @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'depositAgreementID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })

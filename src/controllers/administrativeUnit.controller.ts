@@ -12,8 +12,8 @@ import { ApiCookieAuth, ApiOkResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { AdministrativeUnitService } from 'src/services/administrativeUnit.service';
 import {
-  BaseDistrictUnitDTO,
-  BaseProvinceUnitDTO,
+  ReadDistrictUnitDTO,
+  ReadProvinceUnitDTO,
   DeleteAndRecoverDistrictUnitDTO,
   DeleteAndRecoverProvinceUnitDTO,
   DeleteAndRecoverWardUnitDTO,
@@ -34,33 +34,33 @@ import {
 export class AdministrativeUnitController {
   constructor(private administrativeUnitService: AdministrativeUnitService) {}
   @Get('province-unit')
-  @ApiOkResponse({ type: [BaseProvinceUnitDTO] })
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   async findAllProvince() {
     return this.administrativeUnitService.findAllProvince();
   }
   @Get('district-unit')
-  @ApiOkResponse({ type: [BaseDistrictUnitDTO] })
+  @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
   async findAllDistrict(
     @Query('provinceUnitID', ParseIntPipe) provinceUnitID: number,
   ) {
     return this.administrativeUnitService.findAllDistrict(provinceUnitID);
   }
   @Get('ward-unit')
-  @ApiOkResponse({ type: [BaseProvinceUnitDTO] })
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   async findAllWard(
     @Query('districtUnitID', ParseIntPipe) districtUnitID: number,
   ) {
     return this.administrativeUnitService.findAllWard(districtUnitID);
   }
   @Get('province-unit/inactive')
-  @ApiOkResponse({ type: [BaseProvinceUnitDTO] })
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
   async findInactiveAllProvince() {
     return this.administrativeUnitService.findInactiveAllProvince();
   }
   @Get('district-unit/inactive')
-  @ApiOkResponse({ type: [BaseDistrictUnitDTO] })
+  @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
   async findInactiveAllDistrict(
@@ -71,7 +71,7 @@ export class AdministrativeUnitController {
     );
   }
   @Get('ward-unit/inactive')
-  @ApiOkResponse({ type: [BaseProvinceUnitDTO] })
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
   async findInactiveAllWard(

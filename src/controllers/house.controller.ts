@@ -15,7 +15,7 @@ import {
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
-  BaseHouseDTO,
+  ReadHouseDTO,
   CreateHouseDTO,
   CreateResponseHouseDTO,
   HardDeleteAndRecoverHouseDTO,
@@ -23,7 +23,6 @@ import {
 } from 'src/dtos/houseDTO';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { HouseService } from 'src/services/house.service';
 import { HouseIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 
@@ -33,7 +32,7 @@ import { HouseIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 export class HouseController {
   constructor(private houseService: HouseService) {}
   @Get()
-  @ApiOkResponse({ type: [BaseHouseDTO] })
+  @ApiOkResponse({ type: [ReadHouseDTO] })
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
@@ -45,16 +44,16 @@ export class HouseController {
     @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
     @Query('name') name: string,
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.houseService.findAll(
       houseID,
       name,
       offsetID,
-      createFindOptionSelectWithBlacklist(BaseHouseDTO, blackList),
+      requestorRoleIDs,
     );
   }
   @Get('inactive')
-  @ApiOkResponse({ type: [BaseHouseDTO] })
+  @ApiOkResponse({ type: [ReadHouseDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })

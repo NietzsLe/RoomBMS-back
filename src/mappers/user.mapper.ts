@@ -2,9 +2,10 @@ import { classToPlain, plainToClass } from '@nestjs/class-transformer';
 
 import {
   AccessRuleWithoutRoleDTO,
-  BaseUserWithAccessRightDTO,
+  ReadUserWithAccessRightDTO,
   CreateUserDTO,
   UpdateUserDTO,
+  ReadUserDTO,
 } from 'src/dtos/userDTO';
 import { User } from 'src/models/user.model';
 import { AccessRuleMapper } from './accessRule.mapper';
@@ -100,15 +101,22 @@ export class UserMapper {
     return plainToClass(User, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
   }
 
-  static EntityToBaseDTO(user: User) {
+  static EntityToReadDTO(user: User) {
     const plainObj = classToPlain(user, {
       groups: ['TO-DTO'],
     });
     //console.log('@Mapper: \n', plainObj);
     return plainObj;
   }
+  static EntityToReadForAppointmentDTO(user: User) {
+    const plainObj = classToPlain(user, {
+      groups: ['TO-APPOINTMENT-DTO'],
+    });
+    // console.log('@Mapper: \n', plainObj);
+    return plainToClass(ReadUserDTO, plainObj);
+  }
 
-  static EntityToBaseWithAccessRightDTO(user: User) {
+  static EntityToReadWithAccessRightDTO(user: User) {
     const plainObj = classToPlain(user, {
       groups: ['TO-DTO'],
     });
@@ -116,7 +124,7 @@ export class UserMapper {
     for (const role of user.roles ?? []) {
       const tempAccessRuleMap = new Map<string, AccessRuleWithoutRoleDTO>(
         role.accessRules.map((item) => {
-          const accessRule = AccessRuleMapper.EntityToBaseDTO(item);
+          const accessRule = AccessRuleMapper.EntityToReadDTO(item);
           delete accessRule.roleID;
           return [
             accessRule.resourceID,
@@ -128,7 +136,7 @@ export class UserMapper {
     }
     plainObj.accessRights = [...accessRuleMap].map((item) => item[1]);
     // console.log('@Mapper: \n', plainObj);
-    const dto = plainToClass(BaseUserWithAccessRightDTO, plainObj, {
+    const dto = plainToClass(ReadUserWithAccessRightDTO, plainObj, {
       excludeExtraneousValues: true,
     });
     // console.log('@Mapper: ', dto);

@@ -1,7 +1,4 @@
-import { Expose, Transform } from '@nestjs/class-transformer';
 import {
-  ArrayMaxSize,
-  ArrayMinSize,
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
@@ -14,143 +11,61 @@ import {
   ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { AdministrativeUnit } from 'src/models/administrativeUnit.model';
-import { AppointmentStatus } from 'src/models/appointment.model';
-import {
-  DepositAgreement,
-  DepositAgreementStatus,
-} from 'src/models/depositAgreement.model';
-import { Room } from 'src/models/room.model';
-import { Tenant } from 'src/models/tenant.model';
-import { User } from 'src/models/user.model';
+import { DepositAgreementStatus } from 'src/models/depositAgreement.model';
+import { ReadUserDTO } from './userDTO';
+import { ReadRoomDTO } from './roomDTO';
+import { ReadTenantDTO } from './tenantDTO';
+import { AppointmentStatus } from 'src/models/helper';
 
-export class BaseAppointmentDTO {
-  @IsNumber()
+class ReadDepositAgreementForAppointmentDTO {
   @ApiProperty({})
-  @Expose()
-  appointmentID: number; // Khóa chính, tự động tăng
-  @IsString()
+  depositAgreementID: number; // Khóa chính, tự động tăng
   @ApiProperty({})
-  @Expose()
   name: string;
-  @IsNumber()
   @ApiProperty({})
-  @Expose()
+  status: DepositAgreementStatus;
+}
+
+export class ReadAppointmentDTO {
+  @ApiProperty({})
+  appointmentID: number; // Khóa chính, tự động tăng
+  @ApiProperty({})
+  name: string;
+  @ApiProperty({})
   consultingPrice: number; // Giá tư vấn
-  @IsNumber()
   @ApiProperty({})
-  @Expose()
   noPeople: number; // Số lượng người
-  @IsNumber()
   @ApiProperty({})
-  @Expose()
   noVehicles: number; // Số lượng phương tiện
+  @ApiProperty({})
+  moveInTime: string; // Số lượng phương tiện
   @IsBoolean()
   @ApiProperty({})
-  @Expose()
   pet: boolean; // Có mang theo thú cưng không
-  @IsString()
   @ApiProperty({})
-  @Expose()
   note: string; // Ghi chú
-  @IsDate()
   @ApiProperty({})
-  @Expose()
   deletedAt: Date;
-  @IsDate()
   @ApiProperty({})
-  @Expose()
   updateAt: Date;
-  @IsDate()
   @ApiProperty({})
-  @Expose()
   createAt: Date; // Thời điểm tạo cuộc hẹn
-  @IsDate()
   @ApiProperty({})
-  @Expose()
   appointmentTime: Date; // Thời gian cuộc hẹn
-  @IsString()
   @ApiProperty({})
-  @Expose()
-  address: string;
-  @IsString()
-  @ApiProperty({})
-  @Expose()
   failReason: string;
-  @IsEnum(AppointmentStatus)
   @ApiProperty({})
-  @Expose()
   status: AppointmentStatus;
-  @IsString()
   @ApiProperty({})
-  @Expose({ name: 'takenOverUser', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const obj = new User();
-      obj.username = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
-  takenOverUsername: string;
-  @IsString()
+  takenOverUser: ReadUserDTO;
   @ApiProperty({})
-  @Expose({ name: 'madeUser', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const obj = new User();
-      obj.username = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
-  madeUsername: string;
-  @IsNumber()
+  madeUser: ReadUserDTO;
   @ApiProperty({})
-  @Expose({ name: 'room', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: number }) => {
-      const obj = new Room();
-      obj.roomID = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
-  roomID: number; // Mối quan hệ với Room
-  @IsNumber()
+  room: ReadRoomDTO; // Mối quan hệ với Room
   @ApiProperty({})
-  @Expose({ name: 'depositAgreement', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: number }) => {
-      const obj = new DepositAgreement();
-      obj.depositAgreementID = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
-  depositAgreementID: number; // Mối quan hệ với DepositAgreement
-  @IsNumber()
+  depositAgreement: ReadDepositAgreementForAppointmentDTO; // Mối quan hệ với DepositAgreement
   @ApiProperty({})
-  @Expose({ name: 'tenant', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: number }) => {
-      const obj = new Tenant();
-      obj.tenantID = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
-  tenantID: number; // Mối quan hệ với Tenant
-  @Expose({ name: 'manager', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const obj = new User();
-      obj.username = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
-  @IsString()
+  tenant: ReadTenantDTO; // Mối quan hệ với Tenant
   @ApiProperty({})
   managerID: string;
 }
@@ -168,6 +83,10 @@ export class CreateAppointmentDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   noVehicles?: number; // Số lượng phương tiện
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  moveInTime: string; // Số lượng phương tiện
   @IsBoolean()
   @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
@@ -179,9 +98,6 @@ export class CreateAppointmentDTO {
   @IsDate()
   @ApiProperty({})
   appointmentTime: Date; // Thời gian cuộc hẹn
-  @IsString()
-  @ApiProperty({})
-  address: string;
   @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
@@ -207,6 +123,10 @@ export class UpdateAppointmentDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   noVehicles?: number; // Số lượng phương tiện
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  moveInTime?: symbol; // Số lượng phương tiện
   @IsBoolean()
   @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
@@ -219,10 +139,6 @@ export class UpdateAppointmentDTO {
   @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   appointmentTime?: Date; // Thời gian cuộc hẹn
-  @IsString()
-  @ApiProperty({})
-  @ValidateIf((_, value) => value !== undefined)
-  address?: string;
   @IsString()
   @ApiProperty({ required: false })
   @IsOptional()
@@ -274,7 +190,7 @@ export class UpdateAppointmentForRelatedUserDTO {
   @IsEnum(AppointmentStatus)
   @ApiProperty({ required: false, enum: AppointmentStatus })
   @IsOptional()
-  status?: AppointmentStatus;
+  status: AppointmentStatus;
   @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
@@ -310,33 +226,6 @@ export class UpdateTenantForRelatedUserDTO extends OtherResourceDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   phoneNumber?: string; // Số điện thoại
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ required: false })
-  addressDetail?: string; // Thông tin chi tiết về địa chỉ
-
-  @IsArray() // Kiểm tra xem đây có phải là một mảng không
-  @ArrayMinSize(3)
-  @ArrayMaxSize(3)
-  @IsNumber({}, { each: true }) // Kiểm tra từng phần tử trong mảng phải là string
-  @ApiProperty({ type: [Number], minItems: 3, maxItems: 3 })
-  @IsOptional()
-  @Expose({ name: 'administrativeUnit', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: number[] }) => {
-      if (value) {
-        const obj = new AdministrativeUnit();
-        obj.provinceCode = value[0];
-        obj.districtCode = value[1];
-        obj.wardCode = value[2];
-        return obj;
-      }
-      return null;
-    },
-    { toPlainOnly: true },
-  )
-  administrativeUnitID?: number[]; // Mối quan hệ với administrativeUnit
 }
 
 export class HardDeleteAndRecoverAppointmentDTO {

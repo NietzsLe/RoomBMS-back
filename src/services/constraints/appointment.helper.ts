@@ -11,6 +11,21 @@ export class AppointmentConstraint {
     private appointmentRepository: Repository<Appointment>,
   ) {}
 
+  JustRelatedUserCanSeeTenantPhone(
+    appointment: Appointment,
+    requestorID: string,
+  ) {
+    if (
+      (appointment.madeUser?.username &&
+        appointment.madeUser?.username == requestorID) ||
+      (appointment.takenOverUser?.username &&
+        appointment.takenOverUser?.username == requestorID)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   async AppointmentIsAlive(appointmentID: number | undefined | null) {
     if (appointmentID || appointmentID == 0) {
       const exist = await this.appointmentRepository.findOne({
@@ -102,7 +117,7 @@ export class AppointmentConstraint {
   }
 
   NoUserTakeOver(appointment: Appointment) {
-    if (appointment.takenOverUser) {
+    if (appointment.takenOverUser?.username) {
       throw new HttpException(
         'Another user has taken over appointment',
         HttpStatus.CONFLICT,

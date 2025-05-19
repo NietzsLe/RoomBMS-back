@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
-import { User } from 'src/models/user.model';
 import { In, IsNull, Not, Repository } from 'typeorm';
 
 @Injectable()
@@ -21,7 +20,6 @@ export class DepositAgreementConstraint {
           depositAgreementID: true,
         },
         relations: {
-          negotiator: true,
           tenant: true,
           room: true,
           manager: true,
@@ -46,7 +44,6 @@ export class DepositAgreementConstraint {
           depositAgreementID: true,
         },
         relations: {
-          negotiator: true,
           tenant: true,
           room: true,
           manager: true,
@@ -104,13 +101,4 @@ export class DepositAgreementConstraint {
 }
 
 @Injectable()
-export class DepositAgreementProcess {
-  RequestorIsNegotiatorWhenCreate(
-    requestorID: string,
-    depositAgreement: DepositAgreement,
-  ) {
-    const user = new User();
-    user.username = requestorID;
-    depositAgreement.negotiator = user;
-  }
-}
+export class DepositAgreementProcess {}

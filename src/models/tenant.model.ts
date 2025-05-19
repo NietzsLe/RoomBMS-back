@@ -14,26 +14,27 @@ import { DepositAgreement } from './depositAgreement.model'; // Đảm bảo đ�
 
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { Appointment } from './appointment.model';
-import { AdministrativeUnit } from './administrativeUnit.model';
 import { User } from './user.model';
 
 @Entity('tenant') // Tên bảng trong cơ sở dữ liệu
 export class Tenant {
   @PrimaryGeneratedColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   tenantID: number; // Khóa chính, tự động tăng
 
   @Column()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   name: string; // Tên người thuê
 
   @Column()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   phoneNumber: string; // Số điện thoại
-
-  @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
-  addressDetail: string; // Thông tin chi tiết về địa chỉ
 
   @DeleteDateColumn({ nullable: true })
   @Expose({ groups: ['NOT-TO-DTO'] })
@@ -58,35 +59,6 @@ export class Tenant {
   @Expose({ groups: ['NOT-TO-DTO'] })
   depositAgreements: DepositAgreement[]; // Mối quan hệ với DepositAgreement
 
-  @ManyToOne(() => AdministrativeUnit)
-  @Expose({ groups: ['NOT-TO-DTO'] })
-  @JoinColumn([
-    { name: 'provinceCode', referencedColumnName: 'provinceCode' },
-    { name: 'districtCode', referencedColumnName: 'districtCode' },
-    { name: 'wardCode', referencedColumnName: 'wardCode' },
-  ])
-  administrativeUnit: AdministrativeUnit | null; // Mối quan hệ với AdministrativeUnitt
-
-  @Expose({ groups: ['TO-DTO'] })
-  administrativeUnitID() {
-    if (this.administrativeUnit)
-      return [
-        this.administrativeUnit.provinceCode,
-        this.administrativeUnit.districtCode,
-        this.administrativeUnit.wardCode,
-      ];
-    return undefined;
-  }
-  @Expose({ groups: ['TO-DTO'] })
-  administrativeUnitName() {
-    if (this.administrativeUnit)
-      return [
-        this.administrativeUnit.provinceName,
-        this.administrativeUnit.districtName,
-        this.administrativeUnit.wardName,
-      ];
-    return undefined;
-  }
   @ManyToOne(() => User, {
     nullable: true,
     onDelete: 'SET NULL',

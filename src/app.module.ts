@@ -88,6 +88,7 @@ import { ResourceManageController } from './controllers/resourceManage.controlle
 import { SupportServiceController } from './controllers/supportService.controller';
 import { ChatGroup } from './models/chatGroup.model';
 import { TelegramBotService } from './services/telegramBot.service';
+import { Team } from './models/team.model';
 
 @Module({
   imports: [
@@ -120,6 +121,7 @@ import { TelegramBotService } from './services/telegramBot.service';
       DistrictUnit,
       ProvinceUnit,
       ChatGroup,
+      Team,
     ]),
     ThrottlerModule.forRoot({
       throttlers: [

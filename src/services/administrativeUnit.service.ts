@@ -28,7 +28,7 @@ export class AdministrativeUnitService {
       },
     });
     return provinces.map((province) =>
-      ProvinceUnitMapper.EntityToBaseDTO(province),
+      ProvinceUnitMapper.EntityToReadDTO(province),
     );
   }
   async getProvinceAutocomplete() {
@@ -42,7 +42,7 @@ export class AdministrativeUnitService {
       },
     });
     return provinces.map((province) =>
-      ProvinceUnitMapper.EntityToBaseDTO(province),
+      ProvinceUnitMapper.EntityToReadDTO(province),
     );
   }
   async findInactiveAllProvince() {
@@ -55,7 +55,7 @@ export class AdministrativeUnitService {
     });
     //console.log('@Service: \n', provinces);
     return provinces.map((province) =>
-      ProvinceUnitMapper.EntityToBaseDTO(province),
+      ProvinceUnitMapper.EntityToReadDTO(province),
     );
   }
   async findAllDistrict(provinceCode: number) {
@@ -69,7 +69,7 @@ export class AdministrativeUnitService {
     });
     //console.log('@Service: \n', districts);
     return districts.map((district) =>
-      DistrictUnitMapper.EntityToBaseDTO(district),
+      DistrictUnitMapper.EntityToReadDTO(district),
     );
   }
   async getDistrictAutocomplete(provinceCode: number) {
@@ -84,7 +84,7 @@ export class AdministrativeUnitService {
     });
     //console.log('@Service: \n', districts);
     return districts.map((district) =>
-      DistrictUnitMapper.EntityToBaseDTO(district),
+      DistrictUnitMapper.EntityToReadDTO(district),
     );
   }
   async findInactiveAllDistrict(provinceCode: number) {
@@ -100,7 +100,7 @@ export class AdministrativeUnitService {
     });
     //console.log('@Service: \n', districts);
     return districts.map((district) =>
-      DistrictUnitMapper.EntityToBaseDTO(district),
+      DistrictUnitMapper.EntityToReadDTO(district),
     );
   }
   async findAllWard(districtCode: number) {
@@ -114,7 +114,7 @@ export class AdministrativeUnitService {
       },
     });
     //console.log('@Service: \n', wards);
-    return wards.map((ward) => WardUnitMapper.EntityToBaseDTO(ward));
+    return wards.map((ward) => WardUnitMapper.EntityToReadDTO(ward));
   }
   async getWardAutocomplete(districtCode: number) {
     const wards = await this.wardUnitRepository.find({
@@ -126,7 +126,7 @@ export class AdministrativeUnitService {
       },
     });
     //console.log('@Service: \n', wards);
-    return wards.map((ward) => WardUnitMapper.EntityToBaseDTO(ward));
+    return wards.map((ward) => WardUnitMapper.EntityToReadDTO(ward));
   }
   async findInactiveAllWard(districtCode: number) {
     const wards = await this.wardUnitRepository.find({
@@ -140,7 +140,7 @@ export class AdministrativeUnitService {
       },
     });
     //console.log('@Service: \n', wards);
-    return wards.map((ward) => WardUnitMapper.EntityToBaseDTO(ward));
+    return wards.map((ward) => WardUnitMapper.EntityToReadDTO(ward));
   }
 
   async softRemoveWards(wardCodes: number[], wardNames: string[]) {

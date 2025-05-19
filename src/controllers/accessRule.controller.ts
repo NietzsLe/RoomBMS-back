@@ -13,14 +13,13 @@ import {
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 
 import {
-  BaseAccessRuleDTO,
+  ReadAccessRuleDTO,
   CreateAccessRuleDTO,
   UpdateAccessRuleDTO,
 } from 'src/dtos/accessRuleDTO';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { NotEmptyCheckPipe } from 'src/controllers/pipes/notEmptyCheck.pipe';
 import { AccessRuleService } from 'src/services/accessRule.service';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { Request } from 'express';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 
@@ -31,7 +30,7 @@ export class AccessRuleController {
   constructor(private accessRuleService: AccessRuleService) {}
 
   @Get()
-  @ApiOkResponse({ type: [BaseAccessRuleDTO] })
+  @ApiOkResponse({ type: [ReadAccessRuleDTO] })
   @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'roleID', required: false })
   @ApiQuery({ name: 'resourceID', required: false })
@@ -44,14 +43,14 @@ export class AccessRuleController {
     @Query('roleID') roleID: string = '',
     @Query('resourceID') resourceID: string = '',
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.accessRuleService.findAll(
       { roleID: roleID, resourceID: resourceID },
       {
         roleID: roleIDOffsetID,
         resourceID: resourceIDOffsetID,
       },
-      createFindOptionSelectWithBlacklist(BaseAccessRuleDTO, blackList),
+      requestorRoleIDs,
     );
   }
   @UseGuards(JustSuperAdminRoleGuard)

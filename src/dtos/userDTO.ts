@@ -13,91 +13,30 @@ import { Optional } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
 import * as bcrypt from 'bcrypt';
-import { Role } from 'src/models/role.model';
 import { User } from 'src/models/user.model';
 
-export class BaseUserDTO {
+export class ReadUserDTO {
   @ApiProperty()
-  @IsString()
-  @Expose()
   username: string;
   @ApiProperty()
-  @IsString()
-  @Expose()
   name: string;
   @ApiProperty()
-  @IsString()
-  @Expose()
-  team: string;
+  teamID: string;
   @ApiProperty()
-  @IsString()
-  @Expose()
   phoneNumber: string;
-  @IsString()
-  @Expose({ name: 'hashedPassword' })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const saltOrRounds = 10;
-      const hash = bcrypt.hashSync(value, saltOrRounds);
-      return hash;
-    },
-    {
-      toPlainOnly: true,
-    },
-  )
   @ApiProperty()
-  @Expose()
-  password: string;
-  @IsDate()
-  @Type(() => Date)
-  @ApiProperty()
-  @Expose()
   expiryTime: Date;
-  @IsBoolean()
   @ApiProperty()
-  @Expose()
   isDisabled: boolean;
-  @IsDate()
   @ApiProperty()
-  @Expose()
   deletedAt: Date;
-  @IsDate()
-  @Type(() => Date)
   @ApiProperty()
-  @Expose()
   createAt: Date;
   @ApiProperty()
-  @IsDate()
-  @Type(() => Date)
-  @Expose()
   updateAt: Date;
   @ApiProperty()
-  @IsString()
-  @Expose({ name: 'manager', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string }) => {
-      const obj = new User();
-      obj.username = value;
-      return obj;
-    },
-    { toPlainOnly: true },
-  )
   managerID: string;
   @ApiProperty({ type: [String] })
-  @IsArray() // Kiểm tra xem đây có phải là một mảng không
-  @ArrayNotEmpty() // Kiểm tra mảng không rỗng
-  @IsString({ each: true }) // Kiểm tra từng phần tử trong mảng phải là string
-  @Expose({ name: 'roles', groups: ['relation'] })
-  @Transform(
-    ({ value }: { value: string[] }) => {
-      return value.map((item) => {
-        const obj = new Role();
-        obj.roleID = item;
-        return obj;
-      });
-    },
-    { toPlainOnly: true },
-  )
   roleIDs: string[];
 }
 
@@ -236,7 +175,7 @@ export class AccessRuleWithoutRoleDTO {
   createAttrDTOBlackList: string[];
 }
 
-export class BaseUserWithAccessRightDTO {
+export class ReadUserWithAccessRightDTO {
   @ApiProperty()
   @IsString()
   @Expose()
@@ -284,4 +223,15 @@ export class MaxResponseUserDTO {
   @IsString()
   @ApiProperty()
   username: string;
+}
+export class AutocompleteTeamDTO {
+  @ApiProperty()
+  @IsString()
+  teamID: string;
+}
+
+export class MaxResponseTeamDTO {
+  @IsString()
+  @ApiProperty()
+  teamID: string;
 }

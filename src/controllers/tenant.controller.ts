@@ -15,7 +15,7 @@ import {
 import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import {
-  BaseTenantDTO,
+  ReadTenantDTO,
   CreateResponseTenantDTO,
   CreateTenantDTO,
   HardDeleteAndRecoverTenantDTO,
@@ -23,7 +23,6 @@ import {
 } from 'src/dtos/tenantDTO';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
-import { createFindOptionSelectWithBlacklist } from 'src/services/helper';
 import { TenantService } from 'src/services/tenant.service';
 import { TenantIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 
@@ -33,7 +32,7 @@ import { TenantIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
 export class TenantController {
   constructor(private tenantService: TenantService) {}
   @Get()
-  @ApiOkResponse({ type: [BaseTenantDTO] })
+  @ApiOkResponse({ type: [ReadTenantDTO] })
   @ApiQuery({ name: 'tenantID', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
@@ -45,16 +44,16 @@ export class TenantController {
     @Query('tenantID', new ParseIntPipe({ optional: true })) tenantID: number,
     @Query('name') name: string,
   ) {
-    const blackList = request['resourceBlackListAttrs'] as string[];
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.tenantService.findAll(
       tenantID,
       name,
       offsetID,
-      createFindOptionSelectWithBlacklist(BaseTenantDTO, blackList),
+      requestorRoleIDs,
     );
   }
   @Get('inactive')
-  @ApiOkResponse({ type: [BaseTenantDTO] })
+  @ApiOkResponse({ type: [ReadTenantDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'tenantID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })

@@ -25,6 +25,7 @@ export class BlackListFilterInterceptors implements NestInterceptor {
       const invalidProperties = classProperties.filter((property) =>
         blackList.includes(property),
       );
+      console.log(request.body);
 
       if (invalidProperties.length > 0) {
         throw new HttpException(

@@ -15,22 +15,20 @@ import { DepositAgreement } from './depositAgreement.model';
 import { Tenant } from './tenant.model';
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { House } from './house.model';
-
-export enum AppointmentStatus {
-  SUCCESS = 'success',
-  NOT_YET_RECEIVED = 'not-yet-received',
-  STOPPED = 'stopped',
-  EXTRA_CARE = 'extra-care',
-}
+import { UserMapper } from 'src/mappers/user.mapper';
+import { RoomMapper } from 'src/mappers/room.mapper';
+import { TenantMapper } from 'src/mappers/tenant.mapper';
+import { DepositAgreementMapper } from 'src/mappers/depositAgreement.mapper';
+import { AppointmentStatus } from './helper';
 
 @Entity('appointment') // Tên bảng trong cơ sở dữ liệu
 export class Appointment {
   @PrimaryGeneratedColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-DEPOSITAGREEMENT-DTO'] })
   appointmentID: number; // Khóa chính, tự động tăng
 
   @Column({ default: '' })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-DEPOSITAGREEMENT-DTO'] })
   name: string; // Khóa chính, tự động tăng
 
   @Column({ type: 'int', nullable: true })
@@ -44,6 +42,10 @@ export class Appointment {
   @Column({ type: 'int', nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   noVehicles: number; // Số lượng phương tiện
+
+  @Column({ type: 'text', nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  moveInTime: string; // Số lượng phương tiện
 
   @Column({ default: false })
   @Expose({ groups: ['TO-DTO'] })
@@ -69,10 +71,6 @@ export class Appointment {
   @Expose({ groups: ['TO-DTO'] })
   appointmentTime: Date; // Thời gian cuộc hẹn
 
-  @Column()
-  @Expose({ groups: ['TO-DTO'] })
-  address: string; // Thời gian cuộc hẹn
-
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   failReason: string;
@@ -90,22 +88,40 @@ export class Appointment {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'takenOverUsername' })
-  @Expose({ name: 'takenOverUsername', groups: ['TO-DTO'] })
-  @Type(() => User)
-  @Transform(({ value }: { value: User }) => value?.username, {
-    toPlainOnly: true,
+  @Expose({
+    name: 'takenOverUser',
+    groups: ['TO-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
   })
+  @Type(() => User)
+  @Transform(
+    ({ value }: { value: User }) => {
+      // console.log(
+      //   '\n@Model: ',
+      //   value ? UserMapper.EntityToReadForAppointmentDTO(value) : undefined,
+      // );
+      return value
+        ? UserMapper.EntityToReadForAppointmentDTO(value)
+        : undefined;
+    },
+    {
+      toPlainOnly: true,
+    },
+  )
   takenOverUser: User | null;
   @ManyToOne(() => User, (user) => user.madeAppointments, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'madeUsername' })
-  @Expose({ name: 'madeUsername', groups: ['TO-DTO'] })
+  @Expose({ name: 'madeUser', groups: ['TO-DTO', 'TO-DEPOSITAGREEMENT-DTO'] })
   @Type(() => User)
-  @Transform(({ value }: { value: User }) => value?.username, {
-    toPlainOnly: true,
-  })
+  @Transform(
+    ({ value }: { value: User }) =>
+      value ? UserMapper.EntityToReadForAppointmentDTO(value) : undefined,
+    {
+      toPlainOnly: true,
+    },
+  )
   madeUser: User | null;
 
   @ManyToOne(() => Room, (room) => room.appointments, {
@@ -113,10 +129,15 @@ export class Appointment {
     onDelete: 'SET NULL',
   })
   @Type(() => Room)
-  @Transform(({ value }: { value: Room }) => value?.roomID, {
-    toPlainOnly: true,
-  })
-  @Expose({ name: 'roomID', groups: ['TO-DTO'] })
+  @Transform(
+    ({ value }: { value: Room }) =>
+      value ? RoomMapper.EntityToReadForAppointmentDTO(value) : undefined,
+    {
+      toPlainOnly: true,
+      groups: ['TO-DTO-APPOINTMENT'],
+    },
+  )
+  @Expose({ name: 'room', groups: ['TO-DTO'] })
   @JoinColumn({ name: 'roomID' })
   room: Room | null; // Mối quan hệ với Room
 
@@ -139,12 +160,15 @@ export class Appointment {
   )
   @Type(() => DepositAgreement)
   @Transform(
-    ({ value }: { value: DepositAgreement }) => value?.depositAgreementID,
+    ({ value }: { value: DepositAgreement }) =>
+      value
+        ? DepositAgreementMapper.EntityToReadForAppointmentDTO(value)
+        : undefined,
     {
       toPlainOnly: true,
     },
   )
-  @Expose({ name: 'depositAgreementID', groups: ['TO-DTO'] })
+  @Expose({ name: 'depositAgreement', groups: ['TO-DTO'] })
   @JoinColumn({ name: 'depositAgreementID' })
   depositAgreement: DepositAgreement | null; // Mối quan hệ với DepositAgreement
 
@@ -153,10 +177,14 @@ export class Appointment {
     onDelete: 'SET NULL',
   })
   @Type(() => Tenant)
-  @Transform(({ value }: { value: Tenant }) => value?.tenantID, {
-    toPlainOnly: true,
-  })
-  @Expose({ name: 'tenantID', groups: ['TO-DTO'] })
+  @Transform(
+    ({ value }: { value: Tenant }) =>
+      value ? TenantMapper.EntityToReadForAppointmentDTO(value) : undefined,
+    {
+      toPlainOnly: true,
+    },
+  )
+  @Expose({ name: 'tenant', groups: ['TO-DTO'] })
   @JoinColumn({ name: 'tenantID' })
   tenant: Tenant | null; // Mối quan hệ với Tenant
 

@@ -1,74 +1,89 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  AutocompleteTeamDTO,
   CreateUserDTO,
+  MaxResponseTeamDTO,
   MaxResponseUserDTO,
   UpdateUserDTO,
 } from 'src/dtos/userDTO';
 import { UserMapper } from 'src/mappers/user.mapper';
 import { User } from 'src/models/user.model';
-import {
-  FindOptionsRelations,
-  FindOptionsSelect,
-  IsNull,
-  MoreThan,
-  Not,
-  Repository,
-} from 'typeorm';
+import { IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { RoleConstraint } from './constraints/role.helper';
+import { AuthService, PermTypeEnum } from './auth.service';
+import { removeByBlacklist } from './helper';
+import { Team } from 'src/models/team.model';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Team)
+    private teamRepository: Repository<Team>,
     private constraint: UserConstraint,
     private roleConstraint: RoleConstraint,
     private proccess: UserProcess,
+    private authService: AuthService,
   ) {}
 
   async findAll(
     username: string,
     name: string,
     offsetUsername: string,
-    selectAndRelationOption: {
-      select: FindOptionsSelect<User>;
-      relations: FindOptionsRelations<User>;
-    },
+    requestorRoleIDs: string[],
   ) {
-    const users = await this.userRepository.find({
-      where: {
-        ...(username
-          ? { username: username }
-          : { username: MoreThan(offsetUsername) }),
-        ...(name ? { name: name } : {}),
-      },
-      order: {
-        username: 'ASC',
-      },
-      select: { username: true, ...selectAndRelationOption.select },
-      relations: { ...selectAndRelationOption.relations },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
-    });
+    const [users, userBlacklist] = await Promise.all([
+      this.userRepository.find({
+        where: {
+          ...(username
+            ? { username: username }
+            : { username: MoreThan(offsetUsername) }),
+          ...(name ? { name: name } : {}),
+        },
+        order: {
+          username: 'ASC',
+        },
+        relations: { roles: true, team: true, manager: true },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authService.getBlacklist(
+        requestorRoleIDs,
+        'users',
+        PermTypeEnum.READ,
+      ),
+    ]);
     //console.log('@Service: \n', users);
-    return users.map((user) => UserMapper.EntityToBaseDTO(user));
+    return users.map((user) => {
+      const dto = UserMapper.EntityToReadDTO(user);
+      removeByBlacklist(dto, userBlacklist.blacklist);
+      return dto;
+    });
   }
 
-  async getMaxUser(name: string) {
+  async getMaxUser() {
     const query = this.userRepository
       .createQueryBuilder('entity')
       .select('MAX(entity.username)', 'username');
-    if (name) {
-      query.where('entity.name = :name', { name: name });
-    }
 
     const dto = (await query.getRawOne()) as MaxResponseUserDTO;
 
     return dto;
   }
 
-  async getAutocomplete(offsetID: string) {
+  async getMaxTeam() {
+    const query = this.teamRepository
+      .createQueryBuilder('entity')
+      .select('MAX(entity.teamID)', 'teamID');
+
+    const dto = (await query.getRawOne()) as MaxResponseTeamDTO;
+
+    return dto;
+  }
+
+  async getUserAutocomplete(offsetID: string) {
     console.log('@Service: autocomplete');
     const users = await this.userRepository.find({
       where: {
@@ -81,7 +96,26 @@ export class UserService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', users);
-    return users.map((user) => UserMapper.EntityToBaseDTO(user));
+    return users.map((user) => UserMapper.EntityToReadDTO(user));
+  }
+
+  async getTeamAutocomplete(offsetID: string) {
+    console.log('@Service: autocomplete');
+    const teams = await this.teamRepository.find({
+      where: {
+        teamID: MoreThan(offsetID),
+      },
+      order: {
+        teamID: 'ASC',
+      },
+      select: { teamID: true },
+      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+    });
+    //console.log('@Service: \n', users);
+    return teams.map((team) => {
+      const dto = new AutocompleteTeamDTO();
+      dto.teamID = team.teamID;
+    });
   }
 
   async findInactiveAll(username: string, offsetUsername: string) {
@@ -101,7 +135,7 @@ export class UserService {
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', users);
-    return users.map((user) => UserMapper.EntityToBaseDTO(user));
+    return users.map((user) => UserMapper.EntityToReadDTO(user));
   }
 
   async create(requestorID: string, createUserDTOs: CreateUserDTO) {
