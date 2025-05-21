@@ -42,13 +42,13 @@ export class Room {
   @Expose({ groups: ['TO-DTO'] })
   depositPrice: number; // Tiền đặt cọc
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
-  commissionPer: number; // Tiền hoa hồng khi bán được phòng này
+  commissionPer: string; // Tiền hoa hồng khi bán được phòng này
 
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
-  agreementDuration: number; // Thời hạn hợp đồng
+  agreementDuration: string; // Thời hạn hợp đồng
 
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
@@ -66,7 +66,7 @@ export class Room {
   @Expose({ groups: ['TO-DTO'] })
   isEmpty: boolean; // Phòng hiện tại có trống không
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'json', default: {} })
   @Expose({ groups: ['TO-DTO'] })
   unitPrice: {
     management?: number;

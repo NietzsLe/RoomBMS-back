@@ -29,8 +29,6 @@ export class ReadUserDTO {
   @ApiProperty()
   isDisabled: boolean;
   @ApiProperty()
-  deletedAt: Date;
-  @ApiProperty()
   createAt: Date;
   @ApiProperty()
   updateAt: Date;
@@ -102,7 +100,7 @@ export class UpdateUserDTO {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
-  team?: string;
+  teamID?: string;
   @ApiProperty()
   @IsBoolean()
   @IsOptional()

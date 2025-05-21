@@ -130,7 +130,7 @@ export class DepositAgreement {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @Expose({ name: 'tenantID', groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO'] })
   @Type(() => Tenant)
   @Transform(
     ({ value }: { value: Tenant }) =>

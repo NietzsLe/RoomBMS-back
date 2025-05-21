@@ -60,7 +60,7 @@ export class TelegramBotService {
 -Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
 -Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
 -Ghi chú: ${appointment.note ?? ''}
--Cảm ơn nhập khách: ${appointment?.madeUser?.name} - ${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
+-Cảm ơn nhập khách: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
 -Nhận tại: ${process.env.FRONTEND_HOST + '/saler/appointments/' + appointmentID}`;
       console.log(chatGroups);
       try {
@@ -124,8 +124,8 @@ export class TelegramBotService {
 -Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
 -Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
 -Ghi chú: ${appointment.note ?? ''}
--Cảm ơn nhập khách: ${appointment?.madeUser?.name ?? ''} - ${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
--Cảm ơn dẫn khách: ${appointment?.takenOverUser?.name ?? ''} - ${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''}
+-Cảm ơn nhập khách: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
+-Cảm ơn dẫn khách: ${appointment?.takenOverUser?.name ?? ''}${appointment?.takenOverUser?.phoneNumber ? ' - ' : ''}${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''}
 -Kết quả: ${appointment.failReason ?? ''}`;
     } else {
       text = `KẾT QUẢ KHÁCH XEM PHÒNG 
@@ -141,8 +141,8 @@ export class TelegramBotService {
 -Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
 -Bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('HH:mm DD/MM/YYYY') : ''}
 -Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
--Cảm ơn: ${appointment?.madeUser?.name ?? ''} - ${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
--Cảm ơn: ${appointment?.takenOverUser?.name ?? ''} - ${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''} đã dẫn khách`;
+-Cảm ơn: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
+-Cảm ơn: ${appointment?.takenOverUser?.name ?? ''}${appointment?.takenOverUser?.phoneNumber ? ' - ' : ''}${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''} đã dẫn khách`;
     }
     console.log('@Telegram: ', chatGroups);
     try {

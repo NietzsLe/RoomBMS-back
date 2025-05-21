@@ -124,52 +124,51 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string) {
+    let payload: TokenPayload;
     try {
-      console.log('@Service: ', process.env.REFRESH_TOKEN_SECRET);
-      const payload: TokenPayload = await this.jwtService.verifyAsync(
-        refreshToken.split(' ')[1],
-        {
-          secret: process.env.REFRESH_TOKEN_SECRET,
-        },
-      );
-      const user = await this.usersRepository.findOne({
-        where: {
-          username: payload.username,
-        },
-        select: {
-          username: true,
-          isDisabled: true,
-          expiryTime: true,
-          hashedRefreshToken: true,
-        },
-        relations: { roles: true },
+      payload = await this.jwtService.verifyAsync(refreshToken.split(' ')[1], {
+        secret: process.env.REFRESH_TOKEN_SECRET,
       });
-      if (!user)
-        throw new HttpException(
-          `user:${payload.username} is inactive or has been disabled`,
-          HttpStatus.NOT_FOUND,
-        );
-      else if (user.isDisabled == true)
-        throw new HttpException(
-          `user:${payload.username} has been disabled`,
-          HttpStatus.LOCKED,
-        );
-      else if (user.expiryTime && user.expiryTime <= new Date())
-        throw new HttpException(
-          `user:${payload.username} acccount was exprired`,
-          HttpStatus.NOT_ACCEPTABLE,
-        );
-      else if (
-        !user.hashedRefreshToken ||
-        (user.hashedRefreshToken &&
-          !compareHash('Bearer ' + refreshToken, user.hashedRefreshToken))
-      ) {
-        throw new UnauthorizedException();
-      }
-      return this.refreshTokenByPayload(payload.username, payload.roleIDs);
+      console.log('@Service: ', refreshToken.split(' ')[1]);
     } catch {
       throw new UnauthorizedException();
     }
+
+    const user = await this.usersRepository.findOne({
+      where: {
+        username: payload.username,
+      },
+      select: {
+        username: true,
+        isDisabled: true,
+        expiryTime: true,
+        hashedRefreshToken: true,
+      },
+      relations: { roles: true },
+    });
+    if (!user)
+      throw new HttpException(
+        `user:${payload.username} is inactive or has been disabled`,
+        HttpStatus.NOT_FOUND,
+      );
+    else if (user.isDisabled == true)
+      throw new HttpException(
+        `user:${payload.username} has been disabled`,
+        HttpStatus.LOCKED,
+      );
+    else if (user.expiryTime && user.expiryTime <= new Date())
+      throw new HttpException(
+        `user:${payload.username} acccount was exprired`,
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    else if (
+      !user.hashedRefreshToken ||
+      (user.hashedRefreshToken &&
+        !compareHash(refreshToken, user.hashedRefreshToken))
+    ) {
+      throw new UnauthorizedException();
+    }
+    return this.refreshTokenByPayload(payload.username, payload.roleIDs);
   }
 
   async checkAuthorization(
