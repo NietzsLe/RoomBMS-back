@@ -13,12 +13,15 @@ import { UpdateRoomDTO } from 'src/dtos/roomDTO';
 import { UpdateDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
 import { UpdateTenantDTO } from 'src/dtos/tenantDTO';
 import { UpdateUserDTO } from 'src/dtos/userDTO';
+import { Team } from 'src/models/team.model';
 
 @Injectable()
 export class UserConstraint {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Team)
+    private teamRepository: Repository<Team>,
   ) {}
   RequestorManageUser(
     requestorRoleIDs: string[],
@@ -251,6 +254,25 @@ export class UserConstraint {
   async ManagerIsAlive(managerID: string | undefined | null) {
     const manager = await this.UserIsAlive(managerID);
     return manager;
+  }
+
+  async TeamIsAlive(teamID: string | undefined | null) {
+    if (teamID || teamID == '') {
+      const exist = await this.teamRepository.findOne({
+        where: {
+          teamID: teamID,
+        },
+        select: {
+          teamID: true,
+        },
+      });
+      if (!exist)
+        throw new HttpException(
+          `team:${teamID} is inactive`,
+          HttpStatus.NOT_FOUND,
+        );
+      return exist;
+    }
   }
 }
 

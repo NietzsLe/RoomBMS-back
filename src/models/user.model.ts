@@ -42,7 +42,7 @@ export class User {
   @Expose({ groups: ['TO-DTO'] })
   isDisabled: boolean;
   @DeleteDateColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['NOT-TO-DTO'] })
   deletedAt: Date | null;
   @CreateDateColumn({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })

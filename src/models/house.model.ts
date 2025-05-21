@@ -34,7 +34,7 @@ export class House {
 
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
-  room_depositPrice: string;
+  room_depositPrice: number;
 
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO'] })
@@ -44,7 +44,7 @@ export class House {
   @Expose({ groups: ['TO-DTO'] })
   room_agreementDuration: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'json', default: {} })
   @Expose({ groups: ['TO-DTO'] })
   room_unitPrice: {
     management?: number;

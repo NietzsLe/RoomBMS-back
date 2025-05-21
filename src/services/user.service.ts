@@ -111,10 +111,11 @@ export class UserService {
       select: { teamID: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', users);
+    console.log('@Service: \n', teams);
     return teams.map((team) => {
       const dto = new AutocompleteTeamDTO();
       dto.teamID = team.teamID;
+      return dto;
     });
   }
 
@@ -160,6 +161,7 @@ export class UserService {
       this.constraint.UserIsAlive(user.username),
       this.roleConstraint.RolesIsPersisted(updateUserDTO.roleIDs),
       this.constraint.ManagerIsAlive(updateUserDTO.managerID),
+      this.constraint.TeamIsAlive(updateUserDTO.teamID),
     ]);
     console.log('@Service: \n', user);
     let IsAdmin = 0;
@@ -186,6 +188,7 @@ export class UserService {
       user.hashedRefreshToken = null;
     }
     if (result[2]) user.manager = result[2];
+    if (result[3]) user.team = result[3];
 
     await this.userRepository.save(user);
   }

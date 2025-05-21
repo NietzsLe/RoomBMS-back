@@ -195,7 +195,7 @@ export class ReadHouseDTO {
 
   @ApiProperty({}) room_price: number; // Giá phòng
 
-  @ApiProperty({}) room_depositPrice: string; // Tiền đặt cọc
+  @ApiProperty({}) room_depositPrice: number; // Tiền đặt cọc
 
   @ApiProperty({}) room_commissionPer: string; // Tiền hoa hồng khi bán được phòng này
 
@@ -252,7 +252,7 @@ export class CreateHouseDTO {
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
-  room_depositPrice?: string; // Tiền đặt cọc
+  room_depositPrice?: number; // Tiền đặt cọc
 
   @IsString()
   @IsOptional()
@@ -339,7 +339,7 @@ export class UpdateHouseDTO {
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
-  room_depositPrice: string; // Tiền đặt cọc
+  room_depositPrice: number; // Tiền đặt cọc
 
   @IsString()
   @IsOptional()

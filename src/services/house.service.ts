@@ -45,7 +45,7 @@ export class HouseService {
         order: {
           houseID: 'ASC',
         },
-        relations: { manager: true },
+        relations: { manager: true, administrativeUnit: true },
         take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
       }),
       this.authService.getBlacklist(

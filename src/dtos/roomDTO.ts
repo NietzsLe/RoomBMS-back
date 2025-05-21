@@ -18,7 +18,7 @@ export class ReadRoomDTO {
 
   @ApiProperty({}) price: number; // Giá phòng
 
-  @ApiProperty({}) depositPrice: string; // Tiền đặt cọc
+  @ApiProperty({}) depositPrice: number; // Tiền đặt cọc
 
   @ApiProperty({}) commissionPer: string; // Tiền hoa hồng khi bán được phòng này
 
@@ -60,14 +60,14 @@ export class CreateRoomDTO {
   @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
-  depositPrice?: string; // Tiền đặt cọc
+  depositPrice?: number; // Tiền đặt cọc
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
   commissionPer?: string; // Tiền hoa hồng khi bán được phòng này
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
   agreementDuration?: string; // Thời hạn hợp đồng
@@ -113,14 +113,14 @@ export class UpdateRoomDTO {
   @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
-  depositPrice?: string; // Tiền đặt cọc
+  depositPrice?: number; // Tiền đặt cọc
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
   commissionPer?: string; // Tiền hoa hồng khi bán được phòng này
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
   agreementDuration?: string; // Thời hạn hợp đồng
