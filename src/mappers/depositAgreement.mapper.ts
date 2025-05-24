@@ -16,6 +16,7 @@ export class DepositAgreementMapper {
     //console.log('@Mapper: \n', plainObj);
     return plainToClass(DepositAgreement, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
+      excludeExtraneousValues: true,
     });
   }
 

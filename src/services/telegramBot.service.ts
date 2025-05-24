@@ -21,7 +21,9 @@ export class TelegramBotService {
   ) {}
 
   async sendMessage(chatId: string, text: string) {
-    await this.bot.telegram.sendMessage(chatId, text);
+    await this.bot.telegram.sendMessage(chatId, text, {
+      parse_mode: 'Markdown',
+    });
   }
 
   async notifyCreateAppointment(appointmentID: number) {
@@ -49,7 +51,7 @@ export class TelegramBotService {
       });
       text = `KHÁCH HẸN XEM PHÒNG
 -Tên khách hàng: ${appointment.tenant?.name ?? ''}
--SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'XXX'}
+-SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 -Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}
 -Phòng: ${appointment?.room?.name ?? ''}
 -Địa chỉ: ${appointment?.room?.house?.addressDetail ?? ''}${appointment?.room?.house?.addressDetail && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
@@ -102,18 +104,21 @@ export class TelegramBotService {
     });
     if (appointment?.status == AppointmentStatus.NOT_YET_RECEIVED) return;
     let text: string;
-    const chatGroups: ChatGroup[] = await this.chatGroupRepository.find({
-      where: {
-        chatGroupName: 'Result:Deposit',
-      },
-    });
+    let chatGroups: ChatGroup[];
     if (
       appointment?.status == AppointmentStatus.EXTRA_CARE ||
       appointment?.status == AppointmentStatus.STOPPED
     ) {
-      text = `KẾT QUẢ KHÁCH XEM PHÒNG: ${appointment?.status == AppointmentStatus.EXTRA_CARE ? 'CHĂM SÓC THÊM' : 'KHÁCH NGỪNG XEM'}
+      chatGroups = await this.chatGroupRepository.find({
+        where: {
+          chatGroupName: 'Result:Extra-care',
+        },
+      });
+      text = `KHÁCH HẸN XEM PHÒNG: 
+
+-Kết quả: *${appointment?.status == AppointmentStatus.EXTRA_CARE ? 'CHĂM SÓC THÊM' : 'KHÁCH NGỪNG XEM'}*
 -Tên khách hàng: ${appointment.tenant?.name ?? ''}
--SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'XXX'}
+-SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 -Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}
 -Phòng: ${appointment?.room?.name ?? ''}
 -Địa chỉ:  ${appointment?.room?.house?.addressDetail ?? ''}${appointment?.room?.house?.addressDetail && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
@@ -128,18 +133,25 @@ export class TelegramBotService {
 -Cảm ơn dẫn khách: ${appointment?.takenOverUser?.name ?? ''}${appointment?.takenOverUser?.phoneNumber ? ' - ' : ''}${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''}
 -Kết quả: ${appointment.failReason ?? ''}`;
     } else {
-      text = `KẾT QUẢ KHÁCH XEM PHÒNG 
--Kết quả: KHÁCH CỌC GIỮ CHỖ
--Ngày cọc: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('HH:mm DD/MM/YYYY') : ''}
+      chatGroups = await this.chatGroupRepository.find({
+        where: {
+          chatGroupName: 'Result:Deposit',
+        },
+      });
+      text = `KHÁCH HẸN XEM PHÒNG 
+-Kết quả: *KHÁCH CỌC GIỮ CHỖ*
+-Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
+-Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
 -Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
 -Tên khách hàng: ${appointment?.tenant?.name ?? ''}
 -SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
 -Chủ nhà: ${appointment?.room?.house?.ownerName ?? ''}
 -Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
--Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}
+-Nhà/CHDV: ${appointment?.room?.house?.name ?? ''} - Địa chỉ: ${appointment?.room?.house?.addressDetail ?? ''}${appointment?.room?.house?.addressDetail && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
 -Phòng: ${appointment?.room?.name ?? ''}
+-Tiền đã cọc: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
 -Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
--Bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('HH:mm DD/MM/YYYY') : ''}
+-Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
 -Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
 -Cảm ơn: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
 -Cảm ơn: ${appointment?.takenOverUser?.name ?? ''}${appointment?.takenOverUser?.phoneNumber ? ' - ' : ''}${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''} đã dẫn khách`;

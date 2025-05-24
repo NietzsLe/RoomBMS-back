@@ -14,6 +14,7 @@ export class RoomMapper {
   static EntityToReadDTO(room: Room) {
     const plainObj = classToPlain(room, {
       groups: ['TO-DTO'],
+      excludeExtraneousValues: true,
     });
 
     //console.log('@Mapper: \n', plainObj);
