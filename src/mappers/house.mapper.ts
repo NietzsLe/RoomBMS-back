@@ -11,7 +11,10 @@ export class HouseMapper {
   static DTOToEntity(houseDTO: CreateHouseDTO | UpdateHouseDTO) {
     const plainObj = classToPlain(houseDTO);
     //console.log('@Mapper: \n', plainObj);
-    return plainToClass(House, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
+    return plainToClass(House, plainObj, {
+      groups: ['TO-DTO', 'NOT-TO-DTO'],
+      excludeExtraneousValues: true,
+    });
   }
 
   static EntityToReadDTO(house: House) {

@@ -98,7 +98,10 @@ export class UserMapper {
   static DTOToEntity(userDTO: CreateUserDTO | UpdateUserDTO) {
     const plainObj = classToPlain(userDTO);
     // console.log('@Mapper: \n', plainObj);
-    return plainToClass(User, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
+    return plainToClass(User, plainObj, {
+      groups: ['TO-DTO', 'NOT-TO-DTO'],
+      excludeExtraneousValues: true,
+    });
   }
 
   static EntityToReadDTO(user: User) {

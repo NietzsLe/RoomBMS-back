@@ -12,7 +12,10 @@ export class TenantMapper {
   static DTOToEntity(tenantDTO: CreateTenantDTO | UpdateTenantDTO) {
     const plainObj = classToPlain(tenantDTO);
     //console.log('@Mapper: \n', plainObj);
-    return plainToClass(Tenant, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
+    return plainToClass(Tenant, plainObj, {
+      groups: ['TO-DTO', 'NOT-TO-DTO'],
+      excludeExtraneousValues: true,
+    });
   }
 
   static EntityToReadForAppointmentDTO(tenant: Tenant) {

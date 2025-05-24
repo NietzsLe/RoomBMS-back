@@ -42,6 +42,7 @@ import { ReadTenantDTO } from 'src/dtos/tenantDTO';
 import { ReadUserDTO } from 'src/dtos/userDTO';
 import { ReadDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
 import { AppointmentStatus } from 'src/models/helper';
+import { plainToClass } from '@nestjs/class-transformer';
 
 @Injectable()
 export class AppointmentService {
@@ -434,7 +435,9 @@ export class AppointmentService {
     requestorID: string,
     updateAppointmentDTO: UpdateAppointmentDTO,
   ) {
-    const appointment = AppointmentMapper.DTOToEntity(updateAppointmentDTO);
+    const appointment = AppointmentMapper.DTOToEntity(
+      plainToClass(UpdateAppointmentDTO, updateAppointmentDTO),
+    );
     const result = await Promise.all([
       this.constraint.AppointmentIsAlive(appointment.appointmentID),
       this.userConstraint.UserIsAlive(updateAppointmentDTO.takenOverUsername),
@@ -458,7 +461,15 @@ export class AppointmentService {
       IsAdmin,
       updateAppointmentDTO,
     );
-    if (result[1]) appointment.takenOverUser = result[1];
+    if (result[1]) {
+      appointment.takenOverUser = result[1];
+      if (
+        result[0] &&
+        !(result[0].status == AppointmentStatus.NOT_YET_RECEIVED)
+      ) {
+        appointment.status = AppointmentStatus.RECEIVED;
+      }
+    }
     if (result[2]) appointment.madeUser = result[2];
     if (result[3]) appointment.room = result[3];
     if (result[4]) appointment.tenant = result[4];

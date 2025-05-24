@@ -21,6 +21,7 @@ export class AppointmentMapper {
     //console.log('@Mapper: \n', plainObj);
     return plainToClass(Appointment, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
+      excludeExtraneousValues: true,
     });
   }
 

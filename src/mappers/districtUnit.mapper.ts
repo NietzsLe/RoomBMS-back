@@ -8,6 +8,7 @@ export class DistrictUnitMapper {
   static EntityToReadDTO(districtUnit: DistrictUnit) {
     const plainObj = classToPlain(districtUnit, {
       groups: ['TO-DTO'],
+      excludeExtraneousValues: true,
     });
     //console.log('@Mapper: \n', plainObj);
     return plainObj;
