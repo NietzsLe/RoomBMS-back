@@ -34,6 +34,8 @@ export class ReadUserDTO {
   updateAt: Date;
   @ApiProperty()
   managerID: string;
+  @ApiProperty()
+  manager: ReadUserDTO;
   @ApiProperty({ type: [String] })
   roleIDs: string[];
 }

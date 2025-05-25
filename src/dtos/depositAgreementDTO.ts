@@ -9,10 +9,10 @@ import {
   ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { DepositAgreementStatus } from 'src/models/depositAgreement.model';
 import { ReadRoomDTO } from './roomDTO';
 import { ReadTenantDTO } from './tenantDTO';
 import { ReadAppointmentDTO } from './appointmentDTO';
+import { DepositAgreementStatus } from 'src/models/helper';
 
 export class ReadDepositAgreementDTO {
   @ApiProperty({})
@@ -31,6 +31,8 @@ export class ReadDepositAgreementDTO {
   depositCompleteDate: Date; // Ngày hoàn tất tiền đặt cọc
   @ApiProperty({})
   commissionPer: number;
+  @ApiProperty({})
+  cancelFee: number;
   @ApiProperty({})
   bonus: number;
   @ApiProperty({})
@@ -113,6 +115,10 @@ export class UpdateDepositAgreementDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   deliveredDeposit?: number; // Tiền đặt cọc đã giao
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  cancelFee?: number; // Tiền đặt cọc đã giao
   @IsDate()
   @IsOptional()
   @ApiProperty({ required: false })

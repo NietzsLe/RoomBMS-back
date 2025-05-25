@@ -25,6 +25,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
 import { DepositAgreementService } from 'src/services/depositAgreement.service';
 import { DepositAgreementIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
+import { ParseDatePipe } from './pipes/date.pipe';
 
 @Controller('deposit-agreements')
 @UseGuards(AuthGuard)
@@ -34,6 +35,8 @@ export class DepositAgreementController {
   @Get()
   @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
   @ApiQuery({ name: 'depositAgreementID', required: false })
+  @ApiQuery({ name: 'fromDate', required: false })
+  @ApiQuery({ name: 'toDate', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
   @Header('Cache-Control', 'max-age=2')
@@ -43,6 +46,8 @@ export class DepositAgreementController {
     offsetID: number = 0,
     @Query('depositAgreementID', new ParseIntPipe({ optional: true }))
     depositAgreementID: number,
+    @Query('fromDate', ParseDatePipe) fromDate: Date,
+    @Query('toDate', ParseDatePipe) toDate: Date,
     @Query('name')
     name: string,
   ) {
@@ -50,6 +55,37 @@ export class DepositAgreementController {
     return await this.depositAgreementService.findAll(
       depositAgreementID,
       name,
+      fromDate,
+      toDate,
+      offsetID,
+      requestorRoleIDs,
+    );
+  }
+  @Get('for-sheet')
+  @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
+  @ApiQuery({ name: 'depositAgreementID', required: false })
+  @ApiQuery({ name: 'fromDate', required: false })
+  @ApiQuery({ name: 'toDate', required: false })
+  @ApiQuery({ name: 'name', required: false })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=2')
+  async getForSheet(
+    @Req() request: Request,
+    @Query('offsetID', new ParseIntPipe({ optional: true }))
+    offsetID: number = 0,
+    @Query('depositAgreementID', new ParseIntPipe({ optional: true }))
+    depositAgreementID: number,
+    @Query('fromDate', ParseDatePipe) fromDate: Date,
+    @Query('toDate', ParseDatePipe) toDate: Date,
+    @Query('name')
+    name: string,
+  ) {
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+    return await this.depositAgreementService.getForSheet(
+      depositAgreementID,
+      name,
+      fromDate,
+      toDate,
       offsetID,
       requestorRoleIDs,
     );

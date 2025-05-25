@@ -17,11 +17,7 @@ import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { TenantMapper } from 'src/mappers/tenant.mapper';
 import { RoomMapper } from 'src/mappers/room.mapper';
-
-export enum DepositAgreementStatus {
-  ACTIVE = 'active',
-  CANCELLED = 'cancelled',
-}
+import { DepositAgreementStatus } from './helper';
 
 @Entity('deposit_agreement') // Tên bảng trong cơ sở dữ liệu
 export class DepositAgreement {
@@ -40,6 +36,10 @@ export class DepositAgreement {
   @Column({ type: 'int', nullable: true })
   @Expose({ groups: ['TO-DTO'] })
   deliveredDeposit: number; // Tiền đặt cọc đã giao
+
+  @Column({ type: 'int', nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  cancelFee: number; // Tiền đặt cọc đã giao
 
   @Column({
     default: 'active',

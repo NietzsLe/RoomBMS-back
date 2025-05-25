@@ -79,7 +79,7 @@ export class RoomService {
                   }
             : {}),
           ...(isHot ? { isHot: isHot } : {}),
-          ...(isEmpty ? { isEmpty: isEmpty } : {}),
+          ...(!(!isEmpty && isEmpty != false) ? { isEmpty: isEmpty } : {}),
           ...(name ? { name: name } : {}),
         },
         order: {
