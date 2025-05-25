@@ -168,6 +168,7 @@ export class AppointmentService {
         where: where,
         order: {
           appointmentID: 'ASC',
+          appointmentTime: 'ASC',
         },
         relations: {
           room: { house: { administrativeUnit: true } },
@@ -374,9 +375,10 @@ export class AppointmentService {
     if (result[1]) appointment.depositAgreement = result[1];
     console.log('@Service: \n', appointment);
     await this.appointmentRepository.save(appointment);
-    await this.telegramBotService.notifyReturnDepositAgreementResult(
-      appointment.appointmentID,
-    );
+    if (updateAppointmentDTO.status)
+      await this.telegramBotService.notifyReturnDepositAgreementResult(
+        appointment.appointmentID,
+      );
   }
 
   async updateTenantByRelatedUser(

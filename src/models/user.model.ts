@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { Role } from './role.model';
 import { Appointment } from './appointment.model';
-import { Expose, Transform, Type } from '@nestjs/class-transformer';
+import { Expose, Type } from '@nestjs/class-transformer';
 import { Team } from './team.model';
 
 @Entity('user')
@@ -69,14 +69,10 @@ export class User {
   @ManyToMany(() => Role, (role) => role.users, {
     onDelete: 'CASCADE',
   })
-  @Expose({ name: 'roleIDs', groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   @Type(() => Role)
-  @Transform(
-    ({ value }: { value: Role[] }) => value?.map((role: Role) => role.roleID),
-    {
-      toPlainOnly: true,
-    },
-  )
   roles: Role[];
   @OneToMany(() => User, (user) => user.manager)
   @Expose({ groups: ['NOT-TO-DTO'] })
@@ -86,11 +82,10 @@ export class User {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'managerID' })
-  @Expose({ name: 'managerID', groups: ['TO-DTO'] })
-  @Type(() => User)
-  @Transform(({ value }: { value: User }) => value?.username, {
-    toPlainOnly: true,
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
   })
+  @Type(() => User)
   manager: User | null;
   @OneToMany(() => Appointment, (appointment) => appointment.takenOverUser)
   @Expose({ groups: ['NOT-TO-DTO'] })
@@ -104,6 +99,20 @@ export class User {
   })
   teamID() {
     if (this.team?.teamID) return this.team.teamID;
+    return undefined;
+  }
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
+  managerID() {
+    if (this.manager?.username) return this.manager.username;
+    return undefined;
+  }
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
+  roleIDs() {
+    if (this.roles) return this.roles.map((role: Role) => role.roleID);
     return undefined;
   }
 }

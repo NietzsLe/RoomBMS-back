@@ -209,9 +209,9 @@ export class House {
   administrativeUnitID() {
     if (this.administrativeUnit)
       return [
-        this.administrativeUnit.provinceCode,
-        this.administrativeUnit.districtCode,
         this.administrativeUnit.wardCode,
+        this.administrativeUnit.districtCode,
+        this.administrativeUnit.provinceCode,
       ];
     return undefined;
   }
@@ -226,9 +226,9 @@ export class House {
   administrativeUnitName() {
     if (this.administrativeUnit)
       return [
-        this.administrativeUnit.provinceName,
-        this.administrativeUnit.districtName,
         this.administrativeUnit.wardName,
+        this.administrativeUnit.districtName,
+        this.administrativeUnit.provinceName,
       ];
     return undefined;
   }

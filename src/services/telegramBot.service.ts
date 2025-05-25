@@ -7,6 +7,36 @@ import { Room } from 'src/models/room.model';
 import { Telegraf } from 'telegraf';
 import { ArrayContains, Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
+import { User } from 'src/models/user.model';
+
+function IsCTV(roleIDs: string[]) {
+  for (const roleID of roleIDs) {
+    if (roleID != 'ctv') {
+      return false;
+    }
+  }
+  return true;
+}
+
+function toShortName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/); // tách các từ
+  const lastName = parts[parts.length - 1]; // lấy từ cuối (Linh)
+  const initials = parts
+    .slice(0, parts.length - 1) // các từ trước
+    .map((word) => word[0].toUpperCase()) // lấy chữ cái đầu
+    .join('');
+  return lastName + initials;
+}
+
+function thankString(user: User | null | undefined) {
+  if (user) {
+    if (IsCTV(user.roles.map((role) => role.roleID))) {
+      return `CTV${user?.name ? ' + ' + user?.name : ''}${user?.phoneNumber ? ' + +84' + user?.phoneNumber : ''}${user?.manager?.name ? ' + ' + toShortName(user?.manager?.name) : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
+    } else {
+      return `${user?.name ? toShortName(user?.name) : ''}${user?.phoneNumber ? ' + +84' + user?.phoneNumber : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
+    }
+  } else return '';
+}
 
 @Injectable()
 export class TelegramBotService {
@@ -35,8 +65,8 @@ export class TelegramBotService {
         depositAgreement: { room: { house: { administrativeUnit: true } } },
         tenant: true,
         room: { house: { administrativeUnit: true } },
-        madeUser: { team: true },
-        takenOverUser: { team: true },
+        madeUser: { team: true, roles: true, manager: true },
+        takenOverUser: { team: true, roles: true, manager: true },
       },
     });
     let text: string;
@@ -62,9 +92,9 @@ export class TelegramBotService {
 -Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
 -Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
 -Ghi chú: ${appointment.note ?? ''}
--Cảm ơn nhập khách: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
+-Cảm ơn nhập khách: ${thankString(appointment.madeUser)}
 -Nhận tại: ${process.env.FRONTEND_HOST + '/saler/appointments/' + appointmentID}`;
-      console.log(chatGroups);
+      console.log('@Telegram: ', text);
       try {
         await Promise.all(
           chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
@@ -72,13 +102,10 @@ export class TelegramBotService {
       } catch (error) {
         console.log(error);
         try {
-          setTimeout(() => {
-            Promise.all(
-              chatGroups.map((item) =>
-                this.sendMessage(item.chatGroupID, text),
-              ),
-            );
-          }, 2000);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await Promise.all(
+            chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
+          );
         } catch (error) {
           console.log(error);
           throw new HttpException(
@@ -98,8 +125,8 @@ export class TelegramBotService {
         depositAgreement: { room: { house: { administrativeUnit: true } } },
         tenant: true,
         room: { house: { administrativeUnit: true } },
-        madeUser: { team: true },
-        takenOverUser: { team: true },
+        madeUser: { team: true, roles: true, manager: true },
+        takenOverUser: { team: true, roles: true, manager: true },
       },
     });
     if (appointment?.status == AppointmentStatus.NOT_YET_RECEIVED) return;
@@ -129,8 +156,8 @@ export class TelegramBotService {
 -Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
 -Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
 -Ghi chú: ${appointment.note ?? ''}
--Cảm ơn nhập khách: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
--Cảm ơn dẫn khách: ${appointment?.takenOverUser?.name ?? ''}${appointment?.takenOverUser?.phoneNumber ? ' - ' : ''}${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''}
+-Cảm ơn nhập khách:  ${thankString(appointment.madeUser)}
+-Cảm ơn dẫn khách:  ${thankString(appointment.takenOverUser)}
 -Kết quả: ${appointment.failReason ?? ''}`;
     } else {
       chatGroups = await this.chatGroupRepository.find({
@@ -153,10 +180,10 @@ export class TelegramBotService {
 -Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
 -Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
 -Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
--Cảm ơn: ${appointment?.madeUser?.name ?? ''}${appointment?.madeUser?.phoneNumber ? ' - ' : ''}${appointment?.madeUser?.phoneNumber ? '+84' + appointment?.madeUser?.phoneNumber : ''}${appointment?.madeUser?.team?.teamID ? ' - ' + appointment?.madeUser?.team.teamID : ''}
--Cảm ơn: ${appointment?.takenOverUser?.name ?? ''}${appointment?.takenOverUser?.phoneNumber ? ' - ' : ''}${appointment?.takenOverUser?.phoneNumber ? '+84' + appointment?.takenOverUser?.phoneNumber : ''}${appointment?.takenOverUser?.team?.teamID ? ' - ' + appointment?.takenOverUser?.team.teamID : ''} đã dẫn khách`;
+-Cảm ơn nhập khách:  ${thankString(appointment?.madeUser)}
+-Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
     }
-    console.log('@Telegram: ', chatGroups);
+    console.log('@Telegram: ', text);
     try {
       await Promise.all(
         chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
@@ -164,11 +191,10 @@ export class TelegramBotService {
     } catch (error) {
       console.log(error);
       try {
-        setTimeout(() => {
-          Promise.all(
-            chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
-          );
-        }, 2000);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await Promise.all(
+          chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
+        );
       } catch (error) {
         console.log(error);
         throw new HttpException(

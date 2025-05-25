@@ -11,11 +11,10 @@ import {
   ValidateIf,
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { DepositAgreementStatus } from 'src/models/depositAgreement.model';
 import { ReadUserDTO } from './userDTO';
 import { ReadRoomDTO } from './roomDTO';
 import { ReadTenantDTO } from './tenantDTO';
-import { AppointmentStatus } from 'src/models/helper';
+import { AppointmentStatus, DepositAgreementStatus } from 'src/models/helper';
 
 class ReadDepositAgreementForAppointmentDTO {
   @ApiProperty({})
@@ -187,10 +186,14 @@ export class UpdateAppointmentForRelatedUserDTO {
   @ApiProperty({ required: false })
   @IsOptional()
   failReason?: string;
+  @IsDate()
+  @ValidateIf((_, value) => value !== undefined)
+  @ApiProperty({ required: false })
+  appointmentTime?: Date; // Thời gian cuộc hẹn
   @IsEnum(AppointmentStatus)
   @ApiProperty({ required: false, enum: AppointmentStatus })
   @IsOptional()
-  status: AppointmentStatus;
+  status?: AppointmentStatus;
   @IsNumber()
   @IsOptional()
   @ApiProperty({ required: false })
@@ -210,7 +213,15 @@ export class UpdateDepositAgreementForRelatedUserDTO extends OtherResourceDTO {
   @IsEnum(DepositAgreementStatus)
   @ApiProperty({ enum: DepositAgreementStatus })
   @IsOptional()
-  status: DepositAgreementStatus;
+  status?: DepositAgreementStatus;
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  cancelFee?: number; // Tiền đặt cọc đã giao
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  deliveredDeposit?: number; // Tiền đặt cọc đã giao
 }
 
 export class UpdateTenantForRelatedUserDTO extends OtherResourceDTO {

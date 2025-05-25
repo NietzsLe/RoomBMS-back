@@ -7,7 +7,15 @@ import {
 } from 'src/dtos/depositAgreementDTO';
 import { DepositAgreementMapper } from 'src/mappers/depositAgreement.mapper';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
-import { IsNull, MoreThan, Not, Repository } from 'typeorm';
+import {
+  And,
+  IsNull,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { DepositAgreementConstraint } from './constraints/depositAgreement.helper';
 import { RoomConstraint } from './constraints/room.helper';
@@ -33,9 +41,11 @@ export class DepositAgreementService {
     private authSerice: AuthService,
   ) {}
 
-  async findAll(
+  async getForSheet(
     depositAgreementID: number,
     name: string,
+    fromDate: Date,
+    toDate: Date,
     offsetID: number,
     requestorRoleIDs: string[],
   ) {
@@ -54,20 +64,31 @@ export class DepositAgreementService {
             ? { depositAgreementID: depositAgreementID }
             : { depositAgreementID: MoreThan(offsetID) }),
           ...(name ? { name: name } : {}),
+          ...(fromDate || toDate
+            ? fromDate && !toDate
+              ? { depositDeliverDate: MoreThanOrEqual(fromDate) }
+              : !fromDate && toDate
+                ? { depositDeliverDate: LessThanOrEqual(toDate) }
+                : {
+                    depositDeliverDate: And(
+                      MoreThanOrEqual(fromDate),
+                      LessThanOrEqual(toDate),
+                    ),
+                  }
+            : {}),
         },
         order: {
-          depositAgreementID: 'ASC',
+          depositDeliverDate: 'DESC',
         },
         relations: {
           room: { house: { administrativeUnit: true } },
           tenant: true,
           appointment: {
-            madeUser: { team: true },
-            takenOverUser: { team: true },
+            madeUser: { team: true, manager: true, roles: true },
+            takenOverUser: { team: true, manager: true, roles: true },
           },
           manager: true,
         },
-        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
       }),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
@@ -126,17 +147,166 @@ export class DepositAgreementService {
         else dto.appointment = new ReadAppointmentDTO();
       }
       if (dto?.appointment?.madeUser) {
-        if (appointmentBlacklist.canAccess)
+        if (userBlacklist.canAccess) {
+          if (dto?.appointment?.madeUser?.manager) {
+            removeByBlacklist(
+              dto.appointment.madeUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
           removeByBlacklist(dto.appointment.madeUser, userBlacklist.blacklist);
-        else dto.appointment.madeUser = new ReadUserDTO();
+        } else dto.appointment.madeUser = new ReadUserDTO();
       }
       if (dto?.appointment?.takenOverUser) {
-        if (appointmentBlacklist.canAccess)
+        if (userBlacklist.canAccess) {
+          if (dto?.appointment?.takenOverUser?.manager) {
+            removeByBlacklist(
+              dto.appointment.takenOverUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
           removeByBlacklist(
             dto.appointment.takenOverUser,
             userBlacklist.blacklist,
           );
-        else dto.appointment.takenOverUser = new ReadUserDTO();
+        } else dto.appointment.takenOverUser = new ReadUserDTO();
+      }
+      return dto;
+    });
+  }
+
+  async findAll(
+    depositAgreementID: number,
+    name: string,
+    fromDate: Date,
+    toDate: Date,
+    offsetID: number,
+    requestorRoleIDs: string[],
+  ) {
+    const [
+      depositAgreements,
+      depositAgreementBlacklist,
+      tenantBlacklist,
+      roomBlacklist,
+      houseBlacklist,
+      userBlacklist,
+      appointmentBlacklist,
+    ] = await Promise.all([
+      this.depositAgreementRepository.find({
+        where: {
+          ...(depositAgreementID || depositAgreementID == 0
+            ? { depositAgreementID: depositAgreementID }
+            : { depositAgreementID: MoreThan(offsetID) }),
+          ...(name ? { name: name } : {}),
+          ...(fromDate || toDate
+            ? fromDate && !toDate
+              ? { depositDeliverDate: MoreThanOrEqual(fromDate) }
+              : !fromDate && toDate
+                ? { depositDeliverDate: LessThanOrEqual(toDate) }
+                : {
+                    depositDeliverDate: And(
+                      MoreThanOrEqual(fromDate),
+                      LessThanOrEqual(toDate),
+                    ),
+                  }
+            : {}),
+        },
+        order: {
+          // depositDeliverDate: 'DESC',
+          depositAgreementID: 'ASC',
+        },
+        relations: {
+          room: { house: { administrativeUnit: true } },
+          tenant: true,
+          appointment: {
+            madeUser: { team: true, manager: true, roles: true },
+            takenOverUser: { team: true, manager: true, roles: true },
+          },
+          manager: true,
+        },
+        take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      }),
+      this.authSerice.getBlacklist(
+        requestorRoleIDs,
+        'deposit-agreements',
+        PermTypeEnum.READ,
+      ),
+      this.authSerice.getBlacklist(
+        requestorRoleIDs,
+        'tenants',
+        PermTypeEnum.READ,
+      ),
+      this.authSerice.getBlacklist(
+        requestorRoleIDs,
+        'rooms',
+        PermTypeEnum.READ,
+      ),
+      this.authSerice.getBlacklist(
+        requestorRoleIDs,
+        'houses',
+        PermTypeEnum.READ,
+      ),
+      this.authSerice.getBlacklist(
+        requestorRoleIDs,
+        'users',
+        PermTypeEnum.READ,
+      ),
+      this.authSerice.getBlacklist(
+        requestorRoleIDs,
+        'appointments',
+        PermTypeEnum.READ,
+      ),
+    ]);
+    //console.log('@Service: \n', depositAgreements);
+
+    return depositAgreements.map((depositAgreement) => {
+      const dto = DepositAgreementMapper.EntityToReadDTO(depositAgreement);
+      console.log(dto);
+      removeByBlacklist(dto, depositAgreementBlacklist.blacklist);
+      if (dto.room) {
+        if (roomBlacklist.canAccess)
+          removeByBlacklist(dto.room, roomBlacklist.blacklist);
+        else dto.room = new ReadRoomDTO();
+      }
+      if (dto?.room?.house) {
+        if (houseBlacklist.canAccess)
+          removeByBlacklist(dto.room.house, houseBlacklist.blacklist);
+        else dto.room.house = new ReadHouseDTO();
+      }
+      if (dto.tenant) {
+        if (tenantBlacklist.canAccess)
+          removeByBlacklist(dto.tenant, tenantBlacklist.blacklist);
+        else dto.tenant = new ReadTenantDTO();
+      }
+      if (dto.appointment) {
+        if (appointmentBlacklist.canAccess)
+          removeByBlacklist(dto.appointment, appointmentBlacklist.blacklist);
+        else dto.appointment = new ReadAppointmentDTO();
+      }
+      if (dto?.appointment?.madeUser) {
+        if (userBlacklist.canAccess) {
+          if (dto?.appointment?.madeUser?.manager) {
+            removeByBlacklist(
+              dto.appointment.madeUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          removeByBlacklist(dto.appointment.madeUser, userBlacklist.blacklist);
+        } else dto.appointment.madeUser = new ReadUserDTO();
+      }
+      if (dto?.appointment?.takenOverUser) {
+        if (userBlacklist.canAccess) {
+          if (dto?.appointment?.takenOverUser?.manager) {
+            removeByBlacklist(
+              dto.appointment.takenOverUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          removeByBlacklist(
+            dto.appointment.takenOverUser,
+            userBlacklist.blacklist,
+          );
+        } else dto.appointment.takenOverUser = new ReadUserDTO();
       }
       return dto;
     });
