@@ -4,10 +4,13 @@ import { Appointment } from 'src/models/appointment.model';
 import { ChatGroup } from 'src/models/chatGroup.model';
 import { AppointmentStatus } from 'src/models/helper';
 import { Room } from 'src/models/room.model';
-import { Telegraf } from 'telegraf';
+import { Context, Telegraf } from 'telegraf';
 import { ArrayContains, Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
 import { User } from 'src/models/user.model';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { Update } from 'telegraf/typings/core/types/typegram';
+import axios from 'axios';
 
 function IsCTV(roleIDs: string[]) {
   for (const roleID of roleIDs) {
@@ -38,9 +41,58 @@ function thankString(user: User | null | undefined) {
   } else return '';
 }
 
+// Bước 1: Lấy danh sách proxy miễn phí
+async function fetchFreeProxies(): Promise<string[]> {
+  const res = await axios.get('https://www.sslproxies.org/');
+  const html: string = res.data as string;
+  const regex = /<td>(\d+\.\d+\.\d+\.\d+)<\/td><td>(\d+)<\/td>/g;
+
+  const proxies: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(html)) !== null) {
+    proxies.push(`http://${match[1]}:${match[2]}`);
+  }
+  return proxies;
+}
+
+// Bước 2: Test proxy
+async function testProxy(proxyUrl: string): Promise<boolean> {
+  try {
+    const agent = new HttpsProxyAgent(proxyUrl);
+    const res = await axios.get('https://api.telegram.org', {
+      httpsAgent: agent,
+      timeout: 4000,
+    });
+    return res.status === 200;
+  } catch {
+    return false;
+  }
+}
+
+// Bước 3: Tìm proxy đầu tiên hoạt động được
+async function findWorkingProxy(): Promise<string | null> {
+  const proxies = await fetchFreeProxies();
+
+  for (const proxy of proxies.slice(0, 20)) {
+    // kiểm tra tối đa 20 proxy
+    console.log(`Đang kiểm tra proxy: ${proxy}`);
+    const ok = await testProxy(proxy);
+    if (ok) {
+      console.log(`✅ Proxy hoạt động: ${proxy}`);
+      return proxy;
+    } else {
+      console.log(`❌ Không dùng được: ${proxy}`);
+    }
+  }
+
+  console.error('Không tìm thấy proxy hoạt động');
+  return null;
+}
+
+// const agent = new HttpsProxyAgent('http://143.198.42.182:31280');
 @Injectable()
 export class TelegramBotService {
-  private bot = new Telegraf(process.env.BOT_TOKEN ?? '');
+  private bot: Telegraf<Context<Update>>;
   constructor(
     @InjectRepository(Appointment)
     private appointmentReponsitory: Repository<Appointment>,
@@ -48,7 +100,34 @@ export class TelegramBotService {
     private roomRepository: Repository<Room>,
     @InjectRepository(ChatGroup)
     private chatGroupRepository: Repository<ChatGroup>,
-  ) {}
+  ) {
+    findWorkingProxy()
+      .then((proxy) => {
+        if (!proxy) {
+          console.error('Không thể khởi động bot do không có proxy hoạt động');
+          return;
+        }
+
+        const agent = new HttpsProxyAgent(proxy);
+        this.bot = new Telegraf(process.env.BOT_TOKEN ?? '', {
+          telegram: { agent },
+        });
+      })
+      .catch(() => {});
+  }
+
+  async updateBot() {
+    const proxy = await findWorkingProxy();
+    if (!proxy) {
+      console.error('Không thể khởi động bot do không có proxy hoạt động');
+      return;
+    }
+
+    const agent = new HttpsProxyAgent(proxy);
+    this.bot = new Telegraf(process.env.BOT_TOKEN ?? '', {
+      telegram: { agent },
+    });
+  }
 
   async sendMessage(chatId: string, text: string) {
     await this.bot.telegram.sendMessage(chatId, text, {
@@ -102,6 +181,7 @@ export class TelegramBotService {
       } catch (error) {
         console.log(error);
         try {
+          await this.updateBot();
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await Promise.all(
             chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
@@ -191,6 +271,7 @@ export class TelegramBotService {
     } catch (error) {
       console.log(error);
       try {
+        await this.updateBot();
         await new Promise((resolve) => setTimeout(resolve, 2000));
         await Promise.all(
           chatGroups.map((item) => this.sendMessage(item.chatGroupID, text)),
