@@ -107,6 +107,7 @@ export class Room {
     bed?: boolean;
     sharedOwner?: boolean;
     airConditioner?: boolean;
+    sharedWashingMachine?: boolean;
     window?: boolean;
     tv?: boolean;
     dishWasher?: boolean;

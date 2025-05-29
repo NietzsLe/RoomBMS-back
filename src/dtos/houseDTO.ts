@@ -124,6 +124,10 @@ export class BaseAdditionInfo {
   @IsBoolean()
   @ApiProperty({ required: false })
   airConditioner?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  @ApiProperty({ required: false })
+  sharedWashingMachine?: boolean;
   @IsOptional() @IsBoolean() @ApiProperty({ required: false }) window?: boolean;
   @IsOptional() @IsBoolean() @ApiProperty({ required: false }) tv?: boolean;
   @IsOptional()
