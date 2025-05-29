@@ -85,6 +85,7 @@ export class House {
     bed?: boolean;
     sharedOwner?: boolean;
     airConditioner?: boolean;
+    sharedWashingMachine?: boolean;
     window?: boolean;
     tv?: boolean;
     dishWasher?: boolean;
