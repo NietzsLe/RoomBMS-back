@@ -174,10 +174,14 @@ export class DiscordService {
 
   async sendMessage(channelId: string, embed: EmbedBuilder): Promise<void> {
     const channel = await this.client.channels.fetch(channelId);
-    if (channel && channel.isTextBased()) {
+    try {
       await (channel as TextChannel).send({ embeds: [embed] });
-    } else {
-      throw new Error('Invalid or non-text channel.');
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Error in send message',
+        HttpStatus.FAILED_DEPENDENCY,
+      );
     }
   }
   async notifyCreateAppointment(appointmentID: number) {
