@@ -70,15 +70,6 @@ function genCreateAppointmentNotify(appointment: Appointment) {
     .setTitle('KHÁCH HẸN XEM PHÒNG')
     .setDescription(text)
     .setColor('#00b0f4')
-    .addFields(
-      { name: '💡 Nội dung', value: 'Bạn có một nhiệm vụ mới!', inline: false },
-      { name: '⏰ Thời gian', value: '01/06/2025 10:00 AM', inline: true },
-      { name: '📍 Địa điểm', value: 'Kênh #thông-báo', inline: true },
-    )
-    .setFooter({
-      text: 'Bot NestJS - Discord',
-      iconURL: 'https://i.imgur.com/AfFp7pu.png',
-    })
     .setTimestamp();
 
   if (appointment?.room?.primaryImageName)
@@ -100,15 +91,7 @@ function genReturnDepositAgreementResultNotify(
   const embed = new EmbedBuilder()
     .setTitle('KHÁCH HẸN XEM PHÒNG')
     .setColor('#00b0f4')
-    .addFields(
-      { name: '💡 Nội dung', value: 'Bạn có một nhiệm vụ mới!', inline: false },
-      { name: '⏰ Thời gian', value: '01/06/2025 10:00 AM', inline: true },
-      { name: '📍 Địa điểm', value: 'Kênh #thông-báo', inline: true },
-    )
-    .setFooter({
-      text: 'Bot NestJS - Discord',
-      iconURL: 'https://i.imgur.com/AfFp7pu.png',
-    })
+
     .setTimestamp();
   if (mode == 'deposit') {
     text = `- Kết quả: **KHÁCH CỌC GIỮ CHỖ**
