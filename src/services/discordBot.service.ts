@@ -11,14 +11,22 @@ import * as dayjs from 'dayjs';
 import { User } from 'src/models/user.model';
 import { AppointmentStatus } from 'src/models/helper';
 
+function removeVietnameseTones(str: string): string {
+  return str
+    .normalize('NFD') // Tách ký tự và dấu
+    .replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+}
+
 function toShortName(fullName: string): string {
   const parts = fullName.trim().split(/\s+/);
   if (parts.length === 0) return '';
 
-  const lastName = parts[parts.length - 1];
+  const lastName = removeVietnameseTones(parts[parts.length - 1]);
   const initials = parts
-    .slice(0, parts.length - 1) // bỏ tên cuối
-    .map((word) => word.charAt(0).toUpperCase())
+    .slice(0, -1)
+    .map((word) => removeVietnameseTones(word[0].toUpperCase()))
     .join('');
 
   return `${lastName}${initials}`;
