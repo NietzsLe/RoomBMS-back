@@ -72,14 +72,6 @@ function genCreateAppointmentNotify(appointment: Appointment) {
     .setColor('#00b0f4')
     .setTimestamp();
 
-  if (appointment?.room?.primaryImageName)
-    embed.setThumbnail(
-      (process.env.BACKEND_HOST ?? '') +
-        '/' +
-        (process.env.ROOM_IMAGE_ROUTE ?? '') +
-        '/' +
-        appointment?.room?.primaryImageName,
-    ); // Ảnh nhỏ góc phải trên
   return embed;
 }
 
@@ -112,14 +104,6 @@ function genReturnDepositAgreementResultNotify(
 - Cảm ơn nhập khách:  ${thankString(appointment?.madeUser)}
 - Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
     embed.setDescription(text);
-    if (appointment?.depositAgreement?.room?.primaryImageName)
-      embed.setThumbnail(
-        (process.env.BACKEND_HOST ?? '') +
-          '/' +
-          (process.env.ROOM_IMAGE_ROUTE ?? '') +
-          '/' +
-          appointment?.depositAgreement?.room?.primaryImageName,
-      ); // Ảnh nhỏ góc phải trên
   } else {
     text = `- Kết quả: **${appointment?.status == AppointmentStatus.EXTRA_CARE ? 'CHĂM SÓC THÊM' : 'KHÁCH NGỪNG XEM'}**
 - Tên khách hàng: ${appointment.tenant?.name ?? ''}
@@ -138,14 +122,6 @@ function genReturnDepositAgreementResultNotify(
 - Cảm ơn dẫn khách:  ${thankString(appointment.takenOverUser)}
 - Kết quả: ${appointment.failReason ?? ''}`;
     embed.setDescription(text);
-    if (appointment?.room?.primaryImageName)
-      embed.setThumbnail(
-        (process.env.BACKEND_HOST ?? '') +
-          '/' +
-          (process.env.ROOM_IMAGE_ROUTE ?? '') +
-          '/' +
-          appointment?.room?.primaryImageName,
-      ); // Ảnh nhỏ góc phải trên
   }
 
   return embed;
