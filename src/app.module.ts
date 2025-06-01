@@ -87,8 +87,11 @@ import { ResourceManageServive } from './services/resourceManage.service';
 import { ResourceManageController } from './controllers/resourceManage.controller';
 import { SupportServiceController } from './controllers/supportService.controller';
 import { ChatGroup } from './models/chatGroup.model';
-import { TelegramBotService } from './services/telegramBot.service';
+// import { TelegramBotService } from './services/telegramBot.service';
 import { Team } from './models/team.model';
+import { NecordModule } from 'necord';
+import { IntentsBitField } from 'discord.js';
+import { DiscordService } from './services/discordBot.service';
 
 @Module({
   imports: [
@@ -141,6 +144,12 @@ import { Team } from './models/team.model';
         files: +(process.env.UPLOAD_NUMBERS ?? '5'),
       },
     }),
+    NecordModule.forRoot({
+      token: process.env.DISCORD_TOKEN ?? '',
+      intents: [
+        IntentsBitField.Flags.DirectMessages, // Nếu cần đọc nội dung tin nhắn
+      ],
+    }),
   ],
   controllers: [
     UserController,
@@ -190,8 +199,8 @@ import { Team } from './models/team.model';
     AdministrativeUnitConstraint,
     AdministrativeUnitProcess,
     ResourceManageServive,
-    TelegramBotService,
-
+    // TelegramBotService,
+    DiscordService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
