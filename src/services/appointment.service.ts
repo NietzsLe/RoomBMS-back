@@ -33,7 +33,8 @@ import { DepositAgreementConstraint } from './constraints/depositAgreement.helpe
 import { User } from 'src/models/user.model';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
 import { Tenant } from 'src/models/tenant.model';
-import { TelegramBotService } from './telegramBot.service';
+// import { TelegramBotService } from './telegramBot.service';
+
 import { AuthService, PermTypeEnum } from './auth.service';
 import { removeByBlacklist } from './helper';
 import { ReadRoomDTO } from 'src/dtos/roomDTO';
@@ -43,6 +44,7 @@ import { ReadUserDTO } from 'src/dtos/userDTO';
 import { ReadDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
 import { AppointmentStatus } from 'src/models/helper';
 import { plainToClass } from '@nestjs/class-transformer';
+import { DiscordService } from './discordBot.service';
 
 @Injectable()
 export class AppointmentService {
@@ -60,7 +62,8 @@ export class AppointmentService {
     private depositAgreementConstraint: DepositAgreementConstraint,
     private userProcess: UserProcess,
     private process: AppointmentProcess,
-    private telegramBotService: TelegramBotService,
+    // private telegramBotService: TelegramBotService,
+    private discordService: DiscordService,
     private authService: AuthService,
   ) {}
 
@@ -331,7 +334,7 @@ export class AppointmentService {
     this.process.RequestorIsMadeUserWhenCreate(requestorID, appointment);
 
     const insertResult = await this.appointmentRepository.insert(appointment);
-    await this.telegramBotService.notifyCreateAppointment(
+    await this.discordService.notifyCreateAppointment(
       (insertResult.identifiers[0] as { appointmentID: number }).appointmentID,
     );
     return {
@@ -376,7 +379,7 @@ export class AppointmentService {
     console.log('@Service: \n', appointment);
     await this.appointmentRepository.save(appointment);
     if (updateAppointmentDTO.status)
-      await this.telegramBotService.notifyReturnDepositAgreementResult(
+      await this.discordService.notifyReturnDepositAgreementResult(
         appointment.appointmentID,
       );
   }
