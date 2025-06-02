@@ -59,6 +59,13 @@ export class UserConstraint {
       HttpStatus.FORBIDDEN,
     );
   }
+  RequestorIsAdmin(requestorRoleIDs: string[]) {
+    for (const role of requestorRoleIDs) {
+      if (role == process.env.SUPER_ADMIN_ROLEID) return 2;
+      if (role == process.env.ADMIN_ROLEID) return 1;
+    }
+    return 0;
+  }
 
   RequestorManageNonUserResource(
     requestorRoleIDs: string[],
