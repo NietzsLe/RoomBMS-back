@@ -160,6 +160,20 @@ export class UpdateRoomDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   managerID?: string;
+
+  areAllPropertiesUndefinedExcludeEmptyAndHot(): boolean {
+    for (const key in this) {
+      if (
+        key != 'isEmpty' ||
+        (key != 'isHot' &&
+          Object.prototype.hasOwnProperty.call(this, key) &&
+          this[key] !== undefined)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 export class HardDeleteAndRecoverRoomDTO {
