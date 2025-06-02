@@ -28,7 +28,11 @@ export class AuthController {
       secure: process.env.COOKIE_SECURE == 'true',
     };
   }
-  @Throttle({ short: { limit: 3, ttl: 60000 } })
+  @Throttle({
+    short: { limit: 2, ttl: 5000 },
+    medium: { limit: 10, ttl: 60000 },
+    long: { limit: 50, ttl: 15 * 60000 },
+  })
   @Post('sign-in')
   async signIn(
     @Res({ passthrough: true }) response: Response,
