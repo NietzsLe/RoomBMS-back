@@ -185,8 +185,6 @@ export class ReadHouseDTO {
   @ApiProperty({})
   ownerPhone: string; // Số điện thoại của chủ sở hữu
   @ApiProperty({})
-  addressDetail: string; // Thông tin chi tiết về địa chỉ
-  @ApiProperty({})
   note: string;
   @ApiProperty({}) mapLink: string; // Liên kết đến một địa điểm trên Google Maps
   @ApiProperty({}) zaloLink: string; // Liên kết đến một địa điểm trên Google Maps
@@ -231,10 +229,6 @@ export class CreateHouseDTO {
   @IsString()
   @ApiProperty({})
   ownerPhone: string; // Số điện thoại của chủ sở hữu
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ required: false })
-  addressDetail: string; // Thông tin chi tiết về địa chỉ
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
@@ -317,10 +311,6 @@ export class UpdateHouseDTO {
   @ValidateIf((_, value) => value !== undefined)
   @ApiProperty({ required: false })
   ownerPhone: string; // Số điện thoại của chủ sở hữu
-  @IsString()
-  @ValidateIf((_, value) => value !== undefined)
-  @ApiProperty({ required: false })
-  addressDetail?: string; // Thông tin chi tiết về địa chỉ
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })
