@@ -29,9 +29,9 @@ export class AuthController {
     };
   }
   @Throttle({
-    short: { limit: 2, ttl: 5000 },
-    medium: { limit: 10, ttl: 60000 },
-    long: { limit: 50, ttl: 15 * 60000 },
+    short: { limit: 1, ttl: 2000 },
+    medium: { limit: 20, ttl: 60000 },
+    long: { limit: 70, ttl: 15 * 60000 },
   })
   @Post('sign-in')
   async signIn(
