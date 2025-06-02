@@ -194,12 +194,13 @@ export class RoomService {
     ]);
 
     let IsAdmin = 0;
-    if (result[0])
-      IsAdmin = this.userConstraint.RequestorManageNonUserResource(
-        requestorRoleIDs,
-        requestorID,
-        result[0],
-      );
+    // if (result[0])
+    //   IsAdmin = this.userConstraint.RequestorManageNonUserResource(
+    //     requestorRoleIDs,
+    //     requestorID,
+    //     result[0],
+    //   );
+    IsAdmin = this.userConstraint.RequestorIsAdmin(requestorRoleIDs);
 
     this.userConstraint.JustAdminCanUpdateManagerField(IsAdmin, updateRoomDTO);
     if (result[1]) room.house = result[1];
