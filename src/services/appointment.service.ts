@@ -185,32 +185,32 @@ export class AppointmentService {
       }),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'tenants',
+        'tenants:entity',
         PermTypeEnum.READ,
       ),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'rooms',
+        'rooms:entity',
         PermTypeEnum.READ,
       ),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'deposit-agreements',
+        'deposit-agreements:entity',
         PermTypeEnum.READ,
       ),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'users',
+        'users:entity',
         PermTypeEnum.READ,
       ),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'houses',
+        'houses:entity',
         PermTypeEnum.READ,
       ),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'appointments',
+        'appointments:entity',
         PermTypeEnum.READ,
       ),
     ]);
@@ -431,6 +431,9 @@ export class AppointmentService {
       await this.depositAgreementRepository.update(
         depositAgreement.depositAgreementID,
         depositAgreement,
+      );
+      await this.discordService.notifyCancelDepositAgreement(
+        updateDepositAgreementDTO.appointmentID,
       );
     }
   }

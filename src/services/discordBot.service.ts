@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ChatGroup } from 'src/models/chatGroup.model';
 import * as dayjs from 'dayjs';
 import { User } from 'src/models/user.model';
-import { AppointmentStatus } from 'src/models/helper';
+import { AppointmentStatus, DepositAgreementStatus } from 'src/models/helper';
 
 function removeVietnameseTones(str: string): string {
   return str
@@ -80,7 +80,7 @@ function genReturnDepositAgreementResultNotify(
 ) {
   let text: string;
   const embed = new EmbedBuilder()
-    .setTitle('KHÁCH HẸN XEM PHÒNG')
+    .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
     .setColor('#00b0f4')
 
     .setTimestamp();
@@ -107,7 +107,7 @@ function genReturnDepositAgreementResultNotify(
     text = `- Kết quả: **${appointment?.status == AppointmentStatus.EXTRA_CARE ? 'CHĂM SÓC THÊM' : 'KHÁCH NGỪNG XEM'}**
 - Tên khách hàng: ${appointment.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
-- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}
+- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
 - Phòng: ${appointment?.room?.name ?? ''}
 - Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
 - Thời gian khách xem: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}
@@ -121,6 +121,37 @@ function genReturnDepositAgreementResultNotify(
 - Kết quả: ${appointment.failReason ?? ''}`;
     embed.setDescription(text);
   }
+
+  return embed;
+}
+
+function genCancelDepositAgreementNotify(appointment: Appointment) {
+  const embed = new EmbedBuilder()
+    .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
+    .setColor('#00b0f4')
+
+    .setTimestamp();
+
+  const text = `- Kết quả: **HỦY CỌC**
+- Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
+- Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
+- Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
+- Tên khách hàng: ${appointment?.tenant?.name ?? ''}
+- SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
+- Chủ nhà: ${appointment?.room?.house?.ownerName ?? ''}
+- Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
+- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
+- Phòng: ${appointment?.room?.name ?? ''}
+- Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
+- Tiền cọc: ${appointment?.depositAgreement?.depositPrice ? appointment?.depositAgreement?.depositPrice.toLocaleString('de-DE') + '₫' : ''}
+- Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
+- Phí hủy cọc: ${appointment?.depositAgreement?.cancelFee ? appointment?.depositAgreement?.cancelFee.toLocaleString('de-DE') + '₫' : ''}
+- Thưởng: ${appointment?.depositAgreement?.bonus ? appointment?.depositAgreement?.bonus.toLocaleString('de-DE') + '₫' : ''}
+- Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
+- Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
+- Cảm ơn nhập khách:  ${thankString(appointment?.madeUser)}
+- Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
+  embed.setDescription(text);
 
   return embed;
 }
@@ -251,6 +282,53 @@ export class DiscordService {
           'Error in send message',
           HttpStatus.FAILED_DEPENDENCY,
         );
+      }
+    }
+  }
+  async notifyCancelDepositAgreement(appointmentID: number) {
+    const appointment = await this.appointmentReponsitory.findOne({
+      where: {
+        appointmentID: appointmentID,
+      },
+      relations: {
+        depositAgreement: { room: { house: { administrativeUnit: true } } },
+        tenant: true,
+        room: { house: { administrativeUnit: true } },
+        madeUser: { team: true, roles: true, manager: true },
+        takenOverUser: { team: true, roles: true, manager: true },
+      },
+    });
+    if (
+      appointment &&
+      appointment.depositAgreement?.status &&
+      appointment.depositAgreement?.status == DepositAgreementStatus.CANCELLED
+    ) {
+      const embed: EmbedBuilder = genCancelDepositAgreementNotify(appointment);
+      const chatGroups: ChatGroup[] = await this.chatGroupRepository.find({
+        where: {
+          chatGroupName: 'Result:Deposit',
+        },
+      });
+      console.log('@Discord: ', embed);
+
+      try {
+        await Promise.all(
+          chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+        );
+      } catch (error) {
+        console.log(error);
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await Promise.all(
+            chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+          );
+        } catch (error) {
+          console.log(error);
+          throw new HttpException(
+            'Error in send message',
+            HttpStatus.FAILED_DEPENDENCY,
+          );
+        }
       }
     }
   }
