@@ -92,32 +92,32 @@ export class DepositAgreementService {
       }),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'deposit-agreements',
+        'deposit-agreements:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'tenants',
+        'tenants:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'rooms',
+        'rooms:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'houses',
+        'houses:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'users',
+        'users:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'appointments',
+        'appointments:entity',
         PermTypeEnum.READ,
       ),
     ]);
@@ -228,32 +228,32 @@ export class DepositAgreementService {
       }),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'deposit-agreements',
+        'deposit-agreements:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'tenants',
+        'tenants:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'rooms',
+        'rooms:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'houses',
+        'houses:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'users',
+        'users:entity',
         PermTypeEnum.READ,
       ),
       this.authSerice.getBlacklist(
         requestorRoleIDs,
-        'appointments',
+        'appointments:entity',
         PermTypeEnum.READ,
       ),
     ]);

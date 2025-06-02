@@ -49,7 +49,7 @@ export class TenantService {
       }),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'tenants',
+        'tenants:entity',
         PermTypeEnum.READ,
       ),
     ]);

@@ -100,12 +100,12 @@ export class RoomService {
       }),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'rooms',
+        'rooms:entity',
         PermTypeEnum.READ,
       ),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'houses',
+        'houses:entity',
         PermTypeEnum.READ,
       ),
     ]);

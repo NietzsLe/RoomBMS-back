@@ -31,7 +31,7 @@ export class RoleService {
       }),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'roles',
+        'roles:entity',
         PermTypeEnum.READ,
       ),
     ]);
