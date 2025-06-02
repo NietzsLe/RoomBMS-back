@@ -144,17 +144,6 @@ export class House {
   })
   ownerPhone: string; // Số điện thoại của chủ sở hữu
 
-  @Column()
-  @Expose({
-    groups: [
-      'TO-DTO',
-      'TO-ROOM-DTO',
-      'TO-APPOINTMENT-DTO',
-      'TO-DEPOSITAGREEMENT-DTO',
-    ],
-  })
-  addressDetail: string; // Thông tin chi tiết về địa chỉ
-
   @Column({ nullable: true })
   @Expose({ groups: ['TO-DTO', 'TO-ROOM-DTO', 'TO-APPOINTMENT-DTO'] })
   note: string; // Thông tin chi tiết về địa chỉ
