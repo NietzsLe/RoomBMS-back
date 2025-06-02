@@ -51,7 +51,7 @@ export class AccessRuleService {
       }),
       this.authService.getBlacklist(
         requestorRoleIDs,
-        'access-rules',
+        'access-rules:entity',
         PermTypeEnum.READ,
       ),
     ]);
