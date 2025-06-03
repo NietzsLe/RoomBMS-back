@@ -36,10 +36,7 @@ export class UserConstraint {
     }
     if (requestorID == user.username) return IsAdmin;
 
-    if (
-      (user.manager && user.manager.username == requestorID) ||
-      (!user.manager && IsAdmin)
-    ) {
+    if ((user.manager && user.manager.username == requestorID) || IsAdmin) {
       (user.roles ?? []).forEach((role) => {
         if (
           role.roleID == process.env.SUPER_ADMIN_ROLEID ||
