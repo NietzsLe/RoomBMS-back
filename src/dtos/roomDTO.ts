@@ -164,10 +164,11 @@ export class UpdateRoomDTO {
   areAllPropertiesUndefinedExcludeEmptyAndHot(): boolean {
     for (const key in this) {
       if (
-        key != 'isEmpty' ||
-        (key != 'isHot' &&
-          Object.prototype.hasOwnProperty.call(this, key) &&
-          this[key] !== undefined)
+        key != 'isEmpty' &&
+        key != 'isHot' &&
+        key != 'roomID' &&
+        Object.prototype.hasOwnProperty.call(this, key) &&
+        this[key] !== undefined
       ) {
         return false;
       }
