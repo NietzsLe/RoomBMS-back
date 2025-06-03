@@ -6,7 +6,7 @@ import { join } from 'path';
 import rateLimit from 'express-rate-limit';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NextFunction, Request, Response } from 'express';
-// import * as fs from 'fs';
+import * as fs from 'fs';
 
 async function bootstrap() {
   // const httpsOptions = {
