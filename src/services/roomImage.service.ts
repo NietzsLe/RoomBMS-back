@@ -28,16 +28,10 @@ export class RoomImageService {
     roomID: number,
     imageNames: string[],
   ) {
-    const result = await Promise.all([
+    await Promise.all([
       this.constraint.ImagesIsAlive(imageNames, roomID),
       this.roomConstraint.RoomIsAlive(roomID),
     ]);
-    if (result[1])
-      this.userContraint.RequestorManageNonUserResource(
-        requestorRoleIDs,
-        requestorID,
-        result[1],
-      );
     await this.imageRepository.softDelete(imageNames);
   }
   async trustSoftDeleteMany(room: Room) {
