@@ -59,7 +59,7 @@ function genCreateAppointmentNotify(appointment: Appointment) {
 - Giá tư vấn: ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
 - Thời gian khách xem: ${dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY')}
 - Số lượng người: ${appointment.noPeople ?? ''}
-- Số lượng xe: ${appointment.noPeople ?? ''}
+- Số lượng xe: ${appointment.noVehicles ?? ''}
 - Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
 - Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
 - Ghi chú: ${appointment.note ?? ''}
