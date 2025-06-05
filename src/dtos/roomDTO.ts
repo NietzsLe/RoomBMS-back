@@ -167,6 +167,7 @@ export class UpdateRoomDTO {
         key != 'isEmpty' &&
         key != 'isHot' &&
         key != 'roomID' &&
+        key != 'primaryImageName' &&
         Object.prototype.hasOwnProperty.call(this, key) &&
         this[key] !== undefined
       ) {
