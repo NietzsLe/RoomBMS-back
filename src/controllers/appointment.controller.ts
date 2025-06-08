@@ -39,18 +39,18 @@ export class AppointmentController {
   @Get()
   @ApiOkResponse({ type: [ReadAppointmentDTO] })
   @ApiQuery({ name: 'appointmentID', required: false })
-  @ApiQuery({ name: 'offsetID', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
   @ApiQuery({ name: 'toDate', required: false })
   @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'relatedUsername', required: false })
+  @ApiQuery({ name: 'ID_desc_cursor', required: false })
+  @ApiQuery({ name: 'appointmentTime_desc_cursor', required: false })
   @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
-    @Query('offsetID', new ParseIntPipe({ optional: true }))
-    offsetID: number = 0,
     @Query('appointmentID', new ParseIntPipe({ optional: true }))
     appointmentID: number,
     @Query('name') name: string,
@@ -59,18 +59,25 @@ export class AppointmentController {
     @Query('fromDate', ParseDatePipe) fromDate: Date,
     @Query('toDate', ParseDatePipe) toDate: Date,
     @Query('status') status: string,
+    @Query('relatedUsername') relatedUsername: string,
+    @Query('ID_desc_cursor', new ParseIntPipe({ optional: true }))
+    ID_desc_cursor: number,
+    @Query('appointmentTime_desc_cursor', ParseDatePipe)
+    appointmentTime_desc_cursor: Date,
   ) {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     const requestorID = request['resourceRequestUserID'] as string;
     return await this.appointmentService.findAll(
       appointmentID,
-      offsetID,
       name,
       houseID,
       roomID,
       fromDate,
       toDate,
       status,
+      relatedUsername,
+      ID_desc_cursor,
+      appointmentTime_desc_cursor,
       requestorRoleIDs,
       requestorID,
     );

@@ -13,12 +13,9 @@ async function bootstrap() {
   //   key: fs.readFileSync('C:/Users/thanh/Downloads/RoomBMS/cert.key'),
   //   cert: fs.readFileSync('C:/Users/thanh/Downloads/RoomBMS/cert.crt'),
   // };
-  const app = await NestFactory.create<NestApplication>(
-    AppModule,
-    //   {
-    //   httpsOptions,
-    // }
-  );
+  const app = await NestFactory.create<NestApplication>(AppModule, {
+    // httpsOptions,
+  });
 
   // const myService = app.get(Appointment); // 👈 Lấy injectable từ DI container
 
