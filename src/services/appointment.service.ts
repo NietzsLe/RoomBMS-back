@@ -118,9 +118,7 @@ export class AppointmentService {
                   ? AppointmentStatus.NOT_YET_RECEIVED
                   : (status as AppointmentStatus) == AppointmentStatus.RECEIVED
                     ? AppointmentStatus.RECEIVED
-                    : (status as AppointmentStatus) == AppointmentStatus.STOPPED
-                      ? AppointmentStatus.STOPPED
-                      : AppointmentStatus.SUCCESS,
+                    : AppointmentStatus.SUCCESS,
           }
         : {}),
     };
