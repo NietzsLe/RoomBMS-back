@@ -9,7 +9,15 @@ import {
 } from 'src/dtos/userDTO';
 import { UserMapper } from 'src/mappers/user.mapper';
 import { User } from 'src/models/user.model';
-import { IsNull, MoreThan, Not, Repository } from 'typeorm';
+import {
+  And,
+  Equal,
+  FindOptionsWhere,
+  IsNull,
+  MoreThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { RoleConstraint } from './constraints/role.helper';
 import { AuthService, PermTypeEnum } from './auth.service';
@@ -83,16 +91,41 @@ export class UserService {
     return dto;
   }
 
-  async getUserAutocomplete(offsetID: string) {
+  async getUserAutocomplete(
+    offsetID: string,
+    requestorID: string,
+    requestorRoleIDs: string[],
+  ) {
+    let isAdmin = false;
+    for (const roleID of requestorRoleIDs) {
+      if (
+        roleID == process.env.SUPER_ADMIN_ROLEID ||
+        roleID == process.env.ADMIN_ROLEID
+      ) {
+        isAdmin = true;
+        break;
+      }
+    }
+    let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] | undefined = [
+      { username: MoreThan(offsetID) },
+    ];
+    if (!isAdmin) {
+      where = [
+        {
+          team: { leader: { username: requestorID } },
+          username: MoreThan(offsetID),
+        },
+        { manager: { username: requestorID }, username: MoreThan(offsetID) },
+        { username: And(Equal(requestorID), MoreThan(offsetID)) },
+      ];
+    }
     console.log('@Service: autocomplete');
     const users = await this.userRepository.find({
-      where: {
-        username: MoreThan(offsetID),
-      },
+      where: where,
       order: {
         username: 'ASC',
       },
-      select: { username: true },
+      select: { username: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
     //console.log('@Service: \n', users);

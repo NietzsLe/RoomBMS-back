@@ -12,14 +12,13 @@ import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { Appointment } from 'src/models/appointment.model';
 import {
   And,
-  Equal,
   FindOptionsWhere,
   IsNull,
+  LessThan,
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
   Not,
-  Or,
   Repository,
 } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
@@ -69,13 +68,15 @@ export class AppointmentService {
 
   async findAll(
     appointmentID: number,
-    offsetID: number,
     name: string,
     houseID: number,
     roomID: number,
     fromDate: Date,
     toDate: Date,
     status: string,
+    relatedUsername: string,
+    ID_desc_cursor: number,
+    appointmentTime_desc_cursor: Date,
     requestorRoleIDs: string[],
     requestorID: string,
   ) {
@@ -91,8 +92,7 @@ export class AppointmentService {
     }
     const basicWhere:
       | FindOptionsWhere<Appointment>
-      | FindOptionsWhere<Appointment>[]
-      | undefined = {
+      | FindOptionsWhere<Appointment>[] = {
       ...(name ? { name: name } : {}),
       ...(houseID ? { house: { houseID: houseID } } : {}),
       ...(roomID ? { room: { roomID: roomID } } : {}),
@@ -109,20 +109,19 @@ export class AppointmentService {
               }
         : {}),
       ...(status
-        ? status == 'not-end'
-          ? {
-              status: Or(
-                Equal(AppointmentStatus.EXTRA_CARE),
-                Equal(AppointmentStatus.NOT_YET_RECEIVED),
-                Equal(AppointmentStatus.RECEIVED),
-              ),
-            }
-          : {
-              status: Or(
-                Equal(AppointmentStatus.SUCCESS),
-                Equal(AppointmentStatus.STOPPED),
-              ),
-            }
+        ? {
+            status:
+              (status as AppointmentStatus) == AppointmentStatus.EXTRA_CARE
+                ? AppointmentStatus.EXTRA_CARE
+                : (status as AppointmentStatus) ==
+                    AppointmentStatus.NOT_YET_RECEIVED
+                  ? AppointmentStatus.NOT_YET_RECEIVED
+                  : (status as AppointmentStatus) == AppointmentStatus.RECEIVED
+                    ? AppointmentStatus.RECEIVED
+                    : (status as AppointmentStatus) == AppointmentStatus.STOPPED
+                      ? AppointmentStatus.STOPPED
+                      : AppointmentStatus.SUCCESS,
+          }
         : {}),
     };
     let where:
@@ -133,9 +132,25 @@ export class AppointmentService {
       basicWhere.appointmentID = appointmentID;
       where = basicWhere;
     } else {
-      basicWhere.appointmentID = MoreThan(offsetID);
+      console.log('@Appointment Serice: here');
+      if (appointmentTime_desc_cursor)
+        basicWhere.appointmentTime = LessThan(appointmentTime_desc_cursor);
+      if (ID_desc_cursor) basicWhere.appointmentID = LessThan(ID_desc_cursor);
       if (isAdmin) {
-        where = basicWhere;
+        where = [
+          {
+            ...(relatedUsername
+              ? { takenOverUser: { username: relatedUsername } }
+              : {}),
+            ...basicWhere,
+          },
+          {
+            ...(relatedUsername
+              ? { madeUser: { username: relatedUsername } }
+              : {}),
+            ...basicWhere,
+          },
+        ];
       } else {
         where = [
           {
@@ -144,6 +159,9 @@ export class AppointmentService {
               { manager: { username: requestorID } },
               { username: requestorID },
             ],
+            ...(relatedUsername
+              ? { takenOverUser: { username: relatedUsername } }
+              : {}),
             ...basicWhere,
           },
           {
@@ -152,6 +170,9 @@ export class AppointmentService {
               { manager: { username: requestorID } },
               { username: requestorID },
             ],
+            ...(relatedUsername
+              ? { madeUser: { username: relatedUsername } }
+              : {}),
             ...basicWhere,
           },
         ];
@@ -170,8 +191,8 @@ export class AppointmentService {
       this.appointmentRepository.find({
         where: where,
         order: {
-          appointmentID: 'ASC',
-          appointmentTime: 'ASC',
+          appointmentTime: 'DESC',
+          appointmentID: 'DESC',
         },
         relations: {
           room: { house: { administrativeUnit: true } },

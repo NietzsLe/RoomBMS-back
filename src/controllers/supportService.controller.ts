@@ -1,5 +1,13 @@
-import { Controller, Get, Header, ParseIntPipe, Query } from '@nestjs/common';
-import { ApiOkResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Header,
+  ParseIntPipe,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { HouseService } from 'src/services/house.service';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { AutocompleteHouseDTO, MaxResponseHouseDTO } from 'src/dtos/houseDTO';
@@ -36,6 +44,7 @@ import {
   ReadWardUnitDTO,
 } from 'src/dtos/administrativeUnitDTO';
 import { NotEmptyCheckPipe } from './pipes/notEmptyCheck.pipe';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Controller('support-service')
 export class SupportServiceController {
@@ -112,9 +121,20 @@ export class SupportServiceController {
   @ApiQuery({ name: 'offsetID', required: false })
   @CacheTTL(10000)
   @Header('Cache-Control', 'max-age=10')
-  async getUsers(@Query('offsetID', NotEmptyCheckPipe) offsetID: string = '') {
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
+  async getUsers(
+    @Req() request: Request,
+    @Query('offsetID', NotEmptyCheckPipe) offsetID: string = '',
+  ) {
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+    const requestorID = request['resourceRequestUserID'] as string;
     console.log('@Controller: autocomplete');
-    return await this.userService.getUserAutocomplete(offsetID);
+    return await this.userService.getUserAutocomplete(
+      offsetID,
+      requestorID,
+      requestorRoleIDs,
+    );
   }
   @Get('autocomplete/teams')
   @ApiOkResponse({ type: [AutocompleteTeamDTO] })

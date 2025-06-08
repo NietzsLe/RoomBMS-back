@@ -217,6 +217,9 @@ export class AutocompleteUserDTO {
   @ApiProperty()
   @IsString()
   username: string;
+  @ApiProperty()
+  @IsString()
+  name: string;
 }
 
 export class MaxResponseUserDTO {
