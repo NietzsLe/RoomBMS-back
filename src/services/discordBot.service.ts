@@ -91,9 +91,9 @@ function genReturnDepositAgreementResultNotify(
 - Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
 - Tên khách hàng: ${appointment?.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
-- Chủ nhà: ${appointment?.room?.house?.ownerName ?? ''}
+- Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
 - Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
-- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
+- Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.name ?? ''}${appointment?.depositAgreement?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
 - Phòng: ${appointment?.room?.name ?? ''}
 - Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
 - Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
@@ -104,7 +104,7 @@ function genReturnDepositAgreementResultNotify(
 - Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
     embed.setDescription(text);
   } else {
-    text = `- Kết quả: **${appointment?.status == AppointmentStatus.EXTRA_CARE ? 'CHĂM SÓC THÊM' : 'KHÁCH NGỪNG XEM'}**
+    text = `- Kết quả: **CHĂM SÓC THÊM**
 - Tên khách hàng: ${appointment.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 - Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
@@ -138,9 +138,9 @@ function genCancelDepositAgreementNotify(appointment: Appointment) {
 - Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
 - Tên khách hàng: ${appointment?.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
-- Chủ nhà: ${appointment?.room?.house?.ownerName ?? ''}
+- Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
 - Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
-- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
+- Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}${appointment?.depositAgreement?.room?.house?.ownerName && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
 - Phòng: ${appointment?.room?.name ?? ''}
 - Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
 - Tiền cọc: ${appointment?.depositAgreement?.depositPrice ? appointment?.depositAgreement?.depositPrice.toLocaleString('de-DE') + '₫' : ''}
@@ -242,10 +242,7 @@ export class DiscordService {
     if (appointment?.status == AppointmentStatus.NOT_YET_RECEIVED) return;
     let embed: EmbedBuilder;
     let chatGroups: ChatGroup[];
-    if (
-      appointment?.status == AppointmentStatus.EXTRA_CARE ||
-      appointment?.status == AppointmentStatus.STOPPED
-    ) {
+    if (appointment?.status == AppointmentStatus.EXTRA_CARE) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Extra-care',

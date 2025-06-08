@@ -211,10 +211,7 @@ export class TelegramBotService {
     if (appointment?.status == AppointmentStatus.NOT_YET_RECEIVED) return;
     let text: string;
     let chatGroups: ChatGroup[];
-    if (
-      appointment?.status == AppointmentStatus.EXTRA_CARE ||
-      appointment?.status == AppointmentStatus.STOPPED
-    ) {
+    if (appointment?.status == AppointmentStatus.EXTRA_CARE) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Extra-care',

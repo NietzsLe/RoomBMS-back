@@ -27,7 +27,6 @@ export enum AppointmentStatus {
   SUCCESS = 'success',
   NOT_YET_RECEIVED = 'not-yet-received',
   RECEIVED = 'received',
-  STOPPED = 'stopped',
   EXTRA_CARE = 'extra-care',
 }
 // console.log(getInitialsOrFullText('Nam Từ Liêm  - 13/5B'));
