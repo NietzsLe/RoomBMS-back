@@ -12,6 +12,8 @@ import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { Appointment } from 'src/models/appointment.model';
 import {
   And,
+  Equal,
+  FindOperator,
   FindOptionsWhere,
   IsNull,
   LessThan,
@@ -127,13 +129,24 @@ export class AppointmentService {
       | FindOptionsWhere<Appointment>[]
       | undefined;
     if (appointmentID || appointmentID == 0) {
-      basicWhere.appointmentID = appointmentID;
+      basicWhere.appointmentID = Equal(appointmentID);
       where = basicWhere;
     } else {
       console.log('@Appointment Serice: here');
       if (appointmentTime_desc_cursor)
-        basicWhere.appointmentTime = LessThan(appointmentTime_desc_cursor);
-      if (ID_desc_cursor) basicWhere.appointmentID = LessThan(ID_desc_cursor);
+        basicWhere.appointmentTime = basicWhere.appointmentTime
+          ? And(
+              LessThan(appointmentTime_desc_cursor),
+              basicWhere.appointmentTime as FindOperator<Date>,
+            )
+          : LessThan(appointmentTime_desc_cursor);
+      if (ID_desc_cursor)
+        basicWhere.appointmentID = basicWhere.appointmentID
+          ? And(
+              LessThan(ID_desc_cursor),
+              basicWhere.appointmentID as FindOperator<number>,
+            )
+          : LessThan(ID_desc_cursor);
       if (isAdmin) {
         where = [
           {
