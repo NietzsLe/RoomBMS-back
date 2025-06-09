@@ -208,8 +208,8 @@ export class AppointmentService {
         relations: {
           room: { house: { administrativeUnit: true } },
           depositAgreement: true,
-          takenOverUser: { team: true },
-          madeUser: { team: true },
+          takenOverUser: { team: true, roles: true, manager: true },
+          madeUser: { team: true, roles: true, manager: true },
           tenant: true,
           manager: true,
         },
@@ -272,15 +272,24 @@ export class AppointmentService {
             delete dto.tenant['phoneNumber'];
         } else dto.tenant = new ReadTenantDTO();
       }
-      if (dto.takenOverUser) {
-        if (userBlacklist.canAccess)
-          removeByBlacklist(dto.takenOverUser, userBlacklist.blacklist);
-        else dto.takenOverUser = new ReadUserDTO();
-      }
-      if (dto.madeUser) {
+      if (dto?.madeUser) {
         if (userBlacklist.canAccess) {
+          if (dto?.madeUser?.manager) {
+            removeByBlacklist(dto.madeUser.manager, userBlacklist.blacklist);
+          }
           removeByBlacklist(dto.madeUser, userBlacklist.blacklist);
         } else dto.madeUser = new ReadUserDTO();
+      }
+      if (dto?.takenOverUser) {
+        if (userBlacklist.canAccess) {
+          if (dto?.takenOverUser?.manager) {
+            removeByBlacklist(
+              dto.takenOverUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          removeByBlacklist(dto.takenOverUser, userBlacklist.blacklist);
+        } else dto.takenOverUser = new ReadUserDTO();
       }
       if (dto.depositAgreement) {
         if (depositAgreementBlacklist.canAccess)
