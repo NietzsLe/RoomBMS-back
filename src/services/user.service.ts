@@ -95,6 +95,7 @@ export class UserService {
     offsetID: string,
     requestorID: string,
     requestorRoleIDs: string[],
+    type: string = 'related', //for related, all
   ) {
     let isAdmin = false;
     for (const roleID of requestorRoleIDs) {
@@ -119,6 +120,7 @@ export class UserService {
         { username: And(Equal(requestorID), MoreThan(offsetID)) },
       ];
     }
+    if (type == 'all') where = [{ username: MoreThan(offsetID) }];
     console.log('@Service: autocomplete');
     const users = await this.userRepository.find({
       where: where,

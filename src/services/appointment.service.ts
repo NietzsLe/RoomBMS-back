@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   CreateAppointmentDTO,
   MaxResponseAppointmentDTO,
+  TakenOverAppointmentDTO,
   UpdateAppointmentDTO,
   UpdateAppointmentForRelatedUserDTO,
   UpdateDepositAgreementForRelatedUserDTO,
@@ -31,7 +32,6 @@ import {
 import { RoomConstraint } from './constraints/room.helper';
 import { TenantConstraint } from './constraints/tenant.helper';
 import { DepositAgreementConstraint } from './constraints/depositAgreement.helper';
-import { User } from 'src/models/user.model';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
 import { Tenant } from 'src/models/tenant.model';
 // import { TelegramBotService } from './telegramBot.service';
@@ -492,16 +492,18 @@ export class AppointmentService {
     };
   }
 
-  async takenOver(requestorID: string, appointmentID: number) {
+  async takenOver(requestorID: string, dto: TakenOverAppointmentDTO) {
     const appointment = new Appointment();
-    appointment.appointmentID = appointmentID;
-    appointment.takenOverUser = new User();
-    appointment.takenOverUser.username = requestorID;
+    appointment.appointmentID = dto.appointmentID;
 
-    const result = await this.constraint.AppointmentIsAlive(
-      appointment.appointmentID,
-    );
-    if (result) this.constraint.NoUserTakeOver(result);
+    const result = await Promise.all([
+      this.constraint.AppointmentIsAlive(appointment.appointmentID),
+      this.userConstraint.UserIsAlive(dto.takenOverUsername),
+    ]);
+    if (result[0]) this.constraint.NoUserTakeOver(requestorID, result[0]);
+    if (result[1]) {
+      appointment.takenOverUser = result[1];
+    }
     appointment.status = AppointmentStatus.RECEIVED;
     await this.appointmentRepository.update(
       appointment.appointmentID,

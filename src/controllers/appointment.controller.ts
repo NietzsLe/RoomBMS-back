@@ -120,10 +120,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     //console.log('@Controller: \n', requestorRoleIDs);
-    return await this.appointmentService.takenOver(
-      requestorID,
-      dto.appointmentID,
-    );
+    return await this.appointmentService.takenOver(requestorID, dto);
   }
 
   @Patch()
