@@ -85,6 +85,7 @@ export class AuthController {
       : undefined;
     if (!refreshToken)
       throw new HttpException('Missing refresh token', HttpStatus.UNAUTHORIZED);
+
     const tokens = await this.authService.refreshToken(refreshToken);
     response.cookie('accessToken', tokens.accessToken, {
       ...this.cookieSecurityOption,

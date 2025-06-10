@@ -51,11 +51,11 @@ export class User {
   @Expose({ groups: ['TO-DTO'] })
   updateAt: Date;
   @Expose({ groups: ['NOT-TO-DTO'] })
-  @Column({ type: String, nullable: true })
-  hashedRefreshToken: string | null;
+  @Column({ type: String, nullable: true, array: true })
+  hashedRefreshTokens: string[] | null;
   @Expose({ groups: ['NOT-TO-DTO'] })
-  @Column({ type: String, nullable: true })
-  hashedAccessToken: string | null;
+  @Column({ type: String, nullable: true, array: true })
+  hashedAccessTokens: string[] | null;
   @ManyToOne(() => Team, (team) => team.members, {
     nullable: true,
     onDelete: 'SET NULL',
