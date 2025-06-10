@@ -94,7 +94,7 @@ function genReturnDepositAgreementResultNotify(
 - Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
 - Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
 - Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.name ?? ''}${appointment?.depositAgreement?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
-- Phòng: ${appointment?.room?.name ?? ''}
+- Phòng: ${appointment?.depositAgreement?.room?.name ?? ''}
 - Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
 - Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
 - Thưởng: ${appointment?.depositAgreement?.bonus ? appointment?.depositAgreement?.bonus.toLocaleString('de-DE') + '₫' : ''}
