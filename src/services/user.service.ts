@@ -217,8 +217,8 @@ export class UserService {
     this.constraint.CantChangeManagerByYourself(requestorID, user);
     if (result[1]) {
       user.roles = result[1];
-      user.hashedAccessToken = null;
-      user.hashedRefreshToken = null;
+      user.hashedAccessTokens = [];
+      user.hashedRefreshTokens = [];
     }
     if (result[2]) user.manager = result[2];
     if (result[3]) user.team = result[3];

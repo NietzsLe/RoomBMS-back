@@ -74,6 +74,7 @@ export class AuthService {
       ...(await this.refreshTokenByPayload(
         user.username,
         (user.roles ?? []).map((role) => role.roleID),
+        user,
       )),
       account: UserMapper.EntityToReadWithAccessRightDTO(user),
     };
@@ -115,10 +116,12 @@ export class AuthService {
     user = new User();
     user.username = username;
     user.hashedPassword = hash;
+    user.hashedAccessTokens = [];
+    user.hashedRefreshTokens = [];
     console.log('@Service Change Password', user);
     await this.usersRepository.update(username, user);
     return {
-      ...(await this.refreshTokenByPayload(user.username, RoleIDs)),
+      ...(await this.refreshTokenByPayload(user.username, RoleIDs, user)),
       account: UserMapper.EntityToReadWithAccessRightDTO(user),
     };
   }
@@ -142,10 +145,12 @@ export class AuthService {
         username: true,
         isDisabled: true,
         expiryTime: true,
-        hashedRefreshToken: true,
+        hashedRefreshTokens: true,
+        hashedAccessTokens: true,
       },
       relations: { roles: true },
     });
+    let tokenIdx = -1;
     if (!user)
       throw new HttpException(
         `user:${payload.username} is inactive or has been disabled`,
@@ -161,14 +166,23 @@ export class AuthService {
         `user:${payload.username} acccount was exprired`,
         HttpStatus.NOT_ACCEPTABLE,
       );
-    else if (
-      !user.hashedRefreshToken ||
-      (user.hashedRefreshToken &&
-        !compareHash(refreshToken, user.hashedRefreshToken))
-    ) {
-      throw new UnauthorizedException();
+    else if (!user.hashedRefreshTokens) throw new UnauthorizedException();
+    else if (user.hashedRefreshTokens) {
+      for (let idx = 0; idx < user.hashedRefreshTokens.length; idx++)
+        if (
+          compareHash('Bearer ' + refreshToken, user.hashedRefreshTokens[idx])
+        ) {
+          tokenIdx = idx;
+          break;
+        }
+      if (tokenIdx == -1) throw new UnauthorizedException();
     }
-    return this.refreshTokenByPayload(payload.username, payload.roleIDs);
+    return await this.refreshTokenByPayload(
+      payload.username,
+      payload.roleIDs,
+      user,
+      tokenIdx,
+    );
   }
 
   async checkAuthorization(
@@ -190,7 +204,7 @@ export class AuthService {
           username: true,
           isDisabled: true,
           expiryTime: true,
-          hashedAccessToken: true,
+          hashedAccessTokens: true,
         },
         relations: { roles: true },
       }),
@@ -219,18 +233,13 @@ export class AuthService {
         `user:${username} acccount was exprired`,
         HttpStatus.NOT_ACCEPTABLE,
       );
-    else if (
-      !user.hashedAccessToken ||
-      (user.hashedAccessToken &&
-        !compareHash('Bearer ' + accessToken, user.hashedAccessToken))
-    ) {
-      throw new UnauthorizedException();
+    else if (!user.hashedAccessTokens) throw new UnauthorizedException();
+    else if (user.hashedAccessTokens) {
+      let has = false;
+      for (const token of user.hashedAccessTokens)
+        if (compareHash('Bearer ' + accessToken, token)) has = true;
+      if (!has) throw new UnauthorizedException();
     }
-    console.log(
-      '@Service: checkAuthorization\n',
-      accessToken,
-      compareHash('Bearer ' + accessToken, user.hashedAccessToken),
-    );
 
     for (const roleID of roleIDs) {
       if (
@@ -277,7 +286,12 @@ export class AuthService {
     } else return false;
   }
 
-  private async refreshTokenByPayload(username: string, roleIDs: string[]) {
+  private async refreshTokenByPayload(
+    username: string,
+    roleIDs: string[],
+    user: User,
+    idx: number = -1,
+  ) {
     const refreshPayload = {
       username: username,
       roleIDs: roleIDs,
@@ -302,10 +316,22 @@ export class AuthService {
     };
     console.log('@Service: \n', out);
     const hashes = [hashText(out.refreshToken), hashText(out.accessToken)];
-    const updatedUser = new User();
-    updatedUser.hashedRefreshToken = hashes[0];
-    updatedUser.hashedAccessToken = hashes[1];
-    await this.usersRepository.update(username, updatedUser);
+    if (idx == -1) {
+      user.hashedRefreshTokens = [
+        hashes[0],
+        ...(user.hashedRefreshTokens ?? []),
+      ].slice(0, 5);
+      user.hashedAccessTokens = [
+        hashes[1],
+        ...(user.hashedAccessTokens ?? []),
+      ].slice(0, 5);
+    } else {
+      if (user.hashedRefreshTokens && user.hashedAccessTokens) {
+        user.hashedRefreshTokens[idx] = hashes[0];
+        user.hashedAccessTokens[idx] = hashes[1];
+      }
+    }
+    await this.usersRepository.save(user);
     return out;
   }
 
