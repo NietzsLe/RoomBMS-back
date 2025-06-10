@@ -59,7 +59,7 @@ export class AuthService {
     if (!user) {
       throw new HttpException('username does not exist', HttpStatus.NOT_FOUND);
     } else if (!bcrypt.compareSync(password, user.hashedPassword ?? '')) {
-      console.log(user.hashedPassword);
+      // console.log(user.hashedPassword);
       throw new HttpException(
         'Incorrect password or username',
         HttpStatus.UNAUTHORIZED,
@@ -118,7 +118,7 @@ export class AuthService {
     user.hashedPassword = hash;
     user.hashedAccessTokens = [];
     user.hashedRefreshTokens = [];
-    console.log('@Service Change Password', user);
+    // console.log('@Service Change Password', user);
     await this.usersRepository.update(username, user);
     return {
       ...(await this.refreshTokenByPayload(user.username, RoleIDs, user)),
@@ -132,7 +132,7 @@ export class AuthService {
       payload = await this.jwtService.verifyAsync(refreshToken.split(' ')[1], {
         secret: process.env.REFRESH_TOKEN_SECRET,
       });
-      console.log('@Service: ', refreshToken.split(' ')[1]);
+      // console.log('@Service:', refreshToken.split(' ')[1]);
     } catch {
       throw new UnauthorizedException();
     }
@@ -151,6 +151,7 @@ export class AuthService {
       relations: { roles: true },
     });
     let tokenIdx = -1;
+    // console.log(user?.hashedRefreshTokens);
     if (!user)
       throw new HttpException(
         `user:${payload.username} is inactive or has been disabled`,
@@ -168,13 +169,16 @@ export class AuthService {
       );
     else if (!user.hashedRefreshTokens) throw new UnauthorizedException();
     else if (user.hashedRefreshTokens) {
-      for (let idx = 0; idx < user.hashedRefreshTokens.length; idx++)
-        if (
-          compareHash('Bearer ' + refreshToken, user.hashedRefreshTokens[idx])
-        ) {
+      for (let idx = 0; idx < user.hashedRefreshTokens.length; idx++) {
+        // console.log(
+        //   compareHash(refreshToken, user.hashedRefreshTokens[idx]),
+        //   user.hashedRefreshTokens[idx],
+        // );
+        if (compareHash(refreshToken, user.hashedRefreshTokens[idx])) {
           tokenIdx = idx;
           break;
         }
+      }
       if (tokenIdx == -1) throw new UnauthorizedException();
     }
     return await this.refreshTokenByPayload(
@@ -314,7 +318,7 @@ export class AuthService {
           expiresIn: process.env.REFRESH_TOKEN_EXPIRATION_TIME,
         })),
     };
-    console.log('@Service: \n', out);
+    // console.log('@Service: \n', out);
     const hashes = [hashText(out.refreshToken), hashText(out.accessToken)];
     if (idx == -1) {
       user.hashedRefreshTokens = [
