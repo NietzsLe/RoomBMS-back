@@ -70,7 +70,7 @@ export class User {
     onDelete: 'CASCADE',
   })
   @Expose({
-    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+    groups: ['TO-DTO'],
   })
   @Type(() => Role)
   roles: Role[];

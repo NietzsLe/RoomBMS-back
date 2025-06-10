@@ -78,7 +78,8 @@ export class AppointmentService {
     status: string,
     relatedUsername: string,
     ID_desc_cursor: number,
-    appointmentTime_desc_cursor: Date,
+    appointmentTime_desc_cursor: Date | null,
+    appointmentTime_asc_cursor: Date | null,
     requestorRoleIDs: string[],
     requestorID: string,
   ) {
@@ -136,10 +137,17 @@ export class AppointmentService {
       if (appointmentTime_desc_cursor)
         basicWhere.appointmentTime = basicWhere.appointmentTime
           ? And(
-              LessThan(appointmentTime_desc_cursor),
+              LessThanOrEqual(appointmentTime_desc_cursor),
               basicWhere.appointmentTime as FindOperator<Date>,
             )
           : LessThan(appointmentTime_desc_cursor);
+      if (appointmentTime_asc_cursor)
+        basicWhere.appointmentTime = basicWhere.appointmentTime
+          ? And(
+              MoreThanOrEqual(appointmentTime_asc_cursor),
+              basicWhere.appointmentTime as FindOperator<Date>,
+            )
+          : MoreThan(appointmentTime_asc_cursor);
       if (ID_desc_cursor)
         basicWhere.appointmentID = basicWhere.appointmentID
           ? And(
@@ -207,7 +215,7 @@ export class AppointmentService {
         },
         relations: {
           room: { house: { administrativeUnit: true } },
-          depositAgreement: true,
+          depositAgreement: { room: { house: { administrativeUnit: true } } },
           takenOverUser: { team: true, roles: true, manager: true },
           madeUser: { team: true, roles: true, manager: true },
           tenant: true,
@@ -292,15 +300,29 @@ export class AppointmentService {
         } else dto.takenOverUser = new ReadUserDTO();
       }
       if (dto.depositAgreement) {
-        if (depositAgreementBlacklist.canAccess)
+        if (depositAgreementBlacklist.canAccess) {
           removeByBlacklist(
             dto.depositAgreement,
             depositAgreementBlacklist.blacklist,
           );
-        else dto.depositAgreement = new ReadDepositAgreementDTO();
+          if (dto?.depositAgreement?.room) {
+            if (roomBlacklist.canAccess)
+              removeByBlacklist(
+                dto?.depositAgreement?.room,
+                roomBlacklist.blacklist,
+              );
+            else dto.depositAgreement.room = new ReadRoomDTO();
+          }
+          if (dto?.depositAgreement?.room?.house) {
+            if (houseBlacklist.canAccess)
+              removeByBlacklist(
+                dto?.depositAgreement?.room.house,
+                houseBlacklist.blacklist,
+              );
+            else dto.depositAgreement.room.house = new ReadHouseDTO();
+          }
+        } else dto.depositAgreement = new ReadDepositAgreementDTO();
       }
-      // console.log('@Service: \n', dto);
-
       return dto;
     });
     console.log(roomBlacklist.blacklist);
@@ -412,11 +434,13 @@ export class AppointmentService {
       this.depositAgreementConstraint.DepositAgreementIsAlive(
         updateAppointmentDTO.depositAgreementID,
       ),
+      this.userConstraint.UserIsAlive(updateAppointmentDTO.takenOverUsername),
     ]);
 
     if (result[0])
       this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
     if (result[1]) appointment.depositAgreement = result[1];
+    if (result[2]) appointment.takenOverUser = result[2];
     console.log('@Service: \n', appointment);
     await this.appointmentRepository.save(appointment);
     if (updateAppointmentDTO.status)

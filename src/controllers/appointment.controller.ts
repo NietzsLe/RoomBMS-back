@@ -48,6 +48,7 @@ export class AppointmentController {
   @ApiQuery({ name: 'relatedUsername', required: false })
   @ApiQuery({ name: 'ID_desc_cursor', required: false })
   @ApiQuery({ name: 'appointmentTime_desc_cursor', required: false })
+  @ApiQuery({ name: 'appointmentTime_asc_cursor', required: false })
   @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
@@ -64,6 +65,8 @@ export class AppointmentController {
     ID_desc_cursor: number,
     @Query('appointmentTime_desc_cursor', ParseDatePipe)
     appointmentTime_desc_cursor: Date,
+    @Query('appointmentTime_asc_cursor', ParseDatePipe)
+    appointmentTime_asc_cursor: Date,
   ) {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     const requestorID = request['resourceRequestUserID'] as string;
@@ -78,6 +81,7 @@ export class AppointmentController {
       relatedUsername,
       ID_desc_cursor,
       appointmentTime_desc_cursor,
+      appointmentTime_asc_cursor,
       requestorRoleIDs,
       requestorID,
     );

@@ -22,7 +22,37 @@ class ReadDepositAgreementForAppointmentDTO {
   @ApiProperty({})
   name: string;
   @ApiProperty({})
+  depositPrice: number; // Tiền đặt cọc
+  @ApiProperty({})
+  deliveredDeposit: number; // Tiền đặt cọc đã giao
+  @ApiProperty({})
+  depositDeliverDate: Date; // Ngày giao tiền đặt cọc
+  @ApiProperty({})
+  agreementDate: Date; // Ngày ký thỏa thuận
+  @ApiProperty({})
+  depositCompleteDate: Date; // Ngày hoàn tất tiền đặt cọc
+  @ApiProperty({})
+  commissionPer: number;
+  @ApiProperty({})
+  cancelFee: number;
+  @ApiProperty({})
+  bonus: number;
+  @ApiProperty({})
+  duration: number; // Thời gian thỏa thuận
+  @ApiProperty({})
   status: DepositAgreementStatus;
+  @ApiProperty({})
+  note: string; // Ghi chú
+  @ApiProperty({})
+  deletedAt: Date; // Xem thỏa thuận đã xóa chưa
+  @ApiProperty({})
+  createAt: Date; // Thời điểm tạo thỏa thuận
+  @ApiProperty({})
+  updateAt: Date; // Thời điểm cập nhật thỏa thuận
+  @ApiProperty({})
+  price: number; // Giá thỏa thuận
+  @ApiProperty({})
+  room: ReadRoomDTO; // Mối quan hệ với Room
 }
 
 export class ReadAppointmentDTO {
@@ -198,6 +228,10 @@ export class UpdateAppointmentForRelatedUserDTO {
   @IsOptional()
   @ApiProperty({ required: false })
   depositAgreementID?: number; // Mối quan hệ với DepositAgreement
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  takenOverUsername?: string;
 }
 
 export class OtherResourceDTO {
