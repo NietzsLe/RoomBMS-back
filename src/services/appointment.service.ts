@@ -153,7 +153,6 @@ export class AppointmentService {
               )
             : LessThan(ID_desc_cursor),
         };
-        secondNotEqualOrder = { ...secondEqualOrder };
       }
       if (appointmentTime_desc_cursor) {
         secondNotEqualOrder = {
