@@ -119,6 +119,7 @@ export class SupportServiceController {
   @Get('autocomplete/users')
   @ApiOkResponse({ type: [AutocompleteUserDTO] })
   @ApiQuery({ name: 'offsetID', required: false })
+  @ApiQuery({ name: 'type', required: false })
   @CacheTTL(10000)
   @Header('Cache-Control', 'max-age=10')
   @UseGuards(AuthGuard)
@@ -126,6 +127,7 @@ export class SupportServiceController {
   async getUsers(
     @Req() request: Request,
     @Query('offsetID', NotEmptyCheckPipe) offsetID: string = '',
+    @Query('type') type: string,
   ) {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     const requestorID = request['resourceRequestUserID'] as string;
@@ -134,6 +136,7 @@ export class SupportServiceController {
       offsetID,
       requestorID,
       requestorRoleIDs,
+      type,
     );
   }
   @Get('autocomplete/teams')

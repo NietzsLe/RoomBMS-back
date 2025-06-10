@@ -116,8 +116,11 @@ export class AppointmentConstraint {
     return exist;
   }
 
-  NoUserTakeOver(appointment: Appointment) {
-    if (appointment.takenOverUser?.username) {
+  NoUserTakeOver(requestorID: string, appointment: Appointment) {
+    if (
+      appointment.takenOverUser?.username &&
+      appointment.takenOverUser?.username != requestorID
+    ) {
       throw new HttpException(
         'Another user has taken over appointment',
         HttpStatus.CONFLICT,

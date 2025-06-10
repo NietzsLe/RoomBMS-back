@@ -206,6 +206,9 @@ export class TakenOverAppointmentDTO {
   @IsNumber()
   @ApiProperty({})
   appointmentID: number;
+  @IsString()
+  @ApiProperty({})
+  takenOverUsername: string;
 }
 
 export class UpdateAppointmentForRelatedUserDTO {
