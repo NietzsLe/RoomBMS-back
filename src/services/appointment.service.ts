@@ -134,27 +134,72 @@ export class AppointmentService {
       where = basicWhere;
     } else {
       console.log('@Appointment Serice: here');
-      if (appointmentTime_desc_cursor)
-        basicWhere.appointmentTime = basicWhere.appointmentTime
-          ? And(
-              LessThanOrEqual(appointmentTime_desc_cursor),
-              basicWhere.appointmentTime as FindOperator<Date>,
-            )
-          : LessThanOrEqual(appointmentTime_desc_cursor);
-      if (appointmentTime_asc_cursor)
-        basicWhere.appointmentTime = basicWhere.appointmentTime
-          ? And(
-              MoreThanOrEqual(appointmentTime_asc_cursor),
-              basicWhere.appointmentTime as FindOperator<Date>,
-            )
-          : MoreThanOrEqual(appointmentTime_asc_cursor);
-      if (ID_desc_cursor)
-        basicWhere.appointmentID = basicWhere.appointmentID
-          ? And(
-              LessThan(ID_desc_cursor),
-              basicWhere.appointmentID as FindOperator<number>,
-            )
-          : LessThan(ID_desc_cursor);
+      let secondNotEqualOrder:
+        | FindOptionsWhere<Appointment>
+        | FindOptionsWhere<Appointment>[]
+        | undefined;
+      let secondEqualOrder:
+        | FindOptionsWhere<Appointment>
+        | FindOptionsWhere<Appointment>[]
+        | undefined;
+      if (appointmentTime_desc_cursor) {
+        secondNotEqualOrder = {
+          appointmentTime: basicWhere.appointmentTime
+            ? And(
+                LessThan(appointmentTime_desc_cursor),
+                basicWhere.appointmentTime as FindOperator<Date>,
+              )
+            : LessThan(appointmentTime_desc_cursor),
+        };
+        secondEqualOrder = {
+          appointmentTime: basicWhere.appointmentTime
+            ? And(
+                Equal(appointmentTime_desc_cursor),
+                basicWhere.appointmentTime as FindOperator<Date>,
+              )
+            : Equal(appointmentTime_desc_cursor),
+        };
+        if (ID_desc_cursor) {
+          secondEqualOrder = {
+            ...secondEqualOrder,
+            appointmentID: basicWhere.appointmentID
+              ? And(
+                  LessThan(ID_desc_cursor),
+                  basicWhere.appointmentID as FindOperator<number>,
+                )
+              : LessThan(ID_desc_cursor),
+          };
+        }
+      }
+      if (appointmentTime_asc_cursor) {
+        secondNotEqualOrder = {
+          appointmentTime: basicWhere.appointmentTime
+            ? And(
+                MoreThan(appointmentTime_asc_cursor),
+                basicWhere.appointmentTime as FindOperator<Date>,
+              )
+            : MoreThan(appointmentTime_asc_cursor),
+        };
+        secondEqualOrder = {
+          appointmentTime: basicWhere.appointmentTime
+            ? And(
+                Equal(appointmentTime_asc_cursor),
+                basicWhere.appointmentTime as FindOperator<Date>,
+              )
+            : Equal(appointmentTime_asc_cursor),
+        };
+        if (ID_desc_cursor) {
+          secondEqualOrder = {
+            ...secondEqualOrder,
+            appointmentID: basicWhere.appointmentID
+              ? And(
+                  LessThan(ID_desc_cursor),
+                  basicWhere.appointmentID as FindOperator<number>,
+                )
+              : LessThan(ID_desc_cursor),
+          };
+        }
+      }
       if (isAdmin) {
         where = [
           {
@@ -162,12 +207,28 @@ export class AppointmentService {
               ? { takenOverUser: { username: relatedUsername } }
               : {}),
             ...basicWhere,
+            ...secondEqualOrder,
+          },
+          {
+            ...(relatedUsername
+              ? { takenOverUser: { username: relatedUsername } }
+              : {}),
+            ...basicWhere,
+            ...secondNotEqualOrder,
           },
           {
             ...(relatedUsername
               ? { madeUser: { username: relatedUsername } }
               : {}),
             ...basicWhere,
+            ...secondEqualOrder,
+          },
+          {
+            ...(relatedUsername
+              ? { madeUser: { username: relatedUsername } }
+              : {}),
+            ...basicWhere,
+            ...secondNotEqualOrder,
           },
         ];
       } else {
@@ -182,6 +243,19 @@ export class AppointmentService {
               ? { takenOverUser: { username: relatedUsername } }
               : {}),
             ...basicWhere,
+            ...secondEqualOrder,
+          },
+          {
+            takenOverUser: [
+              { team: { leader: { username: requestorID } } },
+              { manager: { username: requestorID } },
+              { username: requestorID },
+            ],
+            ...(relatedUsername
+              ? { takenOverUser: { username: relatedUsername } }
+              : {}),
+            ...basicWhere,
+            ...secondNotEqualOrder,
           },
           {
             madeUser: [
@@ -193,6 +267,19 @@ export class AppointmentService {
               ? { madeUser: { username: relatedUsername } }
               : {}),
             ...basicWhere,
+            ...secondEqualOrder,
+          },
+          {
+            madeUser: [
+              { team: { leader: { username: requestorID } } },
+              { manager: { username: requestorID } },
+              { username: requestorID },
+            ],
+            ...(relatedUsername
+              ? { madeUser: { username: relatedUsername } }
+              : {}),
+            ...basicWhere,
+            ...secondNotEqualOrder,
           },
         ];
       }
@@ -211,7 +298,8 @@ export class AppointmentService {
         where: where,
         order: {
           appointmentTime: 'DESC',
-          appointmentID: 'DESC',
+          ...(appointmentTime_desc_cursor ? { appointmentID: 'DESC' } : {}),
+          ...(appointmentTime_asc_cursor ? { appointmentID: 'ASC' } : {}),
         },
         relations: {
           room: { house: { administrativeUnit: true } },
