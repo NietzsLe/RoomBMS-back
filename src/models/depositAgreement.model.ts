@@ -30,15 +30,15 @@ export class DepositAgreement {
   name: string; // Khóa chính, tự động tăng
 
   @Column({ type: 'int' })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   depositPrice: number; // Tiền đặt cọc
 
   @Column({ type: 'int', nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   deliveredDeposit: number; // Tiền đặt cọc đã giao
 
   @Column({ type: 'int', nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   cancelFee: number; // Tiền đặt cọc đã giao
 
   @Column({
@@ -50,31 +50,31 @@ export class DepositAgreement {
   status: DepositAgreementStatus;
 
   @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   depositDeliverDate: Date; // Ngày giao tiền đặt cọc
 
   @Column()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   agreementDate: Date; // Ngày ký thỏa thuận
 
   @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   depositCompleteDate: Date; // Ngày hoàn tất tiền đặt cọc
 
   @Column({})
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   commissionPer: number;
 
   @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   bonus: number;
 
   @Column()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   duration: number; // Thời gian thỏa thuận
 
   @Column({ nullable: true })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   note: string; // Ghi chú
 
   @DeleteDateColumn()
@@ -82,22 +82,24 @@ export class DepositAgreement {
   deletedAt: Date | null; // Xem thỏa thuận đã xóa chưa
 
   @CreateDateColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   createAt: Date; // Thời điểm tạo thỏa thuận
 
   @UpdateDateColumn()
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   updateAt: Date; // Thời điểm cập nhật thỏa thuận
 
   @Column({ type: 'int' })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({ groups: ['TO-DTO', 'TO-APPOINTMENT-DTO'] })
   price: number; // Giá thỏa thuận
 
   @ManyToOne(() => Room, (room) => room.depositAgreements, {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   @Type(() => Room)
   @Transform(
     ({ value }: { value: Room }) =>
@@ -130,7 +132,9 @@ export class DepositAgreement {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @Expose({ groups: ['TO-DTO'] })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   @Type(() => Tenant)
   @Transform(
     ({ value }: { value: Tenant }) =>
@@ -154,7 +158,10 @@ export class DepositAgreement {
   })
   @JoinColumn({ name: 'managerID' })
   @Type(() => User)
-  @Expose({ name: 'managerID', groups: ['TO-DTO'] })
+  @Expose({
+    name: 'managerID',
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
   @Transform(({ value }: { value: User }) => value?.username, {
     toPlainOnly: true,
   })
