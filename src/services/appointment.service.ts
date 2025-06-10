@@ -140,14 +140,14 @@ export class AppointmentService {
               LessThanOrEqual(appointmentTime_desc_cursor),
               basicWhere.appointmentTime as FindOperator<Date>,
             )
-          : LessThan(appointmentTime_desc_cursor);
+          : LessThanOrEqual(appointmentTime_desc_cursor);
       if (appointmentTime_asc_cursor)
         basicWhere.appointmentTime = basicWhere.appointmentTime
           ? And(
               MoreThanOrEqual(appointmentTime_asc_cursor),
               basicWhere.appointmentTime as FindOperator<Date>,
             )
-          : MoreThan(appointmentTime_asc_cursor);
+          : MoreThanOrEqual(appointmentTime_asc_cursor);
       if (ID_desc_cursor)
         basicWhere.appointmentID = basicWhere.appointmentID
           ? And(
