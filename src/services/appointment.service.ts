@@ -80,6 +80,7 @@ export class AppointmentService {
     ID_desc_cursor: number,
     appointmentTime_desc_cursor: Date | null,
     appointmentTime_asc_cursor: Date | null,
+    order_type: string,
     requestorRoleIDs: string[],
     requestorID: string,
   ) {
@@ -142,8 +143,21 @@ export class AppointmentService {
         | FindOptionsWhere<Appointment>
         | FindOptionsWhere<Appointment>[]
         | undefined;
+      if (ID_desc_cursor) {
+        secondEqualOrder = {
+          ...secondEqualOrder,
+          appointmentID: basicWhere.appointmentID
+            ? And(
+                LessThan(ID_desc_cursor),
+                basicWhere.appointmentID as FindOperator<number>,
+              )
+            : LessThan(ID_desc_cursor),
+        };
+        secondNotEqualOrder = { ...secondEqualOrder };
+      }
       if (appointmentTime_desc_cursor) {
         secondNotEqualOrder = {
+          ...secondNotEqualOrder,
           appointmentTime: basicWhere.appointmentTime
             ? And(
                 LessThan(appointmentTime_desc_cursor),
@@ -152,6 +166,7 @@ export class AppointmentService {
             : LessThan(appointmentTime_desc_cursor),
         };
         secondEqualOrder = {
+          ...secondEqualOrder,
           appointmentTime: basicWhere.appointmentTime
             ? And(
                 Equal(appointmentTime_desc_cursor),
@@ -159,20 +174,10 @@ export class AppointmentService {
               )
             : Equal(appointmentTime_desc_cursor),
         };
-        if (ID_desc_cursor) {
-          secondEqualOrder = {
-            ...secondEqualOrder,
-            appointmentID: basicWhere.appointmentID
-              ? And(
-                  LessThan(ID_desc_cursor),
-                  basicWhere.appointmentID as FindOperator<number>,
-                )
-              : LessThan(ID_desc_cursor),
-          };
-        }
       }
       if (appointmentTime_asc_cursor) {
         secondNotEqualOrder = {
+          ...secondNotEqualOrder,
           appointmentTime: basicWhere.appointmentTime
             ? And(
                 MoreThan(appointmentTime_asc_cursor),
@@ -181,6 +186,7 @@ export class AppointmentService {
             : MoreThan(appointmentTime_asc_cursor),
         };
         secondEqualOrder = {
+          ...secondEqualOrder,
           appointmentTime: basicWhere.appointmentTime
             ? And(
                 Equal(appointmentTime_asc_cursor),
@@ -188,17 +194,6 @@ export class AppointmentService {
               )
             : Equal(appointmentTime_asc_cursor),
         };
-        if (ID_desc_cursor) {
-          secondEqualOrder = {
-            ...secondEqualOrder,
-            appointmentID: basicWhere.appointmentID
-              ? And(
-                  LessThan(ID_desc_cursor),
-                  basicWhere.appointmentID as FindOperator<number>,
-                )
-              : LessThan(ID_desc_cursor),
-          };
-        }
       }
       if (isAdmin) {
         where = [
@@ -297,9 +292,13 @@ export class AppointmentService {
       this.appointmentRepository.find({
         where: where,
         order: {
-          appointmentTime: 'DESC',
-          ...(appointmentTime_desc_cursor ? { appointmentID: 'DESC' } : {}),
-          ...(appointmentTime_asc_cursor ? { appointmentID: 'ASC' } : {}),
+          ...(order_type == 'appointment-time-desc'
+            ? { appointmentTime: 'DESC' }
+            : {}),
+          ...(order_type == 'appointment-time-asc'
+            ? { appointmentTime: 'ASC' }
+            : {}),
+          appointmentID: 'DESC',
         },
         relations: {
           room: { house: { administrativeUnit: true } },
