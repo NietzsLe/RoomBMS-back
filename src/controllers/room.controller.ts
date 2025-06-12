@@ -45,6 +45,7 @@ import {
   RoomIDsCheckPipe,
 } from './pipes/notDuplicateValue.pipe';
 import { FileTypeValidationPipe } from './pipes/roomImage.pipe';
+import { ParseDatePipe } from './pipes/date.pipe';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -57,7 +58,6 @@ export class RoomController {
   @Get()
   @ApiOkResponse({ type: [ReadRoomDTO] })
   @ApiQuery({ name: 'roomID', required: false })
-  @ApiQuery({ name: 'offsetID', required: false })
   @ApiQuery({ name: 'provinceCode', required: false })
   @ApiQuery({ name: 'districtCode', required: false })
   @ApiQuery({ name: 'wardCode', required: false })
@@ -66,13 +66,14 @@ export class RoomController {
   @ApiQuery({ name: 'maxPrice', required: false })
   @ApiQuery({ name: 'isHot', required: false })
   @ApiQuery({ name: 'isEmpty', required: false })
-  @ApiQuery({ name: 'sortBy', required: false })
   @ApiQuery({ name: 'name', required: false })
+  @ApiQuery({ name: 'ID_desc_cursor', required: false })
+  @ApiQuery({ name: 'updateAt_desc_cursor', required: false })
+  @ApiQuery({ name: 'price_asc_cursor', required: false })
+  @ApiQuery({ name: 'order_type', required: false })
   @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
-    @Query('offsetID', new ParseIntPipe({ optional: true }))
-    offsetID: number = 0,
     @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
     @Query('provinceCode', new ParseIntPipe({ optional: true }))
     provinceCode: number,
@@ -84,13 +85,17 @@ export class RoomController {
     @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice: number,
     @Query('isHot', new ParseBoolPipe({ optional: true })) isHot: boolean,
     @Query('isEmpty', new ParseBoolPipe({ optional: true })) isEmpty: boolean,
-    @Query('sortBy') sortBy: string,
     @Query('name') name: string,
+    @Query('ID_desc_cursor', new ParseIntPipe({ optional: true }))
+    ID_desc_cursor: number,
+    @Query('updateAt_desc_cursor', ParseDatePipe) updateAt_desc_cursor: Date,
+    @Query('price_asc_cursor', new ParseIntPipe({ optional: true }))
+    price_asc_cursor: number,
+    @Query('order_type') order_type: string,
   ) {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.roomService.findAll(
       roomID,
-      offsetID,
       provinceCode,
       districtCode,
       wardCode,
@@ -99,8 +104,11 @@ export class RoomController {
       maxPrice,
       isHot,
       isEmpty,
-      sortBy,
       name,
+      ID_desc_cursor,
+      updateAt_desc_cursor,
+      price_asc_cursor,
+      order_type,
       requestorRoleIDs,
     );
   }

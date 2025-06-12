@@ -240,8 +240,14 @@ export class AuthService {
     else if (!user.hashedAccessTokens) throw new UnauthorizedException();
     else if (user.hashedAccessTokens) {
       let has = false;
-      for (const token of user.hashedAccessTokens)
-        if (compareHash('Bearer ' + accessToken, token)) has = true;
+      console.log(accessToken);
+      for (const token of user.hashedAccessTokens) {
+        console.log(compareHash('Bearer ' + accessToken, token));
+        if (compareHash('Bearer ' + accessToken, token)) {
+          has = true;
+          break;
+        }
+      }
       if (!has) throw new UnauthorizedException();
     }
 
