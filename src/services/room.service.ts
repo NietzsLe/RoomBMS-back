@@ -9,7 +9,11 @@ import { RoomMapper } from 'src/mappers/room.mapper';
 import { Room } from 'src/models/room.model';
 import {
   And,
+  Equal,
+  FindOperator,
+  FindOptionsWhere,
   IsNull,
+  LessThan,
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
@@ -39,7 +43,6 @@ export class RoomService {
 
   async findAll(
     roomID: number,
-    offsetID: number,
     provinceCode: number,
     districtCode: number,
     wardCode: number,
@@ -48,46 +51,119 @@ export class RoomService {
     maxPrice: number,
     isHot: boolean,
     isEmpty: boolean,
-    sortBy: string,
     name: string,
+    ID_desc_cursor: number,
+    updateAt_desc_cursor: Date,
+    price_asc_cursor: number,
+    order_type: string,
     requestorRoleIDs: string[],
   ) {
+    const basicWhere: FindOptionsWhere<Room> | FindOptionsWhere<Room>[] = {
+      ...(provinceCode
+        ? { administrativeUnit: { provinceCode: provinceCode } }
+        : {}),
+      ...(districtCode
+        ? { administrativeUnit: { districtCode: districtCode } }
+        : {}),
+      ...(wardCode ? { administrativeUnit: { wardCode: wardCode } } : {}),
+      ...(houseID ? { house: { houseID: houseID } } : {}),
+      ...(minPrice || maxPrice
+        ? minPrice && !maxPrice
+          ? { price: MoreThanOrEqual(minPrice) }
+          : !minPrice && maxPrice
+            ? { price: LessThanOrEqual(maxPrice) }
+            : {
+                price: And(
+                  MoreThanOrEqual(minPrice),
+                  LessThanOrEqual(maxPrice),
+                ),
+              }
+        : {}),
+      ...(isHot ? { isHot: isHot } : {}),
+      ...(!(!isEmpty && isEmpty != false) ? { isEmpty: isEmpty } : {}),
+      ...(name ? { name: name } : {}),
+    };
+    let where: FindOptionsWhere<Room> | FindOptionsWhere<Room>[] | undefined;
+    if (roomID || roomID == 0) {
+      basicWhere.roomID = Equal(roomID);
+      where = basicWhere;
+    } else {
+      let secondNotEqualOrder:
+        | FindOptionsWhere<Room>
+        | FindOptionsWhere<Room>[]
+        | undefined;
+      let secondEqualOrder:
+        | FindOptionsWhere<Room>
+        | FindOptionsWhere<Room>[]
+        | undefined;
+      if (ID_desc_cursor) {
+        secondEqualOrder = {
+          ...secondEqualOrder,
+          roomID: basicWhere.roomID
+            ? And(
+                LessThan(ID_desc_cursor),
+                basicWhere.roomID as FindOperator<number>,
+              )
+            : LessThan(ID_desc_cursor),
+        };
+      }
+      if (updateAt_desc_cursor) {
+        secondNotEqualOrder = {
+          ...secondNotEqualOrder,
+          updateAt: basicWhere.updateAt
+            ? And(
+                LessThan(updateAt_desc_cursor),
+                basicWhere.updateAt as FindOperator<Date>,
+              )
+            : LessThan(updateAt_desc_cursor),
+        };
+        secondEqualOrder = {
+          ...secondEqualOrder,
+          updateAt: basicWhere.updateAt
+            ? And(
+                Equal(updateAt_desc_cursor),
+                basicWhere.updateAt as FindOperator<Date>,
+              )
+            : Equal(updateAt_desc_cursor),
+        };
+      }
+      if (price_asc_cursor) {
+        secondNotEqualOrder = {
+          ...secondNotEqualOrder,
+          price: basicWhere.price
+            ? And(
+                MoreThan(price_asc_cursor),
+                basicWhere.price as FindOperator<number>,
+              )
+            : MoreThan(price_asc_cursor),
+        };
+        secondEqualOrder = {
+          ...secondEqualOrder,
+          price: basicWhere.price
+            ? And(
+                Equal(price_asc_cursor),
+                basicWhere.price as FindOperator<number>,
+              )
+            : Equal(price_asc_cursor),
+        };
+      }
+
+      where = [
+        {
+          ...basicWhere,
+          ...secondEqualOrder,
+        },
+        { ...basicWhere, ...secondNotEqualOrder },
+      ];
+    }
+
     const [rooms, roomBlacklist, houseBlacklist] = await Promise.all([
       this.roomRepository.find({
-        where: {
-          ...(roomID || roomID == 0
-            ? { roomID: roomID }
-            : { roomID: MoreThan(offsetID) }),
-          ...(provinceCode
-            ? { administrativeUnit: { provinceCode: provinceCode } }
-            : {}),
-          ...(districtCode
-            ? { administrativeUnit: { districtCode: districtCode } }
-            : {}),
-          ...(wardCode ? { administrativeUnit: { wardCode: wardCode } } : {}),
-          ...(houseID ? { house: { houseID: houseID } } : {}),
-          ...(minPrice || maxPrice
-            ? minPrice && !maxPrice
-              ? { price: MoreThanOrEqual(minPrice) }
-              : !minPrice && maxPrice
-                ? { price: LessThanOrEqual(maxPrice) }
-                : {
-                    price: And(
-                      MoreThanOrEqual(minPrice),
-                      LessThanOrEqual(maxPrice),
-                    ),
-                  }
-            : {}),
-          ...(isHot ? { isHot: isHot } : {}),
-          ...(!(!isEmpty && isEmpty != false) ? { isEmpty: isEmpty } : {}),
-          ...(name ? { name: name } : {}),
-        },
+        where: where,
         order: {
-          ...(sortBy
-            ? sortBy == 'price'
-              ? { price: 'ASC' }
-              : { agreementDuration: 'ASC' }
-            : { roomID: 'ASC' }),
+          ...(order_type == 'updateAt-desc' ? { updateAt: 'DESC' } : {}),
+          ...(order_type == 'price-asc' ? { price: 'ASC' } : {}),
+          roomID: 'DESC',
         },
         relations: {
           house: {

@@ -291,10 +291,10 @@ export class AppointmentService {
       this.appointmentRepository.find({
         where: where,
         order: {
-          ...(order_type == 'appointment-time-desc'
+          ...(order_type == 'appointmentTime-desc'
             ? { appointmentTime: 'DESC' }
             : {}),
-          ...(order_type == 'appointment-time-asc'
+          ...(order_type == 'appointmentTime-asc'
             ? { appointmentTime: 'ASC' }
             : {}),
           appointmentID: 'DESC',

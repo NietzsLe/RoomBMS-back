@@ -7,7 +7,17 @@ import {
 } from 'src/dtos/houseDTO';
 import { HouseMapper } from 'src/mappers/house.mapper';
 import { House } from 'src/models/house.model';
-import { IsNull, MoreThan, Not, Repository } from 'typeorm';
+import {
+  And,
+  Equal,
+  FindOperator,
+  FindOptionsWhere,
+  IsNull,
+  LessThan,
+  MoreThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { HouseConstraint } from './constraints/house.helper';
 import { AdministrativeUnitConstraint } from './constraints/administrativeUnit.helper';
@@ -31,19 +41,73 @@ export class HouseService {
   async findAll(
     houseID: number,
     name: string,
-    offsetID: number,
+    ID_desc_cursor: number,
+    updateAt_desc_cursor: Date,
+    order_type: string,
     requestorRoleIDs: string[],
   ) {
+    const basicWhere: FindOptionsWhere<House> | FindOptionsWhere<House>[] = {
+      ...(name ? { name: name } : {}),
+    };
+    let where: FindOptionsWhere<House> | FindOptionsWhere<House>[] | undefined;
+    if (houseID || houseID == 0) {
+      basicWhere.houseID = Equal(houseID);
+      where = basicWhere;
+    } else {
+      let secondNotEqualOrder:
+        | FindOptionsWhere<House>
+        | FindOptionsWhere<House>[]
+        | undefined;
+      let secondEqualOrder:
+        | FindOptionsWhere<House>
+        | FindOptionsWhere<House>[]
+        | undefined;
+      if (ID_desc_cursor) {
+        secondEqualOrder = {
+          ...secondEqualOrder,
+          houseID: basicWhere.houseID
+            ? And(
+                LessThan(ID_desc_cursor),
+                basicWhere.houseID as FindOperator<number>,
+              )
+            : LessThan(ID_desc_cursor),
+        };
+      }
+      if (updateAt_desc_cursor) {
+        secondNotEqualOrder = {
+          ...secondNotEqualOrder,
+          updateAt: basicWhere.updateAt
+            ? And(
+                LessThan(updateAt_desc_cursor),
+                basicWhere.updateAt as FindOperator<Date>,
+              )
+            : LessThan(updateAt_desc_cursor),
+        };
+        secondEqualOrder = {
+          ...secondEqualOrder,
+          updateAt: basicWhere.updateAt
+            ? And(
+                Equal(updateAt_desc_cursor),
+                basicWhere.updateAt as FindOperator<Date>,
+              )
+            : Equal(updateAt_desc_cursor),
+        };
+      }
+
+      where = [
+        {
+          ...basicWhere,
+          ...secondEqualOrder,
+        },
+        { ...basicWhere, ...secondNotEqualOrder },
+      ];
+    }
     const [houses, houseBlacklist] = await Promise.all([
       this.houseRepository.find({
-        where: {
-          ...(houseID || houseID == 0
-            ? { houseID: houseID }
-            : { houseID: MoreThan(offsetID) }),
-          ...(name ? { name: name } : {}),
-        },
+        where: where,
         order: {
-          houseID: 'ASC',
+          ...(order_type == 'updateAt-desc' ? { updateAt: 'DESC' } : {}),
+          houseID: 'DESC',
         },
         relations: { manager: true, administrativeUnit: true },
         take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
