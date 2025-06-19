@@ -36,6 +36,9 @@ export class HouseController {
   @ApiOkResponse({ type: [ReadHouseDTO] })
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'name', required: false })
+  @ApiQuery({ name: 'provinceCode', required: false })
+  @ApiQuery({ name: 'districtCode', required: false })
+  @ApiQuery({ name: 'wardCode', required: false })
   @ApiQuery({ name: 'ID_desc_cursor', required: false })
   @ApiQuery({ name: 'updateAt_desc_cursor', required: false })
   @ApiQuery({ name: 'order_type', required: false })
@@ -44,6 +47,11 @@ export class HouseController {
     @Req() request: Request,
     @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
     @Query('name') name: string,
+    @Query('provinceCode', new ParseIntPipe({ optional: true }))
+    provinceCode: number,
+    @Query('districtCode', new ParseIntPipe({ optional: true }))
+    districtCode: number,
+    @Query('wardCode', new ParseIntPipe({ optional: true })) wardCode: number,
     @Query('ID_desc_cursor', new ParseIntPipe({ optional: true }))
     ID_desc_cursor: number,
     @Query('updateAt_desc_cursor', ParseDatePipe) updateAt_desc_cursor: Date,
@@ -53,6 +61,9 @@ export class HouseController {
     return await this.houseService.findAll(
       houseID,
       name,
+      provinceCode,
+      districtCode,
+      wardCode,
       ID_desc_cursor,
       updateAt_desc_cursor,
       order_type,
