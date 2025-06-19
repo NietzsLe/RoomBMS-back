@@ -41,67 +41,68 @@ export class HouseService {
   async findAll(
     houseID: number,
     name: string,
+    provinceCode: number,
+    districtCode: number,
+    wardCode: number,
     ID_desc_cursor: number,
     updateAt_desc_cursor: Date,
     order_type: string,
     requestorRoleIDs: string[],
   ) {
-    const basicWhere: FindOptionsWhere<House> | FindOptionsWhere<House>[] = {
-      ...(name ? { name: name } : {}),
+    const basicWhere: FindOptionsWhere<House> = {
+      ...(name ? { name } : {}),
+      ...(provinceCode ? { administrativeUnit: { provinceCode } } : {}),
+      ...(districtCode ? { administrativeUnit: { districtCode } } : {}),
+      ...(wardCode ? { administrativeUnit: { wardCode } } : {}),
     };
-    let where: FindOptionsWhere<House> | FindOptionsWhere<House>[] | undefined;
-    if (houseID || houseID == 0) {
-      basicWhere.houseID = Equal(houseID);
-      where = basicWhere;
-    } else {
-      let secondNotEqualOrder:
-        | FindOptionsWhere<House>
-        | FindOptionsWhere<House>[]
-        | undefined;
-      let secondEqualOrder:
-        | FindOptionsWhere<House>
-        | FindOptionsWhere<House>[]
-        | undefined;
-      if (ID_desc_cursor) {
-        secondEqualOrder = {
-          ...secondEqualOrder,
-          houseID: basicWhere.houseID
-            ? And(
-                LessThan(ID_desc_cursor),
-                basicWhere.houseID as FindOperator<number>,
-              )
-            : LessThan(ID_desc_cursor),
-        };
-      }
-      if (updateAt_desc_cursor) {
-        secondNotEqualOrder = {
-          ...secondNotEqualOrder,
-          updateAt: basicWhere.updateAt
-            ? And(
-                LessThan(updateAt_desc_cursor),
-                basicWhere.updateAt as FindOperator<Date>,
-              )
-            : LessThan(updateAt_desc_cursor),
-        };
-        secondEqualOrder = {
-          ...secondEqualOrder,
-          updateAt: basicWhere.updateAt
-            ? And(
-                Equal(updateAt_desc_cursor),
-                basicWhere.updateAt as FindOperator<Date>,
-              )
-            : Equal(updateAt_desc_cursor),
-        };
-      }
-
-      where = [
-        {
-          ...basicWhere,
-          ...secondEqualOrder,
-        },
-        { ...basicWhere, ...secondNotEqualOrder },
-      ];
+    let secondNotEqualOrder: FindOptionsWhere<House> | undefined;
+    let secondEqualOrder: FindOptionsWhere<House> | undefined;
+    if (ID_desc_cursor) {
+      secondEqualOrder = {
+        ...secondEqualOrder,
+        houseID: basicWhere.houseID
+          ? And(
+              LessThan(ID_desc_cursor),
+              basicWhere.houseID as FindOperator<number>,
+            )
+          : LessThan(ID_desc_cursor),
+      };
     }
+    if (updateAt_desc_cursor) {
+      secondNotEqualOrder = {
+        ...secondNotEqualOrder,
+        updateAt: basicWhere.updateAt
+          ? And(
+              LessThan(updateAt_desc_cursor),
+              basicWhere.updateAt as FindOperator<Date>,
+            )
+          : LessThan(updateAt_desc_cursor),
+      };
+      secondEqualOrder = {
+        ...secondEqualOrder,
+        updateAt: basicWhere.updateAt
+          ? And(
+              Equal(updateAt_desc_cursor),
+              basicWhere.updateAt as FindOperator<Date>,
+            )
+          : Equal(updateAt_desc_cursor),
+      };
+    }
+    const where:
+      | FindOptionsWhere<House>
+      | FindOptionsWhere<House>[]
+      | undefined = [
+      {
+        ...basicWhere,
+        ...(houseID || houseID === 0 ? { houseID: Equal(houseID) } : {}),
+        ...secondEqualOrder,
+      },
+      {
+        ...basicWhere,
+        ...(houseID || houseID === 0 ? { houseID: Equal(houseID) } : {}),
+        ...secondNotEqualOrder,
+      },
+    ];
     const [houses, houseBlacklist] = await Promise.all([
       this.houseRepository.find({
         where: where,
