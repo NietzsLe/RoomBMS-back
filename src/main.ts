@@ -38,16 +38,12 @@ async function bootstrap() {
     exposedHeaders: ['set-cookie'],
     origin: (process.env.CORS_ORIGIN ?? '').split(','),
   });
-  const mediumStaticLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 1000,
-  });
+
   const shortStaticLimiter = rateLimit({
     windowMs: 30 * 1000, // 30 seconds
     limit: 100,
   });
   app.use('/images/rooms', shortStaticLimiter);
-  app.use('/images/rooms', mediumStaticLimiter);
   app.use(
     '/images/rooms',
     (req: Request, res: Response, next: NextFunction) => {
