@@ -40,11 +40,11 @@ async function bootstrap() {
   });
   const mediumStaticLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 200,
+    limit: 1000,
   });
   const shortStaticLimiter = rateLimit({
-    windowMs: 30 * 1000, // 15 minutes
-    limit: 30,
+    windowMs: 30 * 1000, // 30 seconds
+    limit: 100,
   });
   app.use('/images/rooms', shortStaticLimiter);
   app.use('/images/rooms', mediumStaticLimiter);
