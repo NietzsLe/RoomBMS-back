@@ -5,7 +5,6 @@ import {
   Get,
   Header,
   Param,
-  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -45,7 +44,7 @@ import {
   RoomIDsCheckPipe,
 } from './pipes/notDuplicateValue.pipe';
 import { FileTypeValidationPipe } from './pipes/roomImage.pipe';
-import { ParseDatePipe } from './pipes/date.pipe';
+import { FindRoomQueryDTO } from 'src/dtos/roomDTO';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -64,52 +63,80 @@ export class RoomController {
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'minPrice', required: false })
   @ApiQuery({ name: 'maxPrice', required: false })
-  @ApiQuery({ name: 'isHot', required: false })
-  @ApiQuery({ name: 'isEmpty', required: false })
+  @ApiQuery({ name: 'isHot', required: false, type: Boolean })
+  @ApiQuery({ name: 'isEmpty', required: false, type: Boolean })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'ID_desc_cursor', required: false })
   @ApiQuery({ name: 'updateAt_desc_cursor', required: false })
   @ApiQuery({ name: 'price_asc_cursor', required: false })
   @ApiQuery({ name: 'order_type', required: false })
+  // additionInfo fields
+  @ApiQuery({ name: 'addition_moveInTime', required: false, type: Number })
+  @ApiQuery({ name: 'addition_roomType', required: false })
+  @ApiQuery({ name: 'addition_toilet', required: false })
+  @ApiQuery({ name: 'addition_position', required: false })
+  @ApiQuery({ name: 'addition_gateLock', required: false })
+  @ApiQuery({ name: 'addition_dryingYard', required: false })
+  @ApiQuery({ name: 'addition_activityHours', required: false })
+  @ApiQuery({
+    name: 'addition_numberOfVehicles',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({ name: 'addition_parkingSpace', required: false })
+  @ApiQuery({ name: 'addition_area', required: false })
+  @ApiQuery({ name: 'addition_numberOfPeoples', required: false, type: Number })
+  @ApiQuery({ name: 'addition_deposit', required: false, type: Number })
+  @ApiQuery({
+    name: 'addition_depositReplenishmentTime',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({ name: 'addition_kitchenShelf', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_bed', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_sharedOwner', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_airConditioner', required: false, type: Boolean })
+  @ApiQuery({
+    name: 'addition_sharedWashingMachine',
+    required: false,
+    type: Boolean,
+  })
+  @ApiQuery({ name: 'addition_window', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_tv', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_dishWasher', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_mattress', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_elevator', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_skylight', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_balcony', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_washingMachine', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_waterHeater', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_wardrobe', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_security', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_pet', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_electricBike', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_attic', required: false, type: Boolean })
+  @ApiQuery({ name: 'addition_fridge', required: false, type: Boolean })
   @Header('Cache-Control', 'max-age=2')
-  async findAll(
-    @Req() request: Request,
-    @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
-    @Query('provinceCode', new ParseIntPipe({ optional: true }))
-    provinceCode: number,
-    @Query('districtCode', new ParseIntPipe({ optional: true }))
-    districtCode: number,
-    @Query('wardCode', new ParseIntPipe({ optional: true })) wardCode: number,
-    @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
-    @Query('minPrice', new ParseIntPipe({ optional: true })) minPrice: number,
-    @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice: number,
-    @Query('isHot', new ParseBoolPipe({ optional: true })) isHot: boolean,
-    @Query('isEmpty', new ParseBoolPipe({ optional: true })) isEmpty: boolean,
-    @Query('name') name: string,
-    @Query('ID_desc_cursor', new ParseIntPipe({ optional: true }))
-    ID_desc_cursor: number,
-    @Query('updateAt_desc_cursor', ParseDatePipe) updateAt_desc_cursor: Date,
-    @Query('price_asc_cursor', new ParseIntPipe({ optional: true }))
-    price_asc_cursor: number,
-    @Query('order_type') order_type: string,
-  ) {
+  async findAll(@Req() request: Request, @Query() query: FindRoomQueryDTO) {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+    // Chuyển undefined/null về undefined để truyền đúng kiểu number | undefined
     return await this.roomService.findAll(
-      roomID,
-      provinceCode,
-      districtCode,
-      wardCode,
-      houseID,
-      minPrice,
-      maxPrice,
-      isHot,
-      isEmpty,
-      name,
-      ID_desc_cursor,
-      updateAt_desc_cursor,
-      price_asc_cursor,
-      order_type,
+      query.roomID,
+      query.provinceCode,
+      query.districtCode,
+      query.wardCode,
+      query.houseID,
+      query.minPrice,
+      query.maxPrice,
+      query.isHot,
+      query.isEmpty,
+      query.name,
+      query.ID_desc_cursor,
+      query.updateAt_desc_cursor,
+      query.price_asc_cursor,
+      query.order_type,
       requestorRoleIDs,
+      query,
     );
   }
   // @Get('for-saler')

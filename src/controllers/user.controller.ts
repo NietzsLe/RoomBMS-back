@@ -38,11 +38,11 @@ export class UserController {
   @ApiOkResponse({ type: [ReadUserDTO] })
   @ApiQuery({ name: 'username', required: false })
   @ApiQuery({ name: 'name', required: false })
-  @ApiQuery({ name: 'offsetID', required: false })
+  @ApiQuery({ name: 'username_cursor', required: false })
   @Header('Cache-Control', 'max-age=2')
   async findAll(
     @Req() request: Request,
-    @Query('offsetID') offsetID: string = '',
+    @Query('username_cursor') username_cursor: string = '',
     @Query('username') username: string = '',
     @Query('name') name: string = '',
   ) {
@@ -50,7 +50,7 @@ export class UserController {
     return await this.userService.findAll(
       username,
       name,
-      offsetID,
+      username_cursor,
       requestorRoleIDs,
     );
   }
