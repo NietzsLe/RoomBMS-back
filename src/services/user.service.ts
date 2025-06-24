@@ -40,17 +40,34 @@ export class UserService {
   async findAll(
     username: string,
     name: string,
-    offsetUsername: string,
+    username_cursor: string,
     requestorRoleIDs: string[],
   ) {
+    let where: FindOptionsWhere<User> = {};
+    if (username && username_cursor) {
+      // Lọc username đúng và lớn hơn username_cursor (AND)
+      if (username > username_cursor) {
+        where = {
+          username: username,
+          ...(name ? { name } : {}),
+        };
+      } else {
+        // Nếu username <= username_cursor thì không trả về gì
+        return [];
+      }
+    } else if (username) {
+      where = { username: username, ...(name ? { name } : {}) };
+    } else if (username_cursor) {
+      where = {
+        username: MoreThan(username_cursor),
+        ...(name ? { name } : {}),
+      };
+    } else {
+      where = name ? { name } : {};
+    }
     const [users, userBlacklist] = await Promise.all([
       this.userRepository.find({
-        where: {
-          ...(username
-            ? { username: username }
-            : { username: MoreThan(offsetUsername) }),
-          ...(name ? { name: name } : {}),
-        },
+        where,
         order: {
           username: 'ASC',
         },
@@ -128,7 +145,7 @@ export class UserService {
         username: 'ASC',
       },
       select: { username: true, name: true },
-      take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
+      take: +'1000',
     });
     //console.log('@Service: \n', users);
     return users.map((user) => UserMapper.EntityToReadDTO(user));
