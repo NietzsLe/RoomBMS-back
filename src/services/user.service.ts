@@ -118,7 +118,8 @@ export class UserService {
     for (const roleID of requestorRoleIDs) {
       if (
         roleID == process.env.SUPER_ADMIN_ROLEID ||
-        roleID == process.env.ADMIN_ROLEID
+        roleID == process.env.ADMIN_ROLEID ||
+        roleID == process.env.APPOINTMENT_ADMIN_ROLEID
       ) {
         isAdmin = true;
         break;
