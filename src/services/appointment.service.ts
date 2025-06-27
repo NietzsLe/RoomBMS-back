@@ -77,6 +77,7 @@ export class AppointmentService {
     toDate: Date,
     status: string,
     relatedUsername: string,
+    relatedTeamID: string,
     ID_desc_cursor: number,
     appointmentTime_desc_cursor: Date | null,
     appointmentTime_asc_cursor: Date | null,
@@ -198,85 +199,182 @@ export class AppointmentService {
       if (isAdmin) {
         where = [
           {
-            ...(relatedUsername
-              ? { takenOverUser: { username: relatedUsername } }
+            ...(relatedTeamID || relatedUsername
+              ? {
+                  takenOverUser:
+                    relatedTeamID && relatedUsername
+                      ? {
+                          team: { teamID: relatedTeamID },
+                          username: relatedUsername,
+                        }
+                      : relatedTeamID
+                        ? { team: { teamID: relatedTeamID } }
+                        : { username: relatedUsername },
+                }
               : {}),
             ...basicWhere,
             ...secondEqualOrder,
           },
           {
-            ...(relatedUsername
-              ? { takenOverUser: { username: relatedUsername } }
+            ...(relatedTeamID || relatedUsername
+              ? {
+                  takenOverUser:
+                    relatedTeamID && relatedUsername
+                      ? {
+                          team: { teamID: relatedTeamID },
+                          username: relatedUsername,
+                        }
+                      : relatedTeamID
+                        ? { team: { teamID: relatedTeamID } }
+                        : { username: relatedUsername },
+                }
               : {}),
             ...basicWhere,
             ...secondNotEqualOrder,
           },
           {
-            ...(relatedUsername
-              ? { madeUser: { username: relatedUsername } }
+            ...(relatedTeamID || relatedUsername
+              ? {
+                  madeUser:
+                    relatedTeamID && relatedUsername
+                      ? {
+                          team: { teamID: relatedTeamID },
+                          username: relatedUsername,
+                        }
+                      : relatedTeamID
+                        ? { team: { teamID: relatedTeamID } }
+                        : { username: relatedUsername },
+                }
               : {}),
             ...basicWhere,
             ...secondEqualOrder,
           },
           {
-            ...(relatedUsername
-              ? { madeUser: { username: relatedUsername } }
+            ...(relatedTeamID || relatedUsername
+              ? {
+                  madeUser:
+                    relatedTeamID && relatedUsername
+                      ? {
+                          team: { teamID: relatedTeamID },
+                          username: relatedUsername,
+                        }
+                      : relatedTeamID
+                        ? { team: { teamID: relatedTeamID } }
+                        : { username: relatedUsername },
+                }
               : {}),
             ...basicWhere,
             ...secondNotEqualOrder,
           },
         ];
       } else {
-        where = [
-          {
-            takenOverUser: [
-              { team: { leader: { username: requestorID } } },
-              { manager: { username: requestorID } },
-              { username: requestorID },
-            ],
-            ...(relatedUsername
-              ? { takenOverUser: { username: relatedUsername } }
-              : {}),
-            ...basicWhere,
-            ...secondEqualOrder,
-          },
-          {
-            takenOverUser: [
-              { team: { leader: { username: requestorID } } },
-              { manager: { username: requestorID } },
-              { username: requestorID },
-            ],
-            ...(relatedUsername
-              ? { takenOverUser: { username: relatedUsername } }
-              : {}),
-            ...basicWhere,
-            ...secondNotEqualOrder,
-          },
-          {
-            madeUser: [
-              { team: { leader: { username: requestorID } } },
-              { manager: { username: requestorID } },
-              { username: requestorID },
-            ],
-            ...(relatedUsername
-              ? { madeUser: { username: relatedUsername } }
-              : {}),
-            ...basicWhere,
-            ...secondEqualOrder,
-          },
-          {
-            madeUser: [
-              { team: { leader: { username: requestorID } } },
-              { manager: { username: requestorID } },
-              { username: requestorID },
-            ],
-            ...(relatedUsername
-              ? { madeUser: { username: relatedUsername } }
-              : {}),
-            ...basicWhere,
-            ...secondNotEqualOrder,
-          },
-        ];
+        if (relatedTeamID || relatedUsername) {
+          where = [
+            {
+              takenOverUser:
+                relatedTeamID && relatedUsername
+                  ? {
+                      team: { teamID: relatedTeamID },
+                      username: relatedUsername,
+                    }
+                  : relatedTeamID
+                    ? { team: { teamID: relatedTeamID } }
+                    : { username: relatedUsername },
+              ...basicWhere,
+              ...secondEqualOrder,
+            },
+            {
+              takenOverUser:
+                relatedTeamID && relatedUsername
+                  ? {
+                      team: { teamID: relatedTeamID },
+                      username: relatedUsername,
+                    }
+                  : relatedTeamID
+                    ? { team: { teamID: relatedTeamID } }
+                    : { username: relatedUsername },
+              ...basicWhere,
+              ...secondNotEqualOrder,
+            },
+            {
+              madeUser:
+                relatedTeamID && relatedUsername
+                  ? {
+                      team: { teamID: relatedTeamID },
+                      username: relatedUsername,
+                    }
+                  : relatedTeamID
+                    ? { team: { teamID: relatedTeamID } }
+                    : { username: relatedUsername },
+              ...basicWhere,
+              ...secondEqualOrder,
+            },
+            {
+              madeUser:
+                relatedTeamID && relatedUsername
+                  ? {
+                      team: { teamID: relatedTeamID },
+                      username: relatedUsername,
+                    }
+                  : relatedTeamID
+                    ? { team: { teamID: relatedTeamID } }
+                    : { username: relatedUsername },
+              ...basicWhere,
+              ...secondNotEqualOrder,
+            },
+          ];
+        } else {
+          where = [
+            {
+              takenOverUser: [
+                { team: { leader: { username: requestorID } } },
+                { manager: { username: requestorID } },
+                { username: requestorID },
+              ],
+              ...basicWhere,
+              ...secondEqualOrder,
+            },
+            {
+              takenOverUser: [
+                { team: { leader: { username: requestorID } } },
+                { manager: { username: requestorID } },
+                { username: requestorID },
+              ],
+              ...basicWhere,
+              ...secondNotEqualOrder,
+            },
+            {
+              madeUser: [
+                { team: { leader: { username: requestorID } } },
+                { manager: { username: requestorID } },
+                { username: requestorID },
+              ],
+              ...basicWhere,
+              ...secondEqualOrder,
+            },
+            {
+              madeUser: [
+                { team: { leader: { username: requestorID } } },
+                { manager: { username: requestorID } },
+                { username: requestorID },
+              ],
+              ...basicWhere,
+              ...secondNotEqualOrder,
+            },
+          ];
+        }
+      }
+    }
+
+    // Thêm filter theo relatedTeamID nếu có
+    if (relatedTeamID) {
+      if (isAdmin) {
+        basicWhere['madeUser'] = { team: { teamID: relatedTeamID } };
+        basicWhere['takenOverUser'] = { team: { teamID: relatedTeamID } };
+      } else {
+        // Nếu không phải admin, chỉ lọc theo team của madeUser hoặc takenOverUser liên quan đến requestor
+        basicWhere['madeUser'] = [{ team: { teamID: relatedTeamID } }];
+        basicWhere['takenOverUser'] = [{ team: { teamID: relatedTeamID } }];
       }
     }
 
