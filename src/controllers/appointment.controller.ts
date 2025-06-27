@@ -36,6 +36,7 @@ import { ParseDatePipe } from './pipes/date.pipe';
 @ApiCookieAuth('JWTAuth')
 export class AppointmentController {
   constructor(private appointmentService: AppointmentService) {}
+  @ApiQuery({ name: 'relatedTeamID', required: false })
   @Get()
   @ApiOkResponse({ type: [ReadAppointmentDTO] })
   @ApiQuery({ name: 'appointmentID', required: false })
@@ -62,6 +63,7 @@ export class AppointmentController {
     @Query('toDate', ParseDatePipe) toDate: Date,
     @Query('status') status: string,
     @Query('relatedUsername') relatedUsername: string,
+    @Query('relatedTeamID') relatedTeamID: string,
     @Query('ID_desc_cursor', new ParseIntPipe({ optional: true }))
     ID_desc_cursor: number,
     @Query('appointmentTime_desc_cursor', ParseDatePipe)
@@ -82,6 +84,7 @@ export class AppointmentController {
       toDate,
       status,
       relatedUsername,
+      relatedTeamID,
       ID_desc_cursor,
       appointmentTime_desc_cursor,
       appointmentTime_asc_cursor,
