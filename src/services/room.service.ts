@@ -77,12 +77,12 @@ export class RoomService {
     if (name) query.andWhere('room.name = :name', { name });
     if (ID_desc_cursor)
       query.andWhere('room.roomID < :ID_desc_cursor', { ID_desc_cursor });
-    if (updateAt_desc_cursor && roomID !== undefined) {
+    if (updateAt_desc_cursor && ID_desc_cursor) {
       query.andWhere(
         '(room.updateAt < :updateAt_desc_cursor OR (room.updateAt = :updateAt_desc_cursor AND room.roomID < :roomID_cursor))',
         {
           updateAt_desc_cursor,
-          roomID_cursor: roomID,
+          roomID_cursor: ID_desc_cursor,
         },
       );
     } else if (updateAt_desc_cursor) {
@@ -90,12 +90,12 @@ export class RoomService {
         updateAt_desc_cursor,
       });
     }
-    if (price_asc_cursor && roomID !== undefined) {
+    if (price_asc_cursor && ID_desc_cursor !== undefined) {
       query.andWhere(
         '(room.price > :price_asc_cursor OR (room.price = :price_asc_cursor AND room.roomID > :roomID_cursor))',
         {
           price_asc_cursor,
-          roomID_cursor: roomID,
+          roomID_cursor: ID_desc_cursor,
         },
       );
     } else if (price_asc_cursor) {
