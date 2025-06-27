@@ -255,3 +255,39 @@ export class RoomFilterDTO {
   hot?: boolean;
   sortBy?: string; //min-price, min-duration
 }
+
+export class FindRoomQueryDTO {
+  addition_moveInTime?: number;
+  addition_roomType?: string;
+  addition_toilet?: string;
+  addition_position?: string;
+  addition_gateLock?: string;
+  addition_dryingYard?: string;
+  addition_activityHours?: string;
+  addition_numberOfVehicles?: number;
+  addition_parkingSpace?: string;
+  addition_area?: string;
+  addition_numberOfPeoples?: number;
+  addition_deposit?: number;
+  addition_depositReplenishmentTime?: number;
+  addition_kitchenShelf?: boolean;
+  addition_bed?: boolean;
+  addition_sharedOwner?: boolean;
+  addition_airConditioner?: boolean;
+  addition_sharedWashingMachine?: boolean;
+  addition_window?: boolean;
+  addition_tv?: boolean;
+  addition_dishWasher?: boolean;
+  addition_mattress?: boolean;
+  addition_elevator?: boolean;
+  addition_skylight?: boolean;
+  addition_balcony?: boolean;
+  addition_washingMachine?: boolean;
+  addition_waterHeater?: boolean;
+  addition_wardrobe?: boolean;
+  addition_security?: boolean;
+  addition_pet?: boolean;
+  addition_electricBike?: boolean;
+  addition_attic?: boolean;
+  addition_fridge?: boolean;
+}
