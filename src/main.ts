@@ -6,15 +6,15 @@ import { join } from 'path';
 import rateLimit from 'express-rate-limit';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NextFunction, Request, Response } from 'express';
-// import * as fs from 'fs';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  // const httpsOptions = {
-  //   key: fs.readFileSync('C:/Users/thanh/Downloads/RoomBMS/cert.key'),
-  //   cert: fs.readFileSync('C:/Users/thanh/Downloads/RoomBMS/cert.crt'),
-  // };
+  const httpsOptions = {
+    key: fs.readFileSync('C:/Users/thanh/Downloads/RoomBMS/cert.key'),
+    cert: fs.readFileSync('C:/Users/thanh/Downloads/RoomBMS/cert.crt'),
+  };
   const app = await NestFactory.create<NestApplication>(AppModule, {
-    // httpsOptions,
+    httpsOptions,
   });
 
   // const myService = app.get(Appointment); // 👈 Lấy injectable từ DI container
