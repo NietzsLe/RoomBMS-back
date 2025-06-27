@@ -45,7 +45,6 @@ import {
   RoomIDsCheckPipe,
 } from './pipes/notDuplicateValue.pipe';
 import { FileTypeValidationPipe } from './pipes/roomImage.pipe';
-import { FindRoomQueryDTO } from 'src/dtos/roomDTO';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -222,22 +221,6 @@ export class RoomController {
       order_type,
       requestorRoleIDs,
       {
-        roomID,
-        provinceCode,
-        districtCode,
-        wardCode,
-        houseID,
-        minPrice,
-        maxPrice,
-        isHot,
-        isEmpty,
-        name,
-        ID_desc_cursor,
-        updateAt_desc_cursor: updateAt_desc_cursor
-          ? new Date(updateAt_desc_cursor)
-          : undefined,
-        price_asc_cursor,
-        order_type,
         addition_moveInTime,
         addition_roomType,
         addition_toilet,
