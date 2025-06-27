@@ -5,6 +5,7 @@ import {
   Get,
   Header,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -117,26 +118,160 @@ export class RoomController {
   @ApiQuery({ name: 'addition_attic', required: false, type: Boolean })
   @ApiQuery({ name: 'addition_fridge', required: false, type: Boolean })
   @Header('Cache-Control', 'max-age=2')
-  async findAll(@Req() request: Request, @Query() query: FindRoomQueryDTO) {
+  async findAll(
+    @Req() request: Request,
+    @Query('roomID', new ParseIntPipe({ optional: true })) roomID?: number,
+    @Query('provinceCode', new ParseIntPipe({ optional: true }))
+    provinceCode?: number,
+    @Query('districtCode', new ParseIntPipe({ optional: true }))
+    districtCode?: number,
+    @Query('wardCode', new ParseIntPipe({ optional: true })) wardCode?: number,
+    @Query('houseID', new ParseIntPipe({ optional: true })) houseID?: number,
+    @Query('minPrice', new ParseIntPipe({ optional: true })) minPrice?: number,
+    @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice?: number,
+    @Query('isHot', new ParseBoolPipe({ optional: true })) isHot?: boolean,
+    @Query('isEmpty', new ParseBoolPipe({ optional: true })) isEmpty?: boolean,
+    @Query('name') name?: string,
+    @Query('ID_desc_cursor', new ParseIntPipe({ optional: true }))
+    ID_desc_cursor?: number,
+    @Query('updateAt_desc_cursor') updateAt_desc_cursor?: string,
+    @Query('price_asc_cursor', new ParseIntPipe({ optional: true }))
+    price_asc_cursor?: number,
+    @Query('order_type') order_type?: string,
+    // additionInfo fields
+    @Query('addition_moveInTime', new ParseIntPipe({ optional: true }))
+    addition_moveInTime?: number,
+    @Query('addition_roomType') addition_roomType?: string,
+    @Query('addition_toilet') addition_toilet?: string,
+    @Query('addition_position') addition_position?: string,
+    @Query('addition_gateLock') addition_gateLock?: string,
+    @Query('addition_dryingYard') addition_dryingYard?: string,
+    @Query('addition_activityHours') addition_activityHours?: string,
+    @Query('addition_numberOfVehicles', new ParseIntPipe({ optional: true }))
+    addition_numberOfVehicles?: number,
+    @Query('addition_parkingSpace') addition_parkingSpace?: string,
+    @Query('addition_area') addition_area?: string,
+    @Query('addition_numberOfPeoples', new ParseIntPipe({ optional: true }))
+    addition_numberOfPeoples?: number,
+    @Query('addition_deposit', new ParseIntPipe({ optional: true }))
+    addition_deposit?: number,
+    @Query(
+      'addition_depositReplenishmentTime',
+      new ParseIntPipe({ optional: true }),
+    )
+    addition_depositReplenishmentTime?: number,
+    @Query('addition_kitchenShelf', new ParseBoolPipe({ optional: true }))
+    addition_kitchenShelf?: boolean,
+    @Query('addition_bed', new ParseBoolPipe({ optional: true }))
+    addition_bed?: boolean,
+    @Query('addition_sharedOwner', new ParseBoolPipe({ optional: true }))
+    addition_sharedOwner?: boolean,
+    @Query('addition_airConditioner', new ParseBoolPipe({ optional: true }))
+    addition_airConditioner?: boolean,
+    @Query(
+      'addition_sharedWashingMachine',
+      new ParseBoolPipe({ optional: true }),
+    )
+    addition_sharedWashingMachine?: boolean,
+    @Query('addition_window', new ParseBoolPipe({ optional: true }))
+    addition_window?: boolean,
+    @Query('addition_tv', new ParseBoolPipe({ optional: true }))
+    addition_tv?: boolean,
+    @Query('addition_dishWasher', new ParseBoolPipe({ optional: true }))
+    addition_dishWasher?: boolean,
+    @Query('addition_mattress', new ParseBoolPipe({ optional: true }))
+    addition_mattress?: boolean,
+    @Query('addition_elevator', new ParseBoolPipe({ optional: true }))
+    addition_elevator?: boolean,
+    @Query('addition_skylight', new ParseBoolPipe({ optional: true }))
+    addition_skylight?: boolean,
+    @Query('addition_balcony', new ParseBoolPipe({ optional: true }))
+    addition_balcony?: boolean,
+    @Query('addition_washingMachine', new ParseBoolPipe({ optional: true }))
+    addition_washingMachine?: boolean,
+    @Query('addition_waterHeater', new ParseBoolPipe({ optional: true }))
+    addition_waterHeater?: boolean,
+    @Query('addition_wardrobe', new ParseBoolPipe({ optional: true }))
+    addition_wardrobe?: boolean,
+    @Query('addition_security', new ParseBoolPipe({ optional: true }))
+    addition_security?: boolean,
+    @Query('addition_pet', new ParseBoolPipe({ optional: true }))
+    addition_pet?: boolean,
+    @Query('addition_electricBike', new ParseBoolPipe({ optional: true }))
+    addition_electricBike?: boolean,
+    @Query('addition_attic', new ParseBoolPipe({ optional: true }))
+    addition_attic?: boolean,
+    @Query('addition_fridge', new ParseBoolPipe({ optional: true }))
+    addition_fridge?: boolean,
+  ) {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    // Chuyển undefined/null về undefined để truyền đúng kiểu number | undefined
     return await this.roomService.findAll(
-      query.roomID,
-      query.provinceCode,
-      query.districtCode,
-      query.wardCode,
-      query.houseID,
-      query.minPrice,
-      query.maxPrice,
-      query.isHot,
-      query.isEmpty,
-      query.name,
-      query.ID_desc_cursor,
-      query.updateAt_desc_cursor,
-      query.price_asc_cursor,
-      query.order_type,
+      roomID,
+      provinceCode,
+      districtCode,
+      wardCode,
+      houseID,
+      minPrice,
+      maxPrice,
+      isHot,
+      isEmpty,
+      name,
+      ID_desc_cursor,
+      updateAt_desc_cursor ? new Date(updateAt_desc_cursor) : undefined,
+      price_asc_cursor,
+      order_type,
       requestorRoleIDs,
-      query,
+      {
+        roomID,
+        provinceCode,
+        districtCode,
+        wardCode,
+        houseID,
+        minPrice,
+        maxPrice,
+        isHot,
+        isEmpty,
+        name,
+        ID_desc_cursor,
+        updateAt_desc_cursor: updateAt_desc_cursor
+          ? new Date(updateAt_desc_cursor)
+          : undefined,
+        price_asc_cursor,
+        order_type,
+        addition_moveInTime,
+        addition_roomType,
+        addition_toilet,
+        addition_position,
+        addition_gateLock,
+        addition_dryingYard,
+        addition_activityHours,
+        addition_numberOfVehicles,
+        addition_parkingSpace,
+        addition_area,
+        addition_numberOfPeoples,
+        addition_deposit,
+        addition_depositReplenishmentTime,
+        addition_kitchenShelf,
+        addition_bed,
+        addition_sharedOwner,
+        addition_airConditioner,
+        addition_sharedWashingMachine,
+        addition_window,
+        addition_tv,
+        addition_dishWasher,
+        addition_mattress,
+        addition_elevator,
+        addition_skylight,
+        addition_balcony,
+        addition_washingMachine,
+        addition_waterHeater,
+        addition_wardrobe,
+        addition_security,
+        addition_pet,
+        addition_electricBike,
+        addition_attic,
+        addition_fridge,
+      },
     );
   }
   // @Get('for-saler')
