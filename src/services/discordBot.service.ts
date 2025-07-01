@@ -176,10 +176,14 @@ export class DiscordService {
     private chatGroupRepository: Repository<ChatGroup>,
   ) {}
 
-  async sendMessage(channelId: string, embed: EmbedBuilder): Promise<void> {
+  async sendMessage(
+    channelId: string,
+    embed: EmbedBuilder,
+  ): Promise<{ messageId: string | null }> {
     const channel = await this.client.channels.fetch(channelId);
     try {
-      await (channel as TextChannel).send({ embeds: [embed] });
+      const message = await (channel as TextChannel).send({ embeds: [embed] });
+      return { messageId: message.id };
     } catch (error) {
       console.log(error);
       throw new HttpException(
@@ -294,16 +298,26 @@ export class DiscordService {
     }
 
     if (Array.isArray(chatGroups) && embed) {
+      let sentMessages: { channelId: string; messageId: string | null }[] = [];
       try {
-        await Promise.all(
-          chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+        sentMessages = await Promise.all(
+          chatGroups.map(async (item) => {
+            const result = await this.sendMessage(item.chatGroupID, embed);
+            return { channelId: item.chatGroupID, messageId: result.messageId };
+          }),
         );
       } catch (error) {
         console.log(error);
         try {
           await new Promise((resolve) => setTimeout(resolve, 2000));
-          await Promise.all(
-            chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+          sentMessages = await Promise.all(
+            chatGroups.map(async (item) => {
+              const result = await this.sendMessage(item.chatGroupID, embed);
+              return {
+                channelId: item.chatGroupID,
+                messageId: result.messageId,
+              };
+            }),
           );
         } catch (error) {
           console.log(error);
@@ -311,6 +325,32 @@ export class DiscordService {
             'Error in send message',
             HttpStatus.FAILED_DEPENDENCY,
           );
+        }
+      }
+      // Nếu trễ thì forward tin nhắn qua Warning
+      if (isLate && sentMessages.length > 0) {
+        const warningGroups = await this.chatGroupRepository.find({
+          where: {
+            chatGroupName: 'Warning',
+          },
+        });
+        for (const msg of sentMessages) {
+          for (const warningGroup of warningGroups) {
+            try {
+              const channel = await this.client.channels.fetch(
+                warningGroup.chatGroupID,
+              );
+              if (channel && msg.messageId) {
+                // Forward bằng cách gửi link đến tin nhắn gốc
+                const messageUrl = `https://discord.com/channels/${(channel as TextChannel).guildId}/${msg.channelId}/${msg.messageId}`;
+                await (channel as TextChannel).send({
+                  content: `Forwarded: ${messageUrl}`,
+                });
+              }
+            } catch (error) {
+              console.log(error);
+            }
+          }
         }
       }
     }
