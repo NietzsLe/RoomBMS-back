@@ -31,6 +31,10 @@ import {
   MaxResponseUserDTO,
 } from 'src/dtos/userDTO';
 import { AutocompleteRoleDTO, MaxResponseRoleDTO } from 'src/dtos/roleDTO';
+import {
+  AutocompleteStreetDTO,
+  MaxResponseStreetDTO,
+} from 'src/dtos/streetDTO';
 import { RoomService } from 'src/services/room.service';
 import { RoleService } from 'src/services/role.service';
 import { UserService } from 'src/services/user.service';
@@ -45,6 +49,7 @@ import {
 } from 'src/dtos/administrativeUnitDTO';
 import { NotEmptyCheckPipe } from './pipes/notEmptyCheck.pipe';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { StreetService } from 'src/services/street.service';
 
 @Controller('support-service')
 export class SupportServiceController {
@@ -57,6 +62,7 @@ export class SupportServiceController {
     private depositAgreementService: DepositAgreementService,
     private tenantService: TenantService,
     private administrativeUnitService: AdministrativeUnitService,
+    private streetService: StreetService,
   ) {}
   @Get('autocomplete/houses')
   @ApiOkResponse({ type: [AutocompleteHouseDTO] })
@@ -142,11 +148,25 @@ export class SupportServiceController {
   @Get('autocomplete/teams')
   @ApiOkResponse({ type: [AutocompleteTeamDTO] })
   @ApiQuery({ name: 'offsetID', required: false })
+  @ApiQuery({ name: 'type', required: false })
   @CacheTTL(10000)
   @Header('Cache-Control', 'max-age=10')
-  async getTeams(@Query('offsetID', NotEmptyCheckPipe) offsetID: string = '') {
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
+  async getTeams(
+    @Req() request: Request,
+    @Query('offsetID', NotEmptyCheckPipe) offsetID: string = '',
+    @Query('type') type: string,
+  ) {
+    const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
+    const requestorID = request['resourceRequestUserID'] as string;
     console.log('@Controller: autocomplete');
-    return await this.userService.getTeamAutocomplete(offsetID);
+    return await this.userService.getTeamAutocomplete(
+      offsetID,
+      requestorID,
+      requestorRoleIDs,
+      type,
+    );
   }
   @Get('autocomplete/roles')
   @ApiOkResponse({ type: [AutocompleteRoleDTO] })
@@ -156,6 +176,17 @@ export class SupportServiceController {
   async getRoles(@Query('offsetID', NotEmptyCheckPipe) offsetID: string = '') {
     console.log('@Controller: autocomplete');
     return await this.roleService.getAutocomplete(offsetID);
+  }
+
+  // --- STREET AUTOCOMPLETE ---
+  @Get('autocomplete/streets')
+  @ApiOkResponse({ type: [AutocompleteStreetDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @CacheTTL(10000)
+  @Header('Cache-Control', 'max-age=10')
+  async getStreets(@Query('offsetID', ParseIntPipe) offsetID: number) {
+    // Follows the same pattern as getRooms
+    return await this.streetService.getAutocomplete(offsetID);
   }
   @Get('autocomplete/districts')
   @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
@@ -202,6 +233,19 @@ export class SupportServiceController {
   ) {
     console.log('@Controller: autocomplete');
     return await this.roomService.getMaxRoom(houseID);
+  }
+
+  // --- STREET MAX ---
+  @Get('max/streets')
+  @ApiOkResponse({ type: MaxResponseStreetDTO })
+  @ApiQuery({ name: 'streetID', required: false })
+  @CacheTTL(5000)
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxStreet(
+    @Query('streetID', new ParseIntPipe({ optional: true })) streetID: number,
+  ) {
+    // Follows the same pattern as getMaxRoom
+    return await this.streetService.getMaxStreetID(streetID);
   }
   @Get('max/roles')
   @ApiOkResponse({ type: MaxResponseRoleDTO })

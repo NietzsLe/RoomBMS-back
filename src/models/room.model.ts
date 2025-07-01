@@ -14,6 +14,7 @@ import { DepositAgreement } from './depositAgreement.model'; // Đảm bảo đ�
 
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { House } from './house.model';
+import { Street } from './street.model';
 import { Appointment } from './appointment.model';
 import { Image } from './image.model';
 import { User } from './user.model';
@@ -215,4 +216,12 @@ export class Room {
     { name: 'wardCode', referencedColumnName: 'wardCode' },
   ])
   administrativeUnit: AdministrativeUnit; // Mối quan hệ với AdministrativeUnit
+
+  @ManyToOne(() => Street, {
+    nullable: true,
+    onDelete: 'SET NULL', // Nếu xóa street thì room.street sẽ thành null
+  })
+  @JoinColumn({ name: 'streetID' })
+  @Expose({ groups: ['NOT-TO-DTO'] })
+  street: Street | null; // Mối quan hệ với Street
 }

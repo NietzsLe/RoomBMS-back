@@ -13,6 +13,7 @@ import {
 } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { AdministrativeUnit } from 'src/models/administrativeUnit.model';
+import { ReadStreetDTO } from './streetDTO';
 
 export class BaseUnitPrice {
   @IsOptional()
@@ -216,6 +217,9 @@ export class ReadHouseDTO {
   administrativeUnitName: string[];
 
   @ApiProperty({})
+  street?: ReadStreetDTO;
+
+  @ApiProperty({})
   managerID: string;
 }
 
@@ -293,6 +297,11 @@ export class CreateHouseDTO {
     { toPlainOnly: true },
   )
   administrativeUnitID: number[]; // Mối quan hệ với administrativeUnit
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  streetID?: number;
 }
 
 export class UpdateHouseDTO {
@@ -378,6 +387,11 @@ export class UpdateHouseDTO {
     { toPlainOnly: true },
   )
   administrativeUnitID?: number[]; // Mối quan hệ với administrativeUnit
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({ required: false })
+  streetID?: number;
   @IsString()
   @IsOptional()
   @ApiProperty({ required: false })

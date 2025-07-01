@@ -152,19 +152,43 @@ export class UserService {
     return users.map((user) => UserMapper.EntityToReadDTO(user));
   }
 
-  async getTeamAutocomplete(offsetID: string) {
-    console.log('@Service: autocomplete');
+  async getTeamAutocomplete(
+    offsetID: string,
+    requestorID: string,
+    requestorRoleIDs: string[],
+    type: string = 'related', // for related, all
+  ) {
+    let isAdmin = false;
+    for (const roleID of requestorRoleIDs) {
+      if (
+        roleID == process.env.SUPER_ADMIN_ROLEID ||
+        roleID == process.env.ADMIN_ROLEID ||
+        roleID == process.env.APPOINTMENT_ADMIN_ROLEID
+      ) {
+        isAdmin = true;
+        break;
+      }
+    }
+    let where: FindOptionsWhere<Team>[] | FindOptionsWhere<Team> = [
+      { teamID: MoreThan(offsetID) },
+    ];
+    if (!isAdmin && type !== 'all') {
+      // Only team leader can get their own team
+      where = [
+        { leader: { username: requestorID }, teamID: MoreThan(offsetID) },
+      ];
+    }
+    if (type === 'all') {
+      where = [{ teamID: MoreThan(offsetID) }];
+    }
     const teams = await this.teamRepository.find({
-      where: {
-        teamID: MoreThan(offsetID),
-      },
+      where,
       order: {
         teamID: 'ASC',
       },
       select: { teamID: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    console.log('@Service: \n', teams);
     return teams.map((team) => {
       const dto = new AutocompleteTeamDTO();
       dto.teamID = team.teamID;

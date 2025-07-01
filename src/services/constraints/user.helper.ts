@@ -7,6 +7,7 @@ import { House } from 'src/models/house.model';
 import { Tenant } from 'src/models/tenant.model';
 import { DepositAgreement } from 'src/models/depositAgreement.model';
 import { Appointment } from 'src/models/appointment.model';
+import { Street } from 'src/models/street.model';
 import { UpdateAppointmentDTO } from 'src/dtos/appointmentDTO';
 import { UpdateHouseDTO } from 'src/dtos/houseDTO';
 import { UpdateRoomDTO } from 'src/dtos/roomDTO';
@@ -14,6 +15,7 @@ import { UpdateDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
 import { UpdateTenantDTO } from 'src/dtos/tenantDTO';
 import { UpdateUserDTO } from 'src/dtos/userDTO';
 import { Team } from 'src/models/team.model';
+import { UpdateStreetDTO } from 'src/dtos/streetDTO';
 
 @Injectable()
 export class UserConstraint {
@@ -67,7 +69,7 @@ export class UserConstraint {
   RequestorManageNonUserResource(
     requestorRoleIDs: string[],
     requestorID: string,
-    resource: Room | House | Tenant | DepositAgreement | Appointment,
+    resource: Room | House | Tenant | DepositAgreement | Appointment | Street,
   ) {
     for (const role of requestorRoleIDs) {
       if (
@@ -76,7 +78,7 @@ export class UserConstraint {
       )
         return 1;
     }
-    if (resource.manager)
+    if ('manager' in resource && resource.manager)
       if (resource.manager.username != requestorID)
         throw new HttpException(
           'You are not the manager of this resource',
@@ -209,7 +211,8 @@ export class UserConstraint {
       | UpdateHouseDTO
       | UpdateRoomDTO
       | UpdateDepositAgreementDTO
-      | UpdateTenantDTO,
+      | UpdateTenantDTO
+      | UpdateStreetDTO, // allow UpdateStreetDTO, but should be type-safe in future
   ) {
     //console.log('@Constraint: \n', IsAdmin);
     if (dto.managerID)
@@ -280,11 +283,20 @@ export class UserConstraint {
   }
 }
 
+// Extend UserProcess for Street
+
 @Injectable()
 export class UserProcess {
   CreatorIsDefaultManager(
     requestorID: string,
-    value: Room | User | House | Tenant | DepositAgreement | Appointment,
+    value:
+      | Room
+      | User
+      | House
+      | Tenant
+      | DepositAgreement
+      | Appointment
+      | Street,
   ) {
     value.manager = new User();
     value.manager.username = requestorID;

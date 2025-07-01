@@ -24,6 +24,7 @@ import { AdministrativeUnitConstraint } from './constraints/administrativeUnit.h
 import { RoomService } from './room.service';
 import { AuthService, PermTypeEnum } from './auth.service';
 import { removeByBlacklist } from './helper';
+import { StreetConstraint } from './constraints/street.helper';
 
 @Injectable()
 export class HouseService {
@@ -33,6 +34,7 @@ export class HouseService {
     private constraint: HouseConstraint,
     private userConstraint: UserConstraint,
     private administrativeUnitConstraint: AdministrativeUnitConstraint,
+    private streetConstraint: StreetConstraint,
     private userProcess: UserProcess,
     private roomService: RoomService,
     private authService: AuthService,
@@ -110,7 +112,7 @@ export class HouseService {
           ...(order_type == 'updateAt-desc' ? { updateAt: 'DESC' } : {}),
           houseID: 'DESC',
         },
-        relations: { manager: true, administrativeUnit: true },
+        relations: { manager: true, administrativeUnit: true, street: true },
         take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
       }),
       this.authService.getBlacklist(
@@ -175,12 +177,14 @@ export class HouseService {
   async create(requestorID: string, createHouseDTOs: CreateHouseDTO) {
     const house = HouseMapper.DTOToEntity(createHouseDTOs);
     //console.log('@Service: \n', house);
-    const result = await Promise.all([
+    const [administrativeUnit, street] = await Promise.all([
       this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
         createHouseDTOs.administrativeUnitID,
       ),
+      this.streetConstraint.StreetIsAlive(createHouseDTOs.streetID),
     ]);
-    if (result[0]) house.administrativeUnit = result[0];
+    if (administrativeUnit) house.administrativeUnit = administrativeUnit;
+    if (street) house.street = street;
     this.userProcess.CreatorIsDefaultManager(requestorID, house);
 
     const insertResult = await this.houseRepository.insert(house);
@@ -197,24 +201,28 @@ export class HouseService {
     const house = HouseMapper.DTOToEntity(updateHouseDTO);
 
     console.log('@Service: \n', updateHouseDTO);
-    const result = await Promise.all([
-      this.constraint.HouseIsAlive(updateHouseDTO.houseID),
-      this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
-        updateHouseDTO.administrativeUnitID,
-      ),
-      this.userConstraint.ManagerIsAlive(updateHouseDTO.managerID),
-    ]);
+    const [houseAlive, administrativeUnit, manager, street] = await Promise.all(
+      [
+        this.constraint.HouseIsAlive(updateHouseDTO.houseID),
+        this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
+          updateHouseDTO.administrativeUnitID,
+        ),
+        this.userConstraint.ManagerIsAlive(updateHouseDTO.managerID),
+        this.streetConstraint.StreetIsAlive(updateHouseDTO.streetID),
+      ],
+    );
 
     let IsAdmin = 0;
-    if (result[0])
+    if (houseAlive)
       IsAdmin = this.userConstraint.RequestorManageNonUserResource(
         requestorRoleIDs,
         requestorID,
-        result[0],
+        houseAlive,
       );
     this.userConstraint.JustAdminCanUpdateManagerField(IsAdmin, updateHouseDTO);
-    if (result[1]) house.administrativeUnit = result[1];
-    if (result[2]) house.manager = result[2];
+    if (administrativeUnit) house.administrativeUnit = administrativeUnit;
+    if (manager) house.manager = manager;
+    if (street) house.street = street;
     await this.houseRepository.update(house.houseID, house);
   }
 

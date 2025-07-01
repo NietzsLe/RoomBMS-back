@@ -51,6 +51,9 @@ export class ReadRoomDTO {
 
   @ApiProperty({})
   managerID: string;
+
+  @ApiProperty({ required: false, type: Number })
+  streetID?: number;
 }
 export class CreateRoomDTO {
   @IsString() @ApiProperty({}) name: string; // Tên phòng

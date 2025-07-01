@@ -22,6 +22,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { RoomImageService } from './services/roomImage.service';
 import { Image } from './models/image.model';
 import { Room } from './models/room.model';
+import { Street } from './models/street.model';
 import { RoomController } from './controllers/room.controller';
 import {
   UserConstraint,
@@ -72,6 +73,7 @@ import {
   AdministrativeUnitProcess,
 } from './services/constraints/administrativeUnit.helper';
 import { RoomService } from './services/room.service';
+import { StreetService } from './services/street.service';
 import { AppointmentService } from './services/appointment.service';
 import { DepositAgreementService } from './services/depositAgreement.service';
 import { HouseService } from './services/house.service';
@@ -81,6 +83,7 @@ import { BlackListFilterInterceptors } from './interceptors/blackListFilter.inte
 import { AppointmentController } from './controllers/appointment.controller';
 import { DepositAgreementController } from './controllers/depositAgreement.controller';
 import { HouseController } from './controllers/house.controller';
+import { StreetController } from './controllers/street.controller';
 import { TenantController } from './controllers/tenant.controller';
 import { AdministrativeUnitController } from './controllers/administrativeUnit.controller';
 import { ResourceManageServive } from './services/resourceManage.service';
@@ -92,6 +95,10 @@ import { Team } from './models/team.model';
 import { NecordModule } from 'necord';
 import { IntentsBitField } from 'discord.js';
 import { DiscordService } from './services/discordBot.service';
+import {
+  StreetConstraint,
+  StreetProcess,
+} from './services/constraints/street.helper';
 
 @Module({
   imports: [
@@ -125,6 +132,7 @@ import { DiscordService } from './services/discordBot.service';
       ProvinceUnit,
       ChatGroup,
       Team,
+      Street,
     ]),
     ThrottlerModule.forRoot({
       throttlers: [
@@ -160,12 +168,14 @@ import { DiscordService } from './services/discordBot.service';
     AppointmentController,
     DepositAgreementController,
     HouseController,
+    StreetController,
     TenantController,
     AdministrativeUnitController,
     ResourceManageController,
     SupportServiceController,
   ],
   providers: [
+    StreetService,
     UserService,
     AuthService,
     RoleService,
@@ -196,6 +206,8 @@ import { DiscordService } from './services/discordBot.service';
     HouseProcess,
     TenantConstraint,
     TenantProcess,
+    StreetConstraint,
+    StreetProcess,
     AdministrativeUnitConstraint,
     AdministrativeUnitProcess,
     ResourceManageServive,

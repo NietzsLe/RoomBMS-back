@@ -28,7 +28,7 @@ export class HouseMapper {
     const plainObj = classToPlain(house, {
       groups: ['TO-ROOM-DTO'],
     });
-    // console.log('@Mapper: \n', plainObj);
+    console.log('@Mapper: \n', house);
     return plainToClass(ReadHouseDTO, plainObj);
   }
 }
