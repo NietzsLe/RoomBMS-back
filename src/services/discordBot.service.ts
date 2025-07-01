@@ -79,13 +79,21 @@ function genReturnDepositAgreementResultNotify(
   mode: string,
 ) {
   let text: string;
+  let warning = '';
+  if (appointment.appointmentTime) {
+    const now = dayjs();
+    const appointTime = dayjs(appointment.appointmentTime);
+    if (now.diff(appointTime, 'hour', true) > 2) {
+      warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
+    }
+  }
   const embed = new EmbedBuilder()
     .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
     .setColor('#00b0f4')
 
     .setTimestamp();
   if (mode == 'deposit') {
-    text = `- Kết quả: **KHÁCH CỌC GIỮ CHỖ**
+    text = `- Kết quả: **KHÁCH CỌC GIỮ CHỖ**${warning ? '\n' + warning : ''}
 - Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
 - Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
 - Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
@@ -104,7 +112,7 @@ function genReturnDepositAgreementResultNotify(
 - Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
     embed.setDescription(text);
   } else {
-    text = `- Kết quả: **CHĂM SÓC THÊM**
+    text = `- Kết quả: **CHĂM SÓC THÊM**${warning ? '\n' + warning : ''}
 - Tên khách hàng: ${appointment.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 - Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
@@ -240,9 +248,34 @@ export class DiscordService {
       },
     });
     if (appointment?.status == AppointmentStatus.NOT_YET_RECEIVED) return;
-    let embed: EmbedBuilder;
-    let chatGroups: ChatGroup[];
-    if (appointment?.status == AppointmentStatus.EXTRA_CARE) {
+    let embed: EmbedBuilder | undefined = undefined;
+    let chatGroups: ChatGroup[] | undefined = undefined;
+    // Kiểm tra trả kết quả trễ
+    let isLate = false;
+    if (appointment?.appointmentTime) {
+      const now = dayjs();
+      const appointTime = dayjs(appointment.appointmentTime);
+      if (now.diff(appointTime, 'hour', true) > 2) {
+        isLate = true;
+      }
+    }
+    if (isLate && appointment) {
+      chatGroups = await this.chatGroupRepository.find({
+        where: {
+          chatGroupName: 'Warning',
+        },
+      });
+      embed = genReturnDepositAgreementResultNotify(
+        appointment,
+        appointment.status == AppointmentStatus.EXTRA_CARE
+          ? 'extra-care'
+          : 'deposit',
+      );
+      console.log('@Discord: ', embed);
+    } else if (
+      appointment?.status == AppointmentStatus.EXTRA_CARE &&
+      appointment
+    ) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Extra-care',
@@ -250,35 +283,35 @@ export class DiscordService {
       });
       embed = genReturnDepositAgreementResultNotify(appointment, 'extra-care');
       console.log('@Discord: ', embed);
-    } else {
+    } else if (appointment) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Deposit',
         },
       });
-      if (appointment) {
-        embed = genReturnDepositAgreementResultNotify(appointment, 'deposit');
-        console.log('@Discord: ', embed);
-      }
+      embed = genReturnDepositAgreementResultNotify(appointment, 'deposit');
+      console.log('@Discord: ', embed);
     }
 
-    try {
-      await Promise.all(
-        chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
-      );
-    } catch (error) {
-      console.log(error);
+    if (Array.isArray(chatGroups) && embed) {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
         await Promise.all(
           chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
         );
       } catch (error) {
         console.log(error);
-        throw new HttpException(
-          'Error in send message',
-          HttpStatus.FAILED_DEPENDENCY,
-        );
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await Promise.all(
+            chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+          );
+        } catch (error) {
+          console.log(error);
+          throw new HttpException(
+            'Error in send message',
+            HttpStatus.FAILED_DEPENDENCY,
+          );
+        }
       }
     }
   }
