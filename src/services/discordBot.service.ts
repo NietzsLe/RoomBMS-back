@@ -263,23 +263,7 @@ export class DiscordService {
         isLate = true;
       }
     }
-    if (isLate && appointment) {
-      chatGroups = await this.chatGroupRepository.find({
-        where: {
-          chatGroupName: 'Warning',
-        },
-      });
-      embed = genReturnDepositAgreementResultNotify(
-        appointment,
-        appointment.status == AppointmentStatus.EXTRA_CARE
-          ? 'extra-care'
-          : 'deposit',
-      );
-      console.log('@Discord: ', embed);
-    } else if (
-      appointment?.status == AppointmentStatus.EXTRA_CARE &&
-      appointment
-    ) {
+    if (appointment && appointment?.status == AppointmentStatus.EXTRA_CARE) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Extra-care',
@@ -287,7 +271,10 @@ export class DiscordService {
       });
       embed = genReturnDepositAgreementResultNotify(appointment, 'extra-care');
       console.log('@Discord: ', embed);
-    } else if (appointment) {
+    } else if (
+      appointment &&
+      appointment?.status == AppointmentStatus.RECEIVED
+    ) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Deposit',
