@@ -151,6 +151,8 @@ export class SupportServiceController {
   @ApiQuery({ name: 'type', required: false })
   @CacheTTL(10000)
   @Header('Cache-Control', 'max-age=10')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async getTeams(
     @Req() request: Request,
     @Query('offsetID', NotEmptyCheckPipe) offsetID: string = '',
