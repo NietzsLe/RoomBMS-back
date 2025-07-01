@@ -47,12 +47,14 @@ export class RoomService {
     order_type: string | undefined,
     requestorRoleIDs: string[],
     additionFilter: FindRoomQueryDTO = {},
+    streetID?: number,
   ) {
     // Sử dụng query builder để filter additionInfo (JSON)
     const query = this.roomRepository
       .createQueryBuilder('room')
       .leftJoinAndSelect('room.house', 'house')
       .leftJoinAndSelect('house.administrativeUnit', 'administrativeUnit')
+      .leftJoinAndSelect('house.street', 'street')
       .leftJoinAndSelect('room.manager', 'manager')
       .leftJoinAndSelect('room.images', 'images');
 
@@ -69,6 +71,7 @@ export class RoomService {
     if (wardCode)
       query.andWhere('administrativeUnit.wardCode = :wardCode', { wardCode });
     if (houseID) query.andWhere('house.houseID = :houseID', { houseID });
+    if (streetID) query.andWhere('street.streetID = :streetID', { streetID });
     if (minPrice) query.andWhere('room.price >= :minPrice', { minPrice });
     if (maxPrice) query.andWhere('room.price <= :maxPrice', { maxPrice });
     if (isHot !== undefined) query.andWhere('room.isHot = :isHot', { isHot });

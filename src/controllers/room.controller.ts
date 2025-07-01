@@ -70,6 +70,7 @@ export class RoomController {
   @ApiQuery({ name: 'updateAt_desc_cursor', required: false })
   @ApiQuery({ name: 'price_asc_cursor', required: false })
   @ApiQuery({ name: 'order_type', required: false })
+  @ApiQuery({ name: 'streetID', required: false })
   // additionInfo fields
   @ApiQuery({ name: 'addition_moveInTime', required: false, type: Number })
   @ApiQuery({ name: 'addition_roomType', required: false })
@@ -137,6 +138,7 @@ export class RoomController {
     @Query('price_asc_cursor', new ParseIntPipe({ optional: true }))
     price_asc_cursor?: number,
     @Query('order_type') order_type?: string,
+    @Query('streetID', new ParseIntPipe({ optional: true })) streetID?: number,
     // additionInfo fields
     @Query('addition_moveInTime', new ParseIntPipe({ optional: true }))
     addition_moveInTime?: number,
@@ -255,6 +257,7 @@ export class RoomController {
         addition_attic,
         addition_fridge,
       },
+      streetID,
     );
   }
   // @Get('for-saler')

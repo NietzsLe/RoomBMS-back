@@ -9,11 +9,13 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Room } from './room.model'; // Đảm bảo đường dẫn đúng đến file Room
+import { Room } from './room.model';
+import { Street } from './street.model';
 
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { AdministrativeUnit } from './administrativeUnit.model';
 import { User } from './user.model';
+import { StreetMapper } from 'src/mappers/street.mapper';
 
 @Entity('house') // Tên bảng trong cơ sở dữ liệu
 export class House {
@@ -163,6 +165,29 @@ export class House {
   @OneToMany(() => Room, (room) => room.house)
   @Expose({ groups: ['TO-DTO'] })
   rooms: Room[]; // Mối quan hệ với Room
+
+  @ManyToOne(() => Street, {
+    nullable: true,
+    onDelete: 'SET NULL', // Nếu xóa street thì house.street sẽ thành null
+  })
+  @JoinColumn({ name: 'streetID' })
+  @Expose({
+    groups: [
+      'TO-DTO',
+      'TO-ROOM-DTO',
+      'TO-APPOINTMENT-DTO',
+      'TO-DEPOSITAGREEMENT-DTO',
+    ],
+  })
+  @Type(() => Street)
+  @Transform(
+    ({ value }: { value: Street }) =>
+      value ? StreetMapper.EntityToReadForHouseDTO(value) : undefined,
+    {
+      toPlainOnly: true,
+    },
+  )
+  street: Street | null; // Mối quan hệ với Street
 
   @ManyToOne(() => AdministrativeUnit, {
     nullable: true,
