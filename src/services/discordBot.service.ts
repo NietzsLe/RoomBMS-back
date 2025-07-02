@@ -273,7 +273,7 @@ export class DiscordService {
       console.log('@Discord: ', embed);
     } else if (
       appointment &&
-      appointment?.status == AppointmentStatus.RECEIVED
+      appointment?.status == AppointmentStatus.SUCCESS
     ) {
       chatGroups = await this.chatGroupRepository.find({
         where: {
