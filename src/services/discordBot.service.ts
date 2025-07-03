@@ -11,164 +11,6 @@ import * as dayjs from 'dayjs';
 import { User } from 'src/models/user.model';
 import { AppointmentStatus, DepositAgreementStatus } from 'src/models/helper';
 
-function removeVietnameseTones(str: string): string {
-  return str
-    .normalize('NFD') // Tách ký tự và dấu
-    .replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D');
-}
-
-function toShortName(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length === 0) return '';
-
-  const lastName = removeVietnameseTones(parts[parts.length - 1]);
-  const initials = parts
-    .slice(0, -1)
-    .map((word) => removeVietnameseTones(word[0].toUpperCase()))
-    .join('');
-
-  return `${lastName}${initials}`;
-}
-
-function IsCTV(roleIDs: string[]) {
-  for (const roleID of roleIDs) {
-    if (roleID != 'ctv') {
-      return false;
-    }
-  }
-  return true;
-}
-
-function thankString(user: User | null | undefined) {
-  if (user) {
-    if (IsCTV(user.roles.map((role) => role.roleID))) {
-      return `CTV${user?.name ? ' + ' + user?.name : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.manager?.name ? ' + ' + toShortName(user?.manager?.name) : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
-    } else {
-      return `${user?.name ? toShortName(user?.name) : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
-    }
-  } else return '';
-}
-
-function genCreateAppointmentNotify(
-  appointment: Appointment,
-  isLate?: boolean,
-) {
-  let warning = '';
-  if (isLate) {
-    warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
-  }
-  const embed = new EmbedBuilder()
-    .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
-    .setColor('#00b0f4')
-
-    .setTimestamp();
-  const text = `- Kết quả: **KHÁCH XEM PHÒNG**${warning ? '\n' + warning : ''}
-- Tên khách hàng: ${appointment.tenant?.name ?? ''}
-- SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
-- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
-- Phòng: ${appointment?.room?.name ?? ''}
-- Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
-- Thời gian khách xem: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}
-- Số lượng người: ${appointment.noPeople ?? ''}
-- Số lượng xe: ${appointment.noVehicles ?? ''}
-- Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
-- Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
-- Ghi chú: ${appointment.note ?? ''}
-- Nhập khách:  ${thankString(appointment.madeUser)}
-- Dẫn khách:  ${thankString(appointment.takenOverUser)}`;
-  embed.setDescription(text);
-  return embed;
-}
-
-function genReturnDepositAgreementResultNotify(
-  appointment: Appointment,
-  isLate: boolean,
-  mode: string,
-) {
-  let text: string;
-  let warning = '';
-  if (isLate) {
-    warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
-  }
-  const embed = new EmbedBuilder()
-    .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
-    .setColor('#00b0f4')
-
-    .setTimestamp();
-  if (mode == 'deposit') {
-    text = `- Kết quả: **KHÁCH CỌC GIỮ CHỖ**${warning ? '\n' + warning : ''}
-- Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
-- Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
-- Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
-- Tên khách hàng: ${appointment?.tenant?.name ?? ''}
-- SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
-- Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
-- Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
-- Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.name ?? ''}${appointment?.depositAgreement?.room?.house?.name && appointment?.depositAgreement?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.depositAgreement?.room?.house?.administrativeUnit ? appointment?.depositAgreement?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.provinceName : ''}
-- Phòng: ${appointment?.depositAgreement?.room?.name ?? ''}
-- Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
-- Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
-- Thưởng: ${appointment?.depositAgreement?.bonus ? appointment?.depositAgreement?.bonus.toLocaleString('de-DE') + '₫' : ''}
-- Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
-- Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
-- Cảm ơn nhập khách:  ${thankString(appointment?.madeUser)}
-- Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
-    embed.setDescription(text);
-  } else {
-    text = `- Kết quả: **CHĂM SÓC THÊM**${warning ? '\n' + warning : ''}
-- Tên khách hàng: ${appointment.tenant?.name ?? ''}
-- SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
-- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
-- Phòng: ${appointment?.room?.name ?? ''}
-- Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
-- Thời gian khách xem: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}
-- Số lượng người: ${appointment.noPeople ?? ''}
-- Số lượng xe: ${appointment.noVehicles ?? ''}
-- Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
-- Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
-- Ghi chú: ${appointment.note ?? ''}
-- Cảm ơn nhập khách:  ${thankString(appointment.madeUser)}
-- Cảm ơn dẫn khách:  ${thankString(appointment.takenOverUser)}
-- Kết quả: ${appointment.failReason ?? ''}`;
-    embed.setDescription(text);
-  }
-
-  return embed;
-}
-
-function genCancelDepositAgreementNotify(appointment: Appointment) {
-  const embed = new EmbedBuilder()
-    .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
-    .setColor('#00b0f4')
-
-    .setTimestamp();
-
-  const text = `- Kết quả: **HỦY CỌC**
-- Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
-- Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
-- Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
-- Tên khách hàng: ${appointment?.tenant?.name ?? ''}
-- SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
-- Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
-- Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
-- Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}${appointment?.depositAgreement?.room?.house?.ownerName && appointment?.depositAgreement?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.depositAgreement?.room?.house?.administrativeUnit ? appointment?.depositAgreement?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.provinceName : ''}
-- Phòng: ${appointment?.room?.name ?? ''}
-- Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
-- Tiền cọc: ${appointment?.depositAgreement?.depositPrice ? appointment?.depositAgreement?.depositPrice.toLocaleString('de-DE') + '₫' : ''}
-- Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
-- Phí hủy cọc: ${appointment?.depositAgreement?.cancelFee ? appointment?.depositAgreement?.cancelFee.toLocaleString('de-DE') + '₫' : ''}
-- Thưởng: ${appointment?.depositAgreement?.bonus ? appointment?.depositAgreement?.bonus.toLocaleString('de-DE') + '₫' : ''}
-- Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
-- Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
-- Cảm ơn nhập khách:  ${thankString(appointment?.madeUser)}
-- Cảm ơn dẫn khách: ${thankString(appointment?.takenOverUser)}`;
-  embed.setDescription(text);
-
-  return embed;
-}
-
 @Injectable()
 export class DiscordService {
   constructor(
@@ -180,6 +22,13 @@ export class DiscordService {
     @InjectRepository(ChatGroup)
     private chatGroupRepository: Repository<ChatGroup>,
   ) {}
+
+  /**
+   * Gửi tin nhắn đến một kênh Discord với embed.
+   * @param channelId ID của kênh Discord.
+   * @param embed EmbedBuilder chứa nội dung tin nhắn.
+   * @returns ID của tin nhắn đã gửi hoặc null nếu không thành công.
+   */
 
   async sendMessage(
     channelId: string,
@@ -220,7 +69,7 @@ export class DiscordService {
           ]),
         },
       });
-      embed = genCreateAppointmentNotify(appointment);
+      embed = this.genCreateAppointmentNotify(appointment);
       console.log('@Discord: ', embed);
       try {
         await Promise.all(
@@ -284,7 +133,7 @@ export class DiscordService {
           chatGroupName: 'Result:Extra-care',
         },
       });
-      embed = genReturnDepositAgreementResultNotify(
+      embed = this.genReturnDepositAgreementResultNotify(
         appointment,
         isLate,
         'extra-care',
@@ -299,7 +148,7 @@ export class DiscordService {
           chatGroupName: 'Result:Deposit',
         },
       });
-      embed = genReturnDepositAgreementResultNotify(
+      embed = this.genReturnDepositAgreementResultNotify(
         appointment,
         isLate,
         'deposit',
@@ -392,7 +241,8 @@ export class DiscordService {
       appointment.depositAgreement?.status &&
       appointment.depositAgreement?.status == DepositAgreementStatus.CANCELLED
     ) {
-      const embed: EmbedBuilder = genCancelDepositAgreementNotify(appointment);
+      const embed: EmbedBuilder =
+        this.genCancelDepositAgreementNotify(appointment);
       const chatGroups: ChatGroup[] = await this.chatGroupRepository.find({
         where: {
           chatGroupName: 'Result:Deposit',
@@ -467,8 +317,8 @@ export class DiscordService {
       },
     });
 
-    // --- Tạo embed thông báo bằng genCreateAppointmentNotify ---
-    const embed = genCreateAppointmentNotify(appointment, isLate);
+    // --- Tạo embed thông báo bằng genChangeAppointmentTimeNotify ---
+    const embed = this.genChangeAppointmentTimeNotify(appointment, isLate);
 
     // --- Gửi thông báo đến các chat group ---
     try {
@@ -491,5 +341,210 @@ export class DiscordService {
         );
       }
     }
+  }
+
+  /**
+   * 🔒 Tạo thông báo thay đổi thời gian hẹn (private helper)
+   * @param appointment - Appointment object
+   * @param isLate - Có phải thay đổi trễ không
+   * @returns EmbedBuilder
+   */
+  private genChangeAppointmentTimeNotify(
+    appointment: Appointment,
+    isLate: boolean,
+  ): EmbedBuilder {
+    // --- Compose notification text ---
+    const warning = isLate ? '\n**⏰ Lưu ý: Thay đổi thời gian hẹn trễ!**' : '';
+    const text =
+      `- Tên khách hàng: ${appointment.tenant?.name ?? ''}\n` +
+      `- SĐT: ${appointment?.tenant?.phoneNumber ? appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx' : ''}\n` +
+      `- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}\n` +
+      `- Phòng: ${appointment?.room?.name ?? ''}\n` +
+      `- Thời gian mới: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}\n` +
+      `- Người cập nhật: ${this.thankString(appointment.madeUser)}` +
+      warning;
+    const embed = new EmbedBuilder()
+      .setTitle('THAY ĐỔI THỜI GIAN HẸN XEM PHÒNG')
+      .setDescription(text)
+      .setColor(isLate ? '#ff9900' : '#00b0f4')
+      .setTimestamp();
+    return embed;
+  }
+
+  /**
+   * 🔒 Tạo chuỗi cảm ơn nhập khách (private helper)
+   * @param user - User object
+   * @returns string
+   */
+  private thankString(user: User | null | undefined): string {
+    if (user) {
+      if (this.isCTV(user.roles.map((role) => role.roleID))) {
+        return `CTV${user?.name ? ' + ' + user?.name : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.manager?.name ? ' + ' + this.toShortName(user?.manager?.name) : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
+      } else {
+        return `${user?.name ? this.toShortName(user?.name) : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
+      }
+    } else return '';
+  }
+
+  /**
+   * 🔒 Kiểm tra user có phải CTV không (private helper)
+   * @param roleIDs - Danh sách roleID
+   * @returns boolean
+   */
+  private isCTV(roleIDs: string[]): boolean {
+    for (const roleID of roleIDs) {
+      if (roleID != 'ctv') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * 🔒 Rút gọn tên (private helper)
+   * @param fullName - Họ tên đầy đủ
+   * @returns string
+   */
+  private toShortName(fullName: string): string {
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 0) return '';
+    const lastName = this.removeVietnameseTones(parts[parts.length - 1]);
+    const initials = parts
+      .slice(0, -1)
+      .map((word) => this.removeVietnameseTones(word[0].toUpperCase()))
+      .join('');
+    return `${lastName}${initials}`;
+  }
+
+  /**
+   * 🔒 Loại bỏ dấu tiếng Việt (private helper)
+   * @param str - Chuỗi cần xử lý
+   * @returns string
+   */
+  private removeVietnameseTones(str: string): string {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
+  }
+
+  private genCreateAppointmentNotify(
+    appointment: Appointment,
+    isLate?: boolean,
+  ) {
+    const text = `- Tên khách hàng: ${appointment.tenant?.name ?? ''}
+- SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
+- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
+- Phòng: ${appointment?.room?.name ?? ''}
+- Giá tư vấn: ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
+- Thời gian khách xem: ${dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY')}
+- Số lượng người: ${appointment.noPeople ?? ''}
+- Số lượng xe: ${appointment.noVehicles ?? ''}
+- Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
+- Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
+- Ghi chú: ${appointment.note ?? ''}
+- Cảm ơn nhập khách: ${this.thankString(appointment.madeUser)}
+- Nhận lịch: [Evohome website](${process.env.FRONTEND_HOST + '/saler/appointments/' + appointment.appointmentID})`;
+    const embed = new EmbedBuilder()
+      .setTitle('KHÁCH HẸN XEM PHÒNG')
+      .setDescription(text)
+      .setColor('#00b0f4')
+      .setTimestamp();
+
+    if (isLate) {
+      embed.setFooter({
+        text: '☢️ Vi phạm quy trình dẫn khách: Thay đổi thời gian trễ!',
+      });
+    }
+
+    return embed;
+  }
+
+  private genReturnDepositAgreementResultNotify(
+    appointment: Appointment,
+    isLate: boolean,
+    mode: string,
+  ) {
+    let text: string;
+    let warning = '';
+    if (isLate) {
+      warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
+    }
+    const embed = new EmbedBuilder()
+      .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
+      .setColor('#00b0f4')
+
+      .setTimestamp();
+    if (mode == 'deposit') {
+      text = `- Kết quả: **KHÁCH CỌC GIỮ CHỖ**${warning ? '\n' + warning : ''}
+- Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
+- Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
+- Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
+- Tên khách hàng: ${appointment?.tenant?.name ?? ''}
+- SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
+- Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
+- Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
+- Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.name ?? ''}${appointment?.depositAgreement?.room?.house?.name && appointment?.depositAgreement?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.depositAgreement?.room?.house?.administrativeUnit ? appointment?.depositAgreement?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.provinceName : ''}
+- Phòng: ${appointment?.depositAgreement?.room?.name ?? ''}
+- Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
+- Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
+- Thưởng: ${appointment?.depositAgreement?.bonus ? appointment?.depositAgreement?.bonus.toLocaleString('de-DE') + '₫' : ''}
+- Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
+- Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
+- Cảm ơn nhập khách:  ${this.thankString(appointment?.madeUser)}
+- Cảm ơn dẫn khách: ${this.thankString(appointment?.takenOverUser)}`;
+      embed.setDescription(text);
+    } else {
+      text = `- Kết quả: **CHĂM SÓC THÊM**${warning ? '\n' + warning : ''}
+- Tên khách hàng: ${appointment.tenant?.name ?? ''}
+- SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
+- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
+- Phòng: ${appointment?.room?.name ?? ''}
+- Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
+- Thời gian khách xem: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}
+- Số lượng người: ${appointment.noPeople ?? ''}
+- Số lượng xe: ${appointment.noVehicles ?? ''}
+- Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
+- Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
+- Ghi chú: ${appointment.note ?? ''}
+- Cảm ơn nhập khách:  ${this.thankString(appointment.madeUser)}
+- Cảm ơn dẫn khách:  ${this.thankString(appointment.takenOverUser)}
+- Kết quả: ${appointment.failReason ?? ''}`;
+      embed.setDescription(text);
+    }
+
+    return embed;
+  }
+
+  private genCancelDepositAgreementNotify(appointment: Appointment) {
+    const embed = new EmbedBuilder()
+      .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
+      .setColor('#00b0f4')
+
+      .setTimestamp();
+
+    const text = `- Kết quả: **HỦY CỌC**
+- Ngày cọc: ${appointment?.depositAgreement?.depositDeliverDate ? dayjs(appointment?.depositAgreement?.depositDeliverDate).format('DD/MM/YYYY') : ''}
+- Ngày lên HĐ: ${appointment?.depositAgreement?.agreementDate ? dayjs(appointment?.depositAgreement?.agreementDate).format('DD/MM/YYYY') : ''}
+- Thời gian ký HĐ: ${appointment?.depositAgreement?.duration ? appointment?.depositAgreement?.duration + ' tháng' : ''}
+- Tên khách hàng: ${appointment?.tenant?.name ?? ''}
+- SĐT: ${appointment?.tenant?.phoneNumber ?? ''}
+- Chủ nhà: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}
+- Hoa hồng: ${appointment?.depositAgreement?.commissionPer ? appointment?.depositAgreement?.commissionPer + '%' : ''} - ${(((appointment?.depositAgreement?.price ?? 0) * (appointment?.depositAgreement?.commissionPer ?? 0)) / 100).toLocaleString('de-DE') + '₫'}
+- Nhà/CHDV: ${appointment?.depositAgreement?.room?.house?.ownerName ?? ''}${appointment?.depositAgreement?.room?.house?.ownerName && appointment?.depositAgreement?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.depositAgreement?.room?.house?.administrativeUnit ? appointment?.depositAgreement?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.depositAgreement?.room?.house?.administrativeUnit.provinceName : ''}
+- Phòng: ${appointment?.room?.name ?? ''}
+- Giá phòng: ${appointment?.depositAgreement?.price ? appointment?.depositAgreement?.price.toLocaleString('de-DE') + '₫' : ''}
+- Tiền cọc: ${appointment?.depositAgreement?.depositPrice ? appointment?.depositAgreement?.depositPrice.toLocaleString('de-DE') + '₫' : ''}
+- Tiền đã cọc: ${appointment?.depositAgreement?.deliveredDeposit ? appointment?.depositAgreement?.deliveredDeposit.toLocaleString('de-DE') + '₫' : ''}
+- Phí hủy cọc: ${appointment?.depositAgreement?.cancelFee ? appointment?.depositAgreement?.cancelFee.toLocaleString('de-DE') + '₫' : ''}
+- Thưởng: ${appointment?.depositAgreement?.bonus ? appointment?.depositAgreement?.bonus.toLocaleString('de-DE') + '₫' : ''}
+- Ngày bổ sung đủ: ${appointment?.depositAgreement?.depositCompleteDate ? dayjs(appointment?.depositAgreement?.depositCompleteDate).format('DD/MM/YYYY') : ''}
+- Ghi chú: ${appointment?.depositAgreement?.note ?? ''}
+- Cảm ơn nhập khách:  ${this.thankString(appointment?.madeUser)}
+- Cảm ơn dẫn khách: ${this.thankString(appointment?.takenOverUser)}`;
+    embed.setDescription(text);
+
+    return embed;
   }
 }
