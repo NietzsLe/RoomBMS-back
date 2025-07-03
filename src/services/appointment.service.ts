@@ -639,6 +639,7 @@ export class AppointmentService {
     if (updateAppointmentDTO.appointmentTime)
       await this.discordService.notifyWhenChangeAppointmentTime(
         appointment.appointmentID,
+        result[0]?.appointmentTime,
       );
   }
 

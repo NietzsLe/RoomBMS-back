@@ -430,7 +430,10 @@ export class DiscordService {
    *
    * @param appointmentID - ID của appointment cần thông báo
    */
-  async notifyWhenChangeAppointmentTime(appointmentID: number) {
+  async notifyWhenChangeAppointmentTime(
+    appointmentID: number,
+    preTime: Date | undefined,
+  ) {
     // --- Lấy thông tin appointment và các quan hệ liên quan ---
     const appointment = await this.appointmentReponsitory.findOne({
       where: { appointmentID },
@@ -447,9 +450,9 @@ export class DiscordService {
 
     // --- Xác định isLate: nếu thời gian hiện tại cách appointmentTime > 2h ---
     let isLate = false;
-    if (appointment.appointmentTime) {
+    if (preTime) {
       const now = dayjs();
-      const appointTime = dayjs(appointment.appointmentTime);
+      const appointTime = dayjs(preTime);
       if (now.diff(appointTime, 'hour', true) > 2) {
         isLate = true;
       }
