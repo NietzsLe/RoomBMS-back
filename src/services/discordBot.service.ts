@@ -464,9 +464,7 @@ export class DiscordService {
     // --- Tìm các chat group phù hợp (theo districtCode) ---
     const chatGroups = await this.chatGroupRepository.find({
       where: {
-        provinceCodes: ArrayContains([
-          appointment?.room?.house?.administrativeUnit?.districtCode,
-        ]),
+        chatGroupName: 'Warning',
       },
     });
 
