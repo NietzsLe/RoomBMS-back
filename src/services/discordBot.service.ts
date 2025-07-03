@@ -55,31 +55,30 @@ function genCreateAppointmentNotify(
   appointment: Appointment,
   isLate?: boolean,
 ) {
-  const text = `- Tên khách hàng: ${appointment.tenant?.name ?? ''}
+  let warning = '';
+  if (isLate) {
+    warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
+  }
+  const embed = new EmbedBuilder()
+    .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
+    .setColor('#00b0f4')
+
+    .setTimestamp();
+  const text = `- Kết quả: **KHÁCH XEM PHÒNG**${warning ? '\n' + warning : ''}
+- Tên khách hàng: ${appointment.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 - Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
 - Phòng: ${appointment?.room?.name ?? ''}
-- Giá tư vấn: ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
-- Thời gian khách xem: ${dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY')}
+- Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
+- Thời gian khách xem: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}
 - Số lượng người: ${appointment.noPeople ?? ''}
 - Số lượng xe: ${appointment.noVehicles ?? ''}
 - Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
 - Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
 - Ghi chú: ${appointment.note ?? ''}
-- Cảm ơn nhập khách: ${thankString(appointment.madeUser)}
-- Nhận lịch: [Evohome website](${process.env.FRONTEND_HOST + '/saler/appointments/' + appointment.appointmentID})`;
-  const embed = new EmbedBuilder()
-    .setTitle('KHÁCH HẸN XEM PHÒNG')
-    .setDescription(text)
-    .setColor('#00b0f4')
-    .setTimestamp();
-
-  if (isLate) {
-    embed.setFooter({
-      text: '☢️ Vi phạm quy trình dẫn khách: Thay đổi thời gian trễ!',
-    });
-  }
-
+- Nhập khách:  ${thankString(appointment.madeUser)}
+- Dẫn khách:  ${thankString(appointment.takenOverUser)}`;
+  embed.setDescription(text);
   return embed;
 }
 
