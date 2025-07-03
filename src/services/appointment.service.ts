@@ -633,6 +633,12 @@ export class AppointmentService {
     if (updateAppointmentDTO.status)
       await this.discordService.notifyReturnDepositAgreementResult(
         appointment.appointmentID,
+        updateAppointmentDTO.status,
+      );
+
+    if (updateAppointmentDTO.appointmentTime)
+      await this.discordService.notifyWhenChangeAppointmentTime(
+        appointment.appointmentID,
       );
   }
 
