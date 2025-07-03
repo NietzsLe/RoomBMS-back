@@ -374,7 +374,7 @@ export class DiscordService {
 - Phòng: ${appointment?.room?.name ?? ''}
 - Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
 - Thời gian ban đầu: ${preTime ? dayjs(preTime).format('HH:mm DD/MM/YYYY') : ''}
-- Thời gian đổi đến: ${preTime ? dayjs(preTime).format('HH:mm DD/MM/YYYY') : ''}
+- Thời gian đổi đến: ${appointment?.appointmentTime ? dayjs(appointment?.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}
 - Số lượng người: ${appointment.noPeople ?? ''}
 - Số lượng xe: ${appointment.noVehicles ?? ''}
 - Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
