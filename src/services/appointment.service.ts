@@ -630,10 +630,10 @@ export class AppointmentService {
     if (result[2]) appointment.takenOverUser = result[2];
     console.log('@Service: \n', appointment);
     await this.appointmentRepository.save(appointment);
-    if (updateAppointmentDTO.status)
+    if (updateAppointmentDTO.status && result[0])
       await this.discordService.notifyReturnDepositAgreementResult(
         appointment.appointmentID,
-        updateAppointmentDTO.status,
+        result[0].status,
       );
 
     if (updateAppointmentDTO.appointmentTime)
