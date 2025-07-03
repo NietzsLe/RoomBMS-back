@@ -367,7 +367,7 @@ export class DiscordService {
       .setColor('#00b0f4')
 
       .setTimestamp();
-    const text = `- Kết quả: **KHÁCH XEM PHÒNG**${warning ? '\n' + warning : ''}
+    const text = `${warning ? '\n' + warning : ''}
 - Tên khách hàng: ${appointment.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 - Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
