@@ -318,7 +318,11 @@ export class DiscordService {
     });
 
     // --- Tạo embed thông báo bằng genChangeAppointmentTimeNotify ---
-    const embed = this.genChangeAppointmentTimeNotify(appointment, isLate);
+    const embed = this.genChangeAppointmentTimeNotify(
+      appointment,
+      isLate,
+      preTime,
+    );
 
     // --- Gửi thông báo đến các chat group ---
     try {
@@ -352,22 +356,32 @@ export class DiscordService {
   private genChangeAppointmentTimeNotify(
     appointment: Appointment,
     isLate: boolean,
+    preTime: Date | undefined,
   ): EmbedBuilder {
-    // --- Compose notification text ---
-    const warning = isLate ? '\n**⏰ Lưu ý: Thay đổi thời gian hẹn trễ!**' : '';
-    const text =
-      `- Tên khách hàng: ${appointment.tenant?.name ?? ''}\n` +
-      `- SĐT: ${appointment?.tenant?.phoneNumber ? appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx' : ''}\n` +
-      `- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}\n` +
-      `- Phòng: ${appointment?.room?.name ?? ''}\n` +
-      `- Thời gian mới: ${appointment.appointmentTime ? dayjs(appointment.appointmentTime).format('HH:mm DD/MM/YYYY') : ''}\n` +
-      `- Người cập nhật: ${this.thankString(appointment.madeUser)}` +
-      warning;
+    let warning = '';
+    if (isLate) {
+      warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
+    }
     const embed = new EmbedBuilder()
-      .setTitle('THAY ĐỔI THỜI GIAN HẸN XEM PHÒNG')
-      .setDescription(text)
-      .setColor(isLate ? '#ff9900' : '#00b0f4')
+      .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
+      .setColor('#00b0f4')
+
       .setTimestamp();
+    const text = `- Kết quả: **KHÁCH XEM PHÒNG**${warning ? '\n' + warning : ''}
+- Tên khách hàng: ${appointment.tenant?.name ?? ''}
+- SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
+- Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
+- Phòng: ${appointment?.room?.name ?? ''}
+- Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
+- Thời gian khách xem: ${preTime ? dayjs(preTime).format('HH:mm DD/MM/YYYY') : ''}
+- Số lượng người: ${appointment.noPeople ?? ''}
+- Số lượng xe: ${appointment.noVehicles ?? ''}
+- Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
+- Nuôi thú cưng: ${appointment.pet ? 'Có' : 'Không'}
+- Ghi chú: ${appointment.note ?? ''}
+- Nhập khách:  ${this.thankString(appointment.madeUser)}
+- Dẫn khách:  ${this.thankString(appointment.takenOverUser)}`;
+    embed.setDescription(text);
     return embed;
   }
 
