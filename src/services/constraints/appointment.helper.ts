@@ -32,9 +32,7 @@ export class AppointmentConstraint {
         where: {
           appointmentID: appointmentID,
         },
-        select: {
-          appointmentID: true,
-        },
+
         relations: {
           takenOverUser: true,
           madeUser: true,
