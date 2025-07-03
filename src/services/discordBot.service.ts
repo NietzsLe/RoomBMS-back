@@ -51,7 +51,10 @@ function thankString(user: User | null | undefined) {
   } else return '';
 }
 
-function genCreateAppointmentNotify(appointment: Appointment) {
+function genCreateAppointmentNotify(
+  appointment: Appointment,
+  isLate?: boolean,
+) {
   const text = `- Tên khách hàng: ${appointment.tenant?.name ?? ''}
 - SĐT: ${appointment?.tenant?.phoneNumber.slice(0, -3) + 'xxx'}
 - Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
@@ -71,21 +74,24 @@ function genCreateAppointmentNotify(appointment: Appointment) {
     .setColor('#00b0f4')
     .setTimestamp();
 
+  if (isLate) {
+    embed.setFooter({
+      text: '☢️ Vi phạm quy trình dẫn khách: Thay đổi thời gian trễ!',
+    });
+  }
+
   return embed;
 }
 
 function genReturnDepositAgreementResultNotify(
   appointment: Appointment,
+  isLate: boolean,
   mode: string,
 ) {
   let text: string;
   let warning = '';
-  if (appointment.appointmentTime) {
-    const now = dayjs();
-    const appointTime = dayjs(appointment.appointmentTime);
-    if (now.diff(appointTime, 'hour', true) > 2) {
-      warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
-    }
+  if (isLate) {
+    warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
   }
   const embed = new EmbedBuilder()
     .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
@@ -238,7 +244,10 @@ export class DiscordService {
       }
     }
   }
-  async notifyReturnDepositAgreementResult(appointmentID: number) {
+  async notifyReturnDepositAgreementResult(
+    appointmentID: number,
+    preStatus: AppointmentStatus,
+  ) {
     const appointment = await this.appointmentReponsitory.findOne({
       where: {
         appointmentID: appointmentID,
@@ -259,7 +268,14 @@ export class DiscordService {
     if (appointment?.appointmentTime) {
       const now = dayjs();
       const appointTime = dayjs(appointment.appointmentTime);
-      if (now.diff(appointTime, 'hour', true) > 2) {
+      if (
+        now.diff(appointTime, 'hour', true) > 2 &&
+        !(
+          preStatus == AppointmentStatus.EXTRA_CARE &&
+          appointment &&
+          appointment.status == AppointmentStatus.SUCCESS
+        )
+      ) {
         isLate = true;
       }
     }
@@ -269,7 +285,11 @@ export class DiscordService {
           chatGroupName: 'Result:Extra-care',
         },
       });
-      embed = genReturnDepositAgreementResultNotify(appointment, 'extra-care');
+      embed = genReturnDepositAgreementResultNotify(
+        appointment,
+        isLate,
+        'extra-care',
+      );
       console.log('@Discord: ', embed);
     } else if (
       appointment &&
@@ -280,7 +300,11 @@ export class DiscordService {
           chatGroupName: 'Result:Deposit',
         },
       });
-      embed = genReturnDepositAgreementResultNotify(appointment, 'deposit');
+      embed = genReturnDepositAgreementResultNotify(
+        appointment,
+        isLate,
+        'deposit',
+      );
       console.log('@Discord: ', embed);
     }
 
@@ -321,6 +345,15 @@ export class DiscordService {
             chatGroupName: 'Warning',
           },
         });
+        // Gửi lại embed vào kênh Warning trước
+        for (const warningGroup of warningGroups) {
+          try {
+            await this.sendMessage(warningGroup.chatGroupID, embed);
+          } catch (error) {
+            console.log(error);
+          }
+        }
+        // Sau đó forward link tin nhắn gốc
         for (const msg of sentMessages) {
           for (const warningGroup of warningGroups) {
             try {
@@ -386,6 +419,76 @@ export class DiscordService {
             HttpStatus.FAILED_DEPENDENCY,
           );
         }
+      }
+    }
+  }
+
+  /**
+   * ⏰ notifyWhenChangeAppointmentTime
+   * Gửi thông báo Discord khi thời gian hẹn của appointment bị thay đổi.
+   * Chỉ gửi thông báo nếu thay đổi trễ (isLate).
+   *
+   * @param appointmentID - ID của appointment cần thông báo
+   */
+  async notifyWhenChangeAppointmentTime(appointmentID: number) {
+    // --- Lấy thông tin appointment và các quan hệ liên quan ---
+    const appointment = await this.appointmentReponsitory.findOne({
+      where: { appointmentID },
+      relations: {
+        depositAgreement: { room: { house: { administrativeUnit: true } } },
+        tenant: true,
+        room: { house: { administrativeUnit: true } },
+        madeUser: { team: true, roles: true, manager: true },
+        takenOverUser: { team: true, roles: true, manager: true },
+      },
+    });
+
+    if (!appointment) return;
+
+    // --- Xác định isLate: nếu thời gian hiện tại cách appointmentTime > 2h ---
+    let isLate = false;
+    if (appointment.appointmentTime) {
+      const now = dayjs();
+      const appointTime = dayjs(appointment.appointmentTime);
+      if (now.diff(appointTime, 'hour', true) > 2) {
+        isLate = true;
+      }
+    }
+
+    // --- Chỉ gửi thông báo nếu isLate ---
+    if (!isLate) return;
+
+    // --- Tìm các chat group phù hợp (theo districtCode) ---
+    const chatGroups = await this.chatGroupRepository.find({
+      where: {
+        provinceCodes: ArrayContains([
+          appointment?.room?.house?.administrativeUnit?.districtCode,
+        ]),
+      },
+    });
+
+    // --- Tạo embed thông báo bằng genCreateAppointmentNotify ---
+    const embed = genCreateAppointmentNotify(appointment, isLate);
+
+    // --- Gửi thông báo đến các chat group ---
+    try {
+      await Promise.all(
+        chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+      );
+    } catch (error) {
+      console.log(error);
+      // Thử lại sau 2s nếu lỗi
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await Promise.all(
+          chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
+        );
+      } catch (error) {
+        console.log(error);
+        throw new HttpException(
+          'Error in send message',
+          HttpStatus.FAILED_DEPENDENCY,
+        );
       }
     }
   }
