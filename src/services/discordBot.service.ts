@@ -363,7 +363,7 @@ export class DiscordService {
       warning = '**☢️ Vi phạm quy trình dẫn khách: Trả kết quả trễ!**';
     }
     const embed = new EmbedBuilder()
-      .setTitle('KẾT QUẢ KHÁCH XEM PHÒNG')
+      .setTitle('KHÁCH XEM PHÒNG: ĐỔI LỊCH HẸN')
       .setColor('#00b0f4')
 
       .setTimestamp();
@@ -373,7 +373,8 @@ export class DiscordService {
 - Nhà/CHDV: ${appointment?.room?.house?.name ?? ''}${appointment?.room?.house?.name && appointment?.room?.house?.administrativeUnit ? ', ' : ''}${appointment?.room?.house?.administrativeUnit ? appointment?.room?.house?.administrativeUnit.wardName + ', ' + appointment?.room?.house?.administrativeUnit.districtName + ', ' + appointment?.room?.house?.administrativeUnit.provinceName : ''}
 - Phòng: ${appointment?.room?.name ?? ''}
 - Giá tư vấn:  ${appointment.consultingPrice ? appointment.consultingPrice.toLocaleString('de-DE') + '₫' : ''}
-- Thời gian khách xem: ${preTime ? dayjs(preTime).format('HH:mm DD/MM/YYYY') : ''}
+- Thời gian ban đầu: ${preTime ? dayjs(preTime).format('HH:mm DD/MM/YYYY') : ''}
+- Thời gian đổi đến: ${preTime ? dayjs(preTime).format('HH:mm DD/MM/YYYY') : ''}
 - Số lượng người: ${appointment.noPeople ?? ''}
 - Số lượng xe: ${appointment.noVehicles ?? ''}
 - Thời gian dự kiến dọn vào: ${appointment.moveInTime ?? ''}
