@@ -74,10 +74,8 @@ export class User {
   })
   @Type(() => Role)
   roles: Role[];
-  @OneToMany(() => User, (user) => user.manager)
-  @Expose({ groups: ['NOT-TO-DTO'] })
-  createdUsers: User[];
-  @ManyToOne(() => User, (user) => user.createdUsers, {
+
+  @ManyToOne(() => User, {
     nullable: true,
     onDelete: 'SET NULL',
   })
@@ -90,22 +88,37 @@ export class User {
   @OneToMany(() => Appointment, (appointment) => appointment.takenOverUser)
   @Expose({ groups: ['NOT-TO-DTO'] })
   takenOverAppointments: Appointment[];
+
   @OneToMany(() => Appointment, (appointment) => appointment.madeUser)
   @Expose({ groups: ['NOT-TO-DTO'] })
   madeAppointments: Appointment[];
+
+  /**
+   * 👤 Leader of the user (usually the team leader)
+   * - Relation: Many users can have the same leader
+   * - Nullable, onDelete: SET NULL
+   */
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'leaderID' })
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
+  @Type(() => User)
+  leader: User | null;
+
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
+  leaderID() {
+    if (this.leader?.username) return this.leader.username;
+    return undefined;
+  }
 
   @Expose({
     groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
   })
   teamID() {
     if (this.team?.teamID) return this.team.teamID;
-    return undefined;
-  }
-  @Expose({
-    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
-  })
-  managerID() {
-    if (this.manager?.username) return this.manager.username;
     return undefined;
   }
   @Expose({

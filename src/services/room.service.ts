@@ -360,7 +360,7 @@ export class RoomService {
     const result = await Promise.all([
       this.constraint.RoomIsAlive(room.roomID),
       this.houseConstraint.HouseIsAlive(room.house?.houseID),
-      this.userConstraint.ManagerIsAlive(updateRoomDTO.managerID),
+      this.userConstraint.UserIsAlive(updateRoomDTO.managerID),
     ]);
 
     let IsAdmin = 0;

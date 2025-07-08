@@ -148,9 +148,17 @@ export class DepositAgreementService {
       }
       if (dto?.appointment?.madeUser) {
         if (userBlacklist.canAccess) {
+          // 🧑‍💼 Remove blacklist for manager if present
           if (dto?.appointment?.madeUser?.manager) {
             removeByBlacklist(
               dto.appointment.madeUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          // 🧑‍💼 Remove blacklist for leader if present
+          if (dto?.appointment?.madeUser?.leader) {
+            removeByBlacklist(
+              dto.appointment.madeUser.leader,
               userBlacklist.blacklist,
             );
           }
@@ -159,9 +167,17 @@ export class DepositAgreementService {
       }
       if (dto?.appointment?.takenOverUser) {
         if (userBlacklist.canAccess) {
+          // 🧑‍💼 Remove blacklist for manager if present
           if (dto?.appointment?.takenOverUser?.manager) {
             removeByBlacklist(
               dto.appointment.takenOverUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          // 🧑‍💼 Remove blacklist for leader if present
+          if (dto?.appointment?.takenOverUser?.leader) {
+            removeByBlacklist(
+              dto.appointment.takenOverUser.leader,
               userBlacklist.blacklist,
             );
           }
@@ -219,8 +235,13 @@ export class DepositAgreementService {
           room: { house: { administrativeUnit: true } },
           tenant: true,
           appointment: {
-            madeUser: { team: true, manager: true, roles: true },
-            takenOverUser: { team: true, manager: true, roles: true },
+            madeUser: { team: true, manager: true, roles: true, leader: true },
+            takenOverUser: {
+              team: true,
+              manager: true,
+              roles: true,
+              leader: true,
+            },
           },
           manager: true,
         },
@@ -285,9 +306,17 @@ export class DepositAgreementService {
       }
       if (dto?.appointment?.madeUser) {
         if (userBlacklist.canAccess) {
+          // 🧑‍💼 Remove blacklist for manager if present
           if (dto?.appointment?.madeUser?.manager) {
             removeByBlacklist(
               dto.appointment.madeUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          // 🧑‍💼 Remove blacklist for leader if present
+          if (dto?.appointment?.madeUser?.leader) {
+            removeByBlacklist(
+              dto.appointment.madeUser.leader,
               userBlacklist.blacklist,
             );
           }
@@ -296,9 +325,17 @@ export class DepositAgreementService {
       }
       if (dto?.appointment?.takenOverUser) {
         if (userBlacklist.canAccess) {
+          // 🧑‍💼 Remove blacklist for manager if present
           if (dto?.appointment?.takenOverUser?.manager) {
             removeByBlacklist(
               dto.appointment.takenOverUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          // 🧑‍💼 Remove blacklist for leader if present
+          if (dto?.appointment?.takenOverUser?.leader) {
+            removeByBlacklist(
+              dto.appointment.takenOverUser.leader,
               userBlacklist.blacklist,
             );
           }
@@ -400,7 +437,7 @@ export class DepositAgreementService {
       ),
       this.roomConstraint.RoomIsAlive(updateDepositAgreementDTO.roomID),
       this.tenantConstraint.TenantIsAlive(updateDepositAgreementDTO.tenantID),
-      this.userConstraint.ManagerIsAlive(updateDepositAgreementDTO.managerID),
+      this.userConstraint.UserIsAlive(updateDepositAgreementDTO.managerID),
     ]);
 
     let IsAdmin = 0;
@@ -417,7 +454,6 @@ export class DepositAgreementService {
     if (result[1]) depositAgreement.room = result[1];
     if (result[2]) depositAgreement.tenant = result[2];
     if (result[3]) depositAgreement.manager = result[3];
-    //console.log('@Service: \n', depositAgreement);
     await this.depositAgreementRepository.update(
       depositAgreement.depositAgreementID,
       depositAgreement,

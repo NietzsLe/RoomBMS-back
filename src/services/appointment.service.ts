@@ -328,7 +328,7 @@ export class AppointmentService {
             {
               takenOverUser: [
                 { team: { leader: { username: requestorID } } },
-                { manager: { username: requestorID } },
+                { leader: { username: requestorID } },
                 { username: requestorID },
               ],
               ...basicWhere,
@@ -337,7 +337,7 @@ export class AppointmentService {
             {
               takenOverUser: [
                 { team: { leader: { username: requestorID } } },
-                { manager: { username: requestorID } },
+                { leader: { username: requestorID } },
                 { username: requestorID },
               ],
               ...basicWhere,
@@ -346,7 +346,7 @@ export class AppointmentService {
             {
               madeUser: [
                 { team: { leader: { username: requestorID } } },
-                { manager: { username: requestorID } },
+                { leader: { username: requestorID } },
                 { username: requestorID },
               ],
               ...basicWhere,
@@ -355,7 +355,7 @@ export class AppointmentService {
             {
               madeUser: [
                 { team: { leader: { username: requestorID } } },
-                { manager: { username: requestorID } },
+                { leader: { username: requestorID } },
                 { username: requestorID },
               ],
               ...basicWhere,
@@ -401,8 +401,13 @@ export class AppointmentService {
         relations: {
           room: { house: { administrativeUnit: true } },
           depositAgreement: { room: { house: { administrativeUnit: true } } },
-          takenOverUser: { team: true, roles: true, manager: true },
-          madeUser: { team: true, roles: true, manager: true },
+          takenOverUser: {
+            team: true,
+            roles: true,
+            leader: true,
+            manager: true,
+          },
+          madeUser: { team: true, roles: true, leader: true, manager: true },
           tenant: true,
           manager: true,
         },
@@ -470,6 +475,9 @@ export class AppointmentService {
           if (dto?.madeUser?.manager) {
             removeByBlacklist(dto.madeUser.manager, userBlacklist.blacklist);
           }
+          if (dto?.madeUser?.leader) {
+            removeByBlacklist(dto.madeUser.leader, userBlacklist.blacklist);
+          }
           removeByBlacklist(dto.madeUser, userBlacklist.blacklist);
         } else dto.madeUser = new ReadUserDTO();
       }
@@ -478,6 +486,12 @@ export class AppointmentService {
           if (dto?.takenOverUser?.manager) {
             removeByBlacklist(
               dto.takenOverUser.manager,
+              userBlacklist.blacklist,
+            );
+          }
+          if (dto?.takenOverUser?.leader) {
+            removeByBlacklist(
+              dto.takenOverUser.leader,
               userBlacklist.blacklist,
             );
           }
@@ -714,7 +728,7 @@ export class AppointmentService {
       this.depositAgreementConstraint.DepositAgreementIsAlive(
         updateAppointmentDTO.depositAgreementID,
       ),
-      this.userConstraint.ManagerIsAlive(updateAppointmentDTO.managerID),
+      this.userConstraint.UserIsAlive(updateAppointmentDTO.managerID),
     ]);
 
     let IsAdmin = 0;
