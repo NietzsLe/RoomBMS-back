@@ -34,3 +34,21 @@ export enum DepositAgreementStatus {
   ACTIVE = 'active',
   CANCELLED = 'cancelled',
 }
+
+/**
+ * 📅 Enum for period type (week or month)
+ */
+export enum PeriodType {
+  WEEK = 'week',
+  MONTH = 'month',
+}
+
+/**
+ * 🏷️ Enum for role tier (collaborator, saler, team, company)
+ */
+export enum RoleTier {
+  COLLABORATOR = 'collaborator',
+  SALER = 'saler',
+  TEAM = 'team',
+  COMPANY = 'company',
+}

@@ -144,9 +144,15 @@ export class AppointmentConstraint {
           requestorID == appointment.takenOverUser.username) ||
         (appointment.madeUser &&
           requestorID == appointment.madeUser.username) ||
-        (appointment.manager && requestorID == appointment.manager.username)
+        (appointment.manager && requestorID == appointment.manager.username) ||
+        // 👤 Also allow leader of madeUser or takenOverUser
+        (appointment.takenOverUser?.leader &&
+          requestorID == appointment.takenOverUser.leader.username) ||
+        (appointment.madeUser?.leader &&
+          requestorID == appointment.madeUser.leader.username)
       )
     ) {
+      // 🚫 Throw if not a related user (including leader)
       throw new HttpException(
         'You are not a related user of this resource',
         HttpStatus.FORBIDDEN,

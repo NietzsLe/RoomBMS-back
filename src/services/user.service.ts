@@ -233,12 +233,17 @@ export class UserService {
     updateUserDTO: UpdateUserDTO,
   ) {
     const user = UserMapper.DTOToEntity(updateUserDTO);
+    // Nếu managerID null thì bỏ liên kết manager
     if (updateUserDTO.managerID == null) user.manager = null;
+    // Nếu leaderID null thì bỏ liên kết leader
+    if (updateUserDTO.leaderID == null) user.leader = null;
+    // Kiểm tra tồn tại cho cả manager và leader
     const result = await Promise.all([
       this.constraint.UserIsAlive(user.username),
       this.roleConstraint.RolesIsPersisted(updateUserDTO.roleIDs),
-      this.constraint.ManagerIsAlive(updateUserDTO.managerID),
+      this.constraint.UserIsAlive(updateUserDTO.managerID),
       this.constraint.TeamIsAlive(updateUserDTO.teamID),
+      this.constraint.UserIsAlive(updateUserDTO.leaderID),
     ]);
     console.log('@Service: \n', user);
     let IsAdmin = 0;
@@ -266,6 +271,7 @@ export class UserService {
     }
     if (result[2]) user.manager = result[2];
     if (result[3]) user.team = result[3];
+    if (result[4]) user.leader = result[4];
 
     await this.userRepository.save(user);
   }

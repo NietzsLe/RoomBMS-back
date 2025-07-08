@@ -258,11 +258,6 @@ export class UserConstraint {
         );
   }
 
-  async ManagerIsAlive(managerID: string | undefined | null) {
-    const manager = await this.UserIsAlive(managerID);
-    return manager;
-  }
-
   async TeamIsAlive(teamID: string | undefined | null) {
     if (teamID || teamID == '') {
       const exist = await this.teamRepository.findOne({

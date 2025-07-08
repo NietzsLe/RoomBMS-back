@@ -17,6 +17,10 @@ import { User } from 'src/models/user.model';
 
 export class ReadUserDTO {
   @ApiProperty()
+  leaderID: string;
+  @ApiProperty({ type: () => ReadUserDTO })
+  leader: ReadUserDTO;
+  @ApiProperty()
   username: string;
   @ApiProperty()
   name: string;
@@ -122,6 +126,22 @@ export class UpdateUserDTO {
     { toPlainOnly: true },
   )
   managerID?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  @Expose({ name: 'leader' })
+  @Transform(
+    ({ value }: { value: string }) => {
+      if (value) {
+        const obj = new User();
+        obj.username = value;
+        return obj;
+      } else if (value == null) return null;
+    },
+    { toPlainOnly: true },
+  )
+  leaderID?: string;
   @ApiProperty({ type: [String], required: false })
   @Optional()
   @IsArray() // Kiểm tra xem đây có phải là một mảng không
@@ -226,6 +246,23 @@ export class MaxResponseUserDTO {
   @IsString()
   @ApiProperty()
   username: string;
+}
+export class ReadTeamDTO {
+  @ApiProperty() @IsString() teamID: string; // 🆔 Unique team identifier
+  @ApiProperty() @IsBoolean() isDisabled: boolean; // 📛 Team status
+  @ApiProperty({ type: Date }) @IsDate() @Type(() => Date) createAt: Date; // 🕒 Created at
+  @ApiProperty({ type: Date }) @IsDate() @Type(() => Date) updateAt: Date; // 🕒 Updated at
+  @ApiProperty({ required: false, type: () => ReadUserDTO })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ReadUserDTO)
+  leader?: ReadUserDTO; // 👤 Team leader
+  @ApiProperty({ required: false, type: [ReadUserDTO] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ReadUserDTO)
+  members?: ReadUserDTO[]; // 👥 Team members
 }
 export class AutocompleteTeamDTO {
   @ApiProperty()

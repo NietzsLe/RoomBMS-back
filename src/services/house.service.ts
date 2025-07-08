@@ -207,7 +207,7 @@ export class HouseService {
         this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
           updateHouseDTO.administrativeUnitID,
         ),
-        this.userConstraint.ManagerIsAlive(updateHouseDTO.managerID),
+        this.userConstraint.UserIsAlive(updateHouseDTO.managerID),
         this.streetConstraint.StreetIsAlive(updateHouseDTO.streetID),
       ],
     );
