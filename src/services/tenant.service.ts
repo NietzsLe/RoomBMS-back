@@ -127,7 +127,7 @@ export class TenantService {
     const tenant = TenantMapper.DTOToEntity(updateTenantDTO);
     const result = await Promise.all([
       this.constraint.TenantIsAlive(tenant.tenantID),
-      this.userConstraint.ManagerIsAlive(updateTenantDTO.managerID),
+      this.userConstraint.UserIsAlive(updateTenantDTO.managerID),
     ]);
     let IsAdmin = 0;
     if (result[0])
