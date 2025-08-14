@@ -1,3 +1,6 @@
+import { DepositAgreementStatus } from 'src/shared/contract/leasing/leasing.enum';
+export { DepositAgreementStatus };
+
 export function getInitialsOrFullText(text: string) {
   // Tách văn bản thành các từ
   const words = text.split(/[-\s]+/);
@@ -28,27 +31,4 @@ export enum AppointmentStatus {
   NOT_YET_RECEIVED = 'not-yet-received',
   RECEIVED = 'received',
   EXTRA_CARE = 'extra-care',
-}
-// console.log(getInitialsOrFullText('Nam Từ Liêm  - 13/5B'));
-export enum DepositAgreementStatus {
-  ACTIVE = 'active',
-  CANCELLED = 'cancelled',
-}
-
-/**
- * 📅 Enum for period type (week or month)
- */
-export enum PeriodType {
-  WEEK = 'week',
-  MONTH = 'month',
-}
-
-/**
- * 🏷️ Enum for role tier (collaborator, saler, team, company)
- */
-export enum RoleTier {
-  COLLABORATOR = 'collaborator',
-  SALER = 'saler',
-  TEAM = 'team',
-  COMPANY = 'company',
 }

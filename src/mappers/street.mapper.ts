@@ -1,6 +1,6 @@
 import { classToPlain, plainToClass } from '@nestjs/class-transformer';
 import { Street } from '../models/street.model';
-import { CreateStreetDTO, UpdateStreetDTO } from '../dtos/streetDTO';
+import { CreateStreetDTO, UpdateStreetDTO } from '../dtos/street.dto';
 
 export class StreetMapper {
   static DTOToEntity(streetDTO: CreateStreetDTO | UpdateStreetDTO) {

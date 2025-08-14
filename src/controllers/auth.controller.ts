@@ -11,7 +11,7 @@ import {
 
 import { Throttle } from '@nestjs/throttler';
 import { CookieOptions, Request, Response } from 'express';
-import { ChangePassworDTO, SignInDTO } from 'src/dtos/authDTO';
+import { ChangePassworDTO, SignInDTO } from 'src/dtos/auth.dto';
 import { AuthService } from 'src/services/auth.service';
 
 @Controller('auth')

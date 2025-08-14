@@ -10,16 +10,16 @@ import { AuthController } from './controllers/auth.controller';
 import { RoleService } from './services/role.service';
 import { User } from './models/user.model';
 import { Role } from './models/role.model';
-import { AccessRule } from './models/accessRule.model';
+import { AccessRule } from './models/access-rule.model';
 import { RoleController } from './controllers/role.controller';
-import { AccessRuleController } from './controllers/accessRule.controller';
-import { AccessRuleService } from './services/accessRule.service';
+import { AccessRuleController } from './controllers/access-rule.controller';
+import { AccessRuleService } from './services/access-rule.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { MulterModule } from '@nestjs/platform-express';
 
-import { RoomImageService } from './services/roomImage.service';
+import { RoomImageService } from './services/room-image.service';
 import { Image } from './models/image.model';
 import { Room } from './models/room.model';
 import { Street } from './models/street.model';
@@ -35,19 +35,19 @@ import {
 import {
   AccessRuleConstraint,
   AccessRuleProcess,
-} from './services/constraints/accessRule.helper';
+} from './services/constraints/access-rule.helper';
 import { Tenant } from './models/tenant.model';
 import { House } from './models/house.model';
-import { DepositAgreement } from './models/depositAgreement.model';
+import { DepositAgreement } from './models/deposit-agreement.model';
 import { Appointment } from './models/appointment.model';
-import { AdministrativeUnit } from './models/administrativeUnit.model';
-import { WardUnit } from './models/wardUnit.model';
-import { DistrictUnit } from './models/districtUnit.model';
-import { ProvinceUnit } from './models/provinceUnit.model';
+import { AdministrativeUnit } from './models/administrative-unit.model';
+import { WardUnit } from './models/ward-unit.model';
+import { DistrictUnit } from './models/district-unit.model';
+import { ProvinceUnit } from './models/province-unit.model';
 import {
   DepositAgreementConstraint,
   DepositAgreementProcess,
-} from './services/constraints/depositAgreement.helper';
+} from './services/constraints/deposit-agreement.helper';
 import {
   AppointmentConstraint,
   AppointmentProcess,
@@ -55,7 +55,7 @@ import {
 import {
   RoomImageConstraint,
   RoomImageProcess,
-} from './services/constraints/roomImage.helper';
+} from './services/constraints/room-image.helper';
 import {
   RoomConstraint,
   RoomProcess,
@@ -71,30 +71,29 @@ import {
 import {
   AdministrativeUnitConstraint,
   AdministrativeUnitProcess,
-} from './services/constraints/administrativeUnit.helper';
+} from './services/constraints/administrative-unit.helper';
 import { RoomService } from './services/room.service';
 import { StreetService } from './services/street.service';
 import { AppointmentService } from './services/appointment.service';
-import { DepositAgreementService } from './services/depositAgreement.service';
+import { DepositAgreementService } from './services/deposit-agreement.service';
 import { HouseService } from './services/house.service';
-import { AdministrativeUnitService } from './services/administrativeUnit.service';
+import { AdministrativeUnitService } from './services/administrative-unit.service';
 import { TenantService } from './services/tenant.service';
-import { BlackListFilterInterceptors } from './interceptors/blackListFilter.interceptor';
+import { BlackListFilterInterceptors } from './interceptors/black-list-filter.interceptor';
 import { AppointmentController } from './controllers/appointment.controller';
-import { DepositAgreementController } from './controllers/depositAgreement.controller';
+import { DepositAgreementController } from './controllers/deposit-agreement.controller';
 import { HouseController } from './controllers/house.controller';
 import { StreetController } from './controllers/street.controller';
 import { TenantController } from './controllers/tenant.controller';
-import { AdministrativeUnitController } from './controllers/administrativeUnit.controller';
-import { ResourceManageServive } from './services/resourceManage.service';
-import { ResourceManageController } from './controllers/resourceManage.controller';
-import { SupportServiceController } from './controllers/supportService.controller';
-import { ChatGroup } from './models/chatGroup.model';
+import { AdministrativeUnitController } from './controllers/administrative-unit.controller';
+import { ChatGroup } from './models/chat-group.model';
 // import { TelegramBotService } from './services/telegramBot.service';
 import { Team } from './models/team.model';
+import { TeamController } from './controllers/team.controller';
+import { TeamService } from './services/team.service';
 import { NecordModule } from 'necord';
 import { IntentsBitField } from 'discord.js';
-import { DiscordService } from './services/discordBot.service';
+import { DiscordService } from './services/discord-bot.service';
 import {
   StreetConstraint,
   StreetProcess,
@@ -110,7 +109,11 @@ import {
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
-      entities: [__dirname + '/models/**/*{.ts,.js}'],
+      entities: [
+        __dirname + '/models/**/*{.ts,.js}',
+        __dirname +
+          '/modules/**/infrastructure/persistence/**/*{.orm-entity.ts,.orm-entity.js}',
+      ],
       synchronize: true, // Đặt thành false trong môi trường sản xuất
     }),
     JwtModule.register({
@@ -171,8 +174,7 @@ import {
     StreetController,
     TenantController,
     AdministrativeUnitController,
-    ResourceManageController,
-    SupportServiceController,
+    TeamController,
   ],
   providers: [
     StreetService,
@@ -188,6 +190,7 @@ import {
     RoomService,
     AdministrativeUnitService,
     TenantService,
+    TeamService,
     UserConstraint,
     UserProcess,
     RoleConstraint,
@@ -210,8 +213,6 @@ import {
     StreetProcess,
     AdministrativeUnitConstraint,
     AdministrativeUnitProcess,
-    ResourceManageServive,
-    // TelegramBotService,
     DiscordService,
     {
       provide: APP_GUARD,

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AccessRule } from 'src/models/accessRule.model';
+import { AccessRule } from 'src/models/access-rule.model';
 
 import { User } from 'src/models/user.model';
 import { In, Repository } from 'typeorm';

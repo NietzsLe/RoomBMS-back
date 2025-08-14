@@ -24,11 +24,13 @@ import {
   UpdateAppointmentForRelatedUserDTO,
   UpdateDepositAgreementForRelatedUserDTO,
   UpdateTenantForRelatedUserDTO,
-} from 'src/dtos/appointmentDTO';
+  AutocompleteAppointmentDTO,
+  MaxResponseAppointmentDTO,
+} from 'src/dtos/appointment.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
+import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 import { AppointmentService } from 'src/services/appointment.service';
-import { AppointmentIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
+import { AppointmentIDsCheckPipe } from './pipes/not-duplicate-value.pipe';
 import { ParseDatePipe } from './pipes/date.pipe';
 
 @Controller('appointments')
@@ -205,5 +207,37 @@ export class AppointmentController {
     @Body(AppointmentIDsCheckPipe) dto: HardDeleteAndRecoverAppointmentDTO,
   ) {
     await this.appointmentService.recover(dto.appointmentIDs);
+  }
+
+  // ===========================================
+  // =      🔍 AUTOCOMPLETE & MAX ENDPOINTS    =
+  // ===========================================
+  /**
+   * Endpoint: appointments/autocomplete
+   * Trả về danh sách autocomplete cho appointments
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('autocomplete')
+  @ApiOkResponse({ type: [AutocompleteAppointmentDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=10')
+  async getAutocomplete(
+    @Query('offsetID', ParseIntPipe)
+    offsetID: number = 0,
+  ) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.appointmentService.getAutocomplete(offsetID);
+  }
+  /**
+   * Endpoint: appointments/max
+   * Trả về thông tin max cho appointments
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('max')
+  @ApiOkResponse({ type: MaxResponseAppointmentDTO })
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxAppointment() {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.appointmentService.getMaxAppointment();
   }
 }

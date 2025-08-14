@@ -4,7 +4,7 @@ import {
   CreateTenantDTO,
   ReadTenantDTO,
   UpdateTenantDTO,
-} from 'src/dtos/tenantDTO';
+} from 'src/dtos/tenant.dto';
 import { Tenant } from 'src/models/tenant.model';
 
 export class TenantMapper {

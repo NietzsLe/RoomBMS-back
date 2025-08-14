@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryColumn,
 } from 'typeorm';
-import { AccessRule } from './accessRule.model';
+import { AccessRule } from './access-rule.model';
 import { User } from './user.model';
 
 import { Expose } from '@nestjs/class-transformer';

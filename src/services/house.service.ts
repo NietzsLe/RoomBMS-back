@@ -4,7 +4,7 @@ import {
   CreateHouseDTO,
   MaxResponseHouseDTO,
   UpdateHouseDTO,
-} from 'src/dtos/houseDTO';
+} from 'src/dtos/house.dto';
 import { HouseMapper } from 'src/mappers/house.mapper';
 import { House } from 'src/models/house.model';
 import {
@@ -20,7 +20,7 @@ import {
 } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { HouseConstraint } from './constraints/house.helper';
-import { AdministrativeUnitConstraint } from './constraints/administrativeUnit.helper';
+import { AdministrativeUnitConstraint } from './constraints/administrative-unit.helper';
 import { RoomService } from './room.service';
 import { AuthService, PermTypeEnum } from './auth.service';
 import { removeByBlacklist } from './helper';

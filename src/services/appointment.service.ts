@@ -8,7 +8,7 @@ import {
   UpdateAppointmentForRelatedUserDTO,
   UpdateDepositAgreementForRelatedUserDTO,
   UpdateTenantForRelatedUserDTO,
-} from 'src/dtos/appointmentDTO';
+} from 'src/dtos/appointment.dto';
 import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { Appointment } from 'src/models/appointment.model';
 import {
@@ -31,21 +31,21 @@ import {
 } from './constraints/appointment.helper';
 import { RoomConstraint } from './constraints/room.helper';
 import { TenantConstraint } from './constraints/tenant.helper';
-import { DepositAgreementConstraint } from './constraints/depositAgreement.helper';
-import { DepositAgreement } from 'src/models/depositAgreement.model';
+import { DepositAgreementConstraint } from './constraints/deposit-agreement.helper';
+import { DepositAgreement } from 'src/models/deposit-agreement.model';
 import { Tenant } from 'src/models/tenant.model';
 // import { TelegramBotService } from './telegramBot.service';
 
 import { AuthService, PermTypeEnum } from './auth.service';
 import { removeByBlacklist } from './helper';
-import { ReadRoomDTO } from 'src/dtos/roomDTO';
-import { ReadHouseDTO } from 'src/dtos/houseDTO';
-import { ReadTenantDTO } from 'src/dtos/tenantDTO';
-import { ReadUserDTO } from 'src/dtos/userDTO';
-import { ReadDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
+import { ReadRoomDTO } from 'src/dtos/room.dto';
+import { ReadHouseDTO } from 'src/dtos/house.dto';
+import { ReadTenantDTO } from 'src/dtos/tenant.dto';
+import { ReadUserDTO } from 'src/dtos/user.dto';
+import { ReadDepositAgreementDTO } from 'src/dtos/deposit-agreement.dto';
 import { AppointmentStatus } from 'src/models/helper';
 import { plainToClass } from '@nestjs/class-transformer';
-import { DiscordService } from './discordBot.service';
+import { DiscordService } from './discord-bot.service';
 
 @Injectable()
 export class AppointmentService {

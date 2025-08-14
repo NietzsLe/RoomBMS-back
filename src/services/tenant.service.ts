@@ -4,13 +4,13 @@ import {
   CreateTenantDTO,
   MaxResponseTenantDTO,
   UpdateTenantDTO,
-} from 'src/dtos/tenantDTO';
+} from 'src/dtos/tenant.dto';
 
 import { Tenant } from 'src/models/tenant.model';
 import { IsNull, MoreThan, Not, Repository } from 'typeorm';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { TenantConstraint } from './constraints/tenant.helper';
-import { AdministrativeUnitConstraint } from './constraints/administrativeUnit.helper';
+import { AdministrativeUnitConstraint } from './constraints/administrative-unit.helper';
 import { TenantMapper } from 'src/mappers/tenant.mapper';
 import { AuthService, PermTypeEnum } from './auth.service';
 import { removeByBlacklist } from './helper';

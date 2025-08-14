@@ -9,7 +9,7 @@ import {
   OtherResourceDTO,
   ReadAppointmentDTO,
   UpdateAppointmentDTO,
-} from 'src/dtos/appointmentDTO';
+} from 'src/dtos/appointment.dto';
 import { Appointment } from 'src/models/appointment.model';
 
 export class AppointmentMapper {

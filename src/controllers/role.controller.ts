@@ -15,12 +15,14 @@ import {
   ReadRoleDTO,
   CreateResponseRoleDTO,
   CreateRoleDTO,
-} from 'src/dtos/roleDTO';
+  AutocompleteRoleDTO,
+  MaxResponseRoleDTO,
+} from 'src/dtos/role.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { NotEmptyCheckPipe } from 'src/controllers/pipes/notEmptyCheck.pipe';
+import { NotEmptyCheckPipe } from 'src/controllers/pipes/not-empty-check.pipe';
 import { RoleService } from 'src/services/role.service';
 import { Request } from 'express';
-import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
+import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 
 @Controller('roles')
 @UseGuards(AuthGuard)
@@ -50,5 +52,36 @@ export class RoleController {
   @Delete('hard-delete/:id')
   async delete_soft(@Param('id', NotEmptyCheckPipe) id: string) {
     await this.roleService.hardRemove(id);
+  }
+
+  // ===========================================
+  // =      🔍 AUTOCOMPLETE & MAX ENDPOINTS    =
+  // ===========================================
+  /**
+   * Endpoint: roles/autocomplete
+   * Trả về danh sách autocomplete cho roles
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('autocomplete')
+  @ApiOkResponse({ type: [AutocompleteRoleDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=10')
+  async getAutocomplete(
+    @Query('offsetID', NotEmptyCheckPipe) offsetID: string = '',
+  ) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.roleService.getAutocomplete(offsetID);
+  }
+  /**
+   * Endpoint: roles/max
+   * Trả về thông tin max cho roles
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('max')
+  @ApiOkResponse({ type: MaxResponseRoleDTO })
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxRole() {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.roleService.getMaxRole();
   }
 }
