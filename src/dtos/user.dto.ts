@@ -72,10 +72,12 @@ export class CreateUserDTO {
     },
   )
   password: string;
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
   bankAccount: string;
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
   bankName: string;
 }
