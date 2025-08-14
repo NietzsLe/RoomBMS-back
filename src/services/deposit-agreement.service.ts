@@ -235,12 +235,17 @@ export class DepositAgreementService {
           room: { house: { administrativeUnit: true } },
           tenant: true,
           appointment: {
-            madeUser: { team: true, manager: true, roles: true, leader: true },
+            madeUser: {
+              team: true,
+              manager: true,
+              roles: true,
+              leader: { team: true },
+            },
             takenOverUser: {
               team: true,
               manager: true,
               roles: true,
-              leader: true,
+              leader: { team: true },
             },
           },
           manager: true,

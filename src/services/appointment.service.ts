@@ -404,10 +404,15 @@ export class AppointmentService {
           takenOverUser: {
             team: true,
             roles: true,
-            leader: true,
+            leader: { team: true },
             manager: true,
           },
-          madeUser: { team: true, roles: true, leader: true, manager: true },
+          madeUser: {
+            team: true,
+            roles: true,
+            leader: { team: true },
+            manager: true,
+          },
           tenant: true,
           manager: true,
         },
