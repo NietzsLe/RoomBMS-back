@@ -32,8 +32,6 @@ import {
 } from './pipes/not-duplicate-value.pipe';
 
 @Controller('administrative-units')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class AdministrativeUnitController {
   constructor(private administrativeUnitService: AdministrativeUnitService) {}
   // ===========================================
@@ -80,11 +78,15 @@ export class AdministrativeUnitController {
     return await this.administrativeUnitService.getProvinceAutocomplete();
   }
   @Get('province-unit')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   async findAllProvince() {
     return this.administrativeUnitService.findAllProvince();
   }
   @Get('district-unit')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
   async findAllDistrict(
     @Query('provinceUnitID', ParseIntPipe) provinceUnitID: number,
@@ -92,6 +94,8 @@ export class AdministrativeUnitController {
     return this.administrativeUnitService.findAllDistrict(provinceUnitID);
   }
   @Get('ward-unit')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   async findAllWard(
     @Query('districtUnitID', ParseIntPipe) districtUnitID: number,
@@ -99,16 +103,18 @@ export class AdministrativeUnitController {
     return this.administrativeUnitService.findAllWard(districtUnitID);
   }
   @Get('province-unit/inactive')
-  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   async findInactiveAllProvince() {
     return this.administrativeUnitService.findInactiveAllProvince();
   }
   @Get('district-unit/inactive')
-  @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: [ReadDistrictUnitDTO] })
   async findInactiveAllDistrict(
     @Query('provinceUnitID', ParseIntPipe) provinceUnitID: number,
   ) {
@@ -117,17 +123,19 @@ export class AdministrativeUnitController {
     );
   }
   @Get('ward-unit/inactive')
-  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: [ReadProvinceUnitDTO] })
   async findInactiveAllWard(
     @Query('districtUnitID', ParseIntPipe) districtUnitID: number,
   ) {
     return this.administrativeUnitService.findInactiveAllWard(districtUnitID);
   }
+  @Delete('ward-unit')
   @UseGuards(AuthGuard)
   @UseGuards(JustAdminRolesGuard)
-  @Delete('ward-unit')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async softDeleteWards(@Body() dto: DeleteAndRecoverWardUnitDTO) {
     await this.administrativeUnitService.softRemoveWards(
@@ -135,9 +143,10 @@ export class AdministrativeUnitController {
       dto.wardNames,
     );
   }
+  @Delete('ward-unit/hard-delete')
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
-  @Delete('ward-unit/hard-delete')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async hardDeleteWards(
     @Body(WardCodesCheckPipe) dto: DeleteAndRecoverWardUnitDTO,
@@ -147,9 +156,10 @@ export class AdministrativeUnitController {
       dto.wardNames,
     );
   }
+  @Delete('district-unit')
   @UseGuards(AuthGuard)
   @UseGuards(JustAdminRolesGuard)
-  @Delete('district-unit')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async softDeleteDistricts(@Body() dto: DeleteAndRecoverDistrictUnitDTO) {
     await this.administrativeUnitService.softRemoveDistricts(
@@ -158,8 +168,10 @@ export class AdministrativeUnitController {
     );
   }
   @UseGuards(AuthGuard)
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('district-unit/hard-delete')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async hardDeleteDistricts(
     @Body(DistrictCodesCheckPipe) dto: DeleteAndRecoverDistrictUnitDTO,
@@ -169,9 +181,10 @@ export class AdministrativeUnitController {
       dto.districtNames,
     );
   }
+  @Delete('province-unit')
   @UseGuards(AuthGuard)
   @UseGuards(JustAdminRolesGuard)
-  @Delete('province-unit')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async softDeleteProvinces(@Body() dto: DeleteAndRecoverProvinceUnitDTO) {
     await this.administrativeUnitService.softRemoveProvinces(
@@ -179,9 +192,10 @@ export class AdministrativeUnitController {
       dto.provinceNames,
     );
   }
+  @Delete('province-unit/hard-delete')
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
-  @Delete('province-unit/hard-delete')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async hardDeleteProvinces(
     @Body(ProvinceCodesCheckPipe) dto: DeleteAndRecoverProvinceUnitDTO,
@@ -191,9 +205,10 @@ export class AdministrativeUnitController {
       dto.provinceNames,
     );
   }
+  @Post('ward-unit/recover')
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
-  @Post('ward-unit/recover')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async recoverWard(
     @Body(WardCodesCheckPipe) dto: DeleteAndRecoverWardUnitDTO,
@@ -203,9 +218,10 @@ export class AdministrativeUnitController {
       dto.wardNames,
     );
   }
+  @Post('district-unit/recover')
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
-  @Post('district-unit/recover')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async recoverDistricts(
     @Body(DistrictCodesCheckPipe) dto: DeleteAndRecoverDistrictUnitDTO,
@@ -215,9 +231,10 @@ export class AdministrativeUnitController {
       dto.districtNames,
     );
   }
+  @Post('province-unit/recover')
   @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
-  @Post('province-unit/recover')
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async recoverProvinces(
     @Body(ProvinceCodesCheckPipe) dto: DeleteAndRecoverProvinceUnitDTO,

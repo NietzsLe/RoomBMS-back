@@ -32,11 +32,12 @@ import {
 import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 
 @Controller('users')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class UserController {
   constructor(private userService: UserService) {}
+
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadUserDTO] })
   @ApiQuery({ name: 'username', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -56,7 +57,10 @@ export class UserController {
       requestorRoleIDs,
     );
   }
+
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadUserDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'username', required: false })
@@ -67,13 +71,19 @@ export class UserController {
   ) {
     return await this.userService.findInactiveAll(username, offsetID);
   }
+
   @ApiOkResponse({ type: CreateResponseUserDTO })
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async create(@Req() request: Request, @Body() dto: CreateUserDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     return await this.userService.create(requestorID, dto);
   }
+
   @Patch()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(
     @Req() request: Request,
     @Body(RoleIDsCheckPipe) dto: UpdateUserDTO,
@@ -83,7 +93,10 @@ export class UserController {
     //console.log('@Controller: \n', requestorRoleIDs);
     await this.userService.update(requestorRoleIDs, requestorID, dto);
   }
+
   @Delete(':username')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async softDelete(
     @Req() request: Request,
     @Param('username', NotEmptyCheckPipe) username: string,
@@ -92,6 +105,7 @@ export class UserController {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     await this.userService.softRemove(requestorRoleIDs, requestorID, username);
   }
+
   @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete')
   async hardDelete(@Body(UsernamesCheckPipe) dto: HardDeleteAndRecoverUserDTO) {
@@ -99,6 +113,8 @@ export class UserController {
   }
   // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async recover(@Body(UsernamesCheckPipe) dto: HardDeleteAndRecoverUserDTO) {
     await this.userService.recover(dto.usernames);
   }
