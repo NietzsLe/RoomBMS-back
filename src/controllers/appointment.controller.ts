@@ -34,12 +34,13 @@ import { AppointmentIDsCheckPipe } from './pipes/not-duplicate-value.pipe';
 import { ParseDatePipe } from './pipes/date.pipe';
 
 @Controller('appointments')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class AppointmentController {
   constructor(private appointmentService: AppointmentService) {}
+
   @ApiQuery({ name: 'relatedTeamID', required: false })
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadAppointmentDTO] })
   @ApiQuery({ name: 'appointmentID', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -96,6 +97,8 @@ export class AppointmentController {
     );
   }
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadAppointmentDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'appointmentID', required: false })
@@ -113,12 +116,16 @@ export class AppointmentController {
   }
   @ApiOkResponse({ type: CreateResponseAppointmentDTO })
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async create(@Req() request: Request, @Body() dto: CreateAppointmentDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     return await this.appointmentService.create(requestorID, dto);
   }
 
   @Patch('taken-over')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async takenOver(
     @Req() request: Request,
     @Body() dto: TakenOverAppointmentDTO,
@@ -129,6 +136,8 @@ export class AppointmentController {
   }
 
   @Patch()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(@Req() request: Request, @Body() dto: UpdateAppointmentDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
@@ -137,6 +146,8 @@ export class AppointmentController {
   }
 
   @Patch('by-related-user')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async relatedUserUpdate(
     @Req() request: Request,
     @Body() dto: UpdateAppointmentForRelatedUserDTO,
@@ -152,6 +163,8 @@ export class AppointmentController {
   }
 
   @Patch('deposit-agreement/by-related-user')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async relatedUserDepositAgreementUpdate(
     @Req() request: Request,
     @Body() dto: UpdateDepositAgreementForRelatedUserDTO,
@@ -166,6 +179,8 @@ export class AppointmentController {
     );
   }
   @Patch('tenant/by-related-user')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async relatedUserTenantUpdate(
     @Req() request: Request,
     @Body() dto: UpdateTenantForRelatedUserDTO,
@@ -181,6 +196,8 @@ export class AppointmentController {
   }
 
   @Delete(':appointmentID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async softDelete(
     @Req() request: Request,
     @Param('appointmentID', ParseIntPipe) appointmentID: number,
@@ -203,6 +220,8 @@ export class AppointmentController {
   }
   // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async recover(
     @Body(AppointmentIDsCheckPipe) dto: HardDeleteAndRecoverAppointmentDTO,
   ) {
