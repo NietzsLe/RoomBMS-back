@@ -46,8 +46,6 @@ export class TeamController {
    * Được di chuyển từ UserController
    */
   @Get('max')
-  @UseGuards(AuthGuard)
-  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [MaxResponseTeamDTO] })
   @Header('Cache-Control', 'max-age=5')
   async getMaxTeam() {
