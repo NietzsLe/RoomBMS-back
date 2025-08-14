@@ -7,7 +7,7 @@ import {
   CreateStreetDTO,
   MaxResponseStreetDTO,
   UpdateStreetDTO,
-} from '../dtos/streetDTO';
+} from '../dtos/street.dto';
 import { StreetConstraint } from './constraints/street.helper';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 

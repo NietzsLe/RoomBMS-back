@@ -10,7 +10,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 
-import { DepositAgreement } from './depositAgreement.model'; // Đảm bảo đường dẫn đúng đến file DepositAgreement
+import { DepositAgreement } from './deposit-agreement.model'; // Đảm bảo đường dẫn đúng đến file DepositAgreement
 
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { House } from './house.model';
@@ -18,7 +18,7 @@ import { Street } from './street.model';
 import { Appointment } from './appointment.model';
 import { Image } from './image.model';
 import { User } from './user.model';
-import { AdministrativeUnit } from './administrativeUnit.model';
+import { AdministrativeUnit } from './administrative-unit.model';
 import { HouseMapper } from 'src/mappers/house.mapper';
 
 @Entity('room') // Tên bảng trong cơ sở dữ liệu

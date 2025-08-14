@@ -1,6 +1,6 @@
 import { classToPlain, plainToClass } from '@nestjs/class-transformer';
 
-import { CreateRoomDTO, ReadRoomDTO, UpdateRoomDTO } from 'src/dtos/roomDTO';
+import { CreateRoomDTO, ReadRoomDTO, UpdateRoomDTO } from 'src/dtos/room.dto';
 import { Room } from 'src/models/room.model';
 
 export class RoomMapper {

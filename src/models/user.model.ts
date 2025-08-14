@@ -32,6 +32,19 @@ export class User {
     groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
   })
   phoneNumber: string;
+  /**
+   * Số tài khoản ngân hàng của người dùng
+   */
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  bankAccount: string;
+  /**
+   * Tên ngân hàng mà người dùng sử dụng
+   */
+  @Column({ nullable: true })
+  @Expose({ groups: ['TO-DTO'] })
+  bankName: string;
+
   @Column()
   @Expose({ groups: ['NOT-TO-DTO'] })
   hashedPassword: string;

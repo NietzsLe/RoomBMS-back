@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { User } from './user.model';
 import { Room } from './room.model';
-import { DepositAgreement } from './depositAgreement.model';
+import { DepositAgreement } from './deposit-agreement.model';
 import { Tenant } from './tenant.model';
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { House } from './house.model';

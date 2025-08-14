@@ -5,7 +5,7 @@ import {
   MaxResponseRoomDTO,
   UpdateRoomDTO,
   FindRoomQueryDTO,
-} from 'src/dtos/roomDTO';
+} from 'src/dtos/room.dto';
 import { RoomMapper } from 'src/mappers/room.mapper';
 import { Room } from 'src/models/room.model';
 import { IsNull, MoreThan, Not, Repository } from 'typeorm';
@@ -13,7 +13,7 @@ import { RoomConstraint } from './constraints/room.helper';
 import { UserConstraint, UserProcess } from './constraints/user.helper';
 import { HouseConstraint } from './constraints/house.helper';
 import { House } from 'src/models/house.model';
-import { RoomImageService } from './roomImage.service';
+import { RoomImageService } from './room-image.service';
 import { removeByBlacklist } from './helper';
 import { AuthService, PermTypeEnum } from './auth.service';
 

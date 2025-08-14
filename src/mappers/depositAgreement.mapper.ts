@@ -4,8 +4,8 @@ import {
   CreateDepositAgreementDTO,
   ReadDepositAgreementDTO,
   UpdateDepositAgreementDTO,
-} from 'src/dtos/depositAgreementDTO';
-import { DepositAgreement } from 'src/models/depositAgreement.model';
+} from 'src/dtos/deposit-agreement.dto';
+import { DepositAgreement } from 'src/models/deposit-agreement.model';
 
 export class DepositAgreementMapper {
   // Chuyển đổi từ CreateAppointmentDTO sang Appointment entity

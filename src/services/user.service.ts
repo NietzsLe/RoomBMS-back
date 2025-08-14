@@ -6,7 +6,7 @@ import {
   MaxResponseTeamDTO,
   MaxResponseUserDTO,
   UpdateUserDTO,
-} from 'src/dtos/userDTO';
+} from 'src/dtos/user.dto';
 import { UserMapper } from 'src/mappers/user.mapper';
 import { User } from 'src/models/user.model';
 import {

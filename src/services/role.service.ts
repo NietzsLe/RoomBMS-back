@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateRoleDTO, MaxResponseRoleDTO } from 'src/dtos/roleDTO';
+import { CreateRoleDTO, MaxResponseRoleDTO } from 'src/dtos/role.dto';
 import { RoleMapper } from 'src/mappers/role.mapper';
 import { Role } from 'src/models/role.model';
 

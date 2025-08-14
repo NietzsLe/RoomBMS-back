@@ -8,8 +8,10 @@ import {
   Post,
   UseGuards,
   Req,
+  Query,
+  Header,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { StreetService } from 'src/services/street.service';
 import { Request } from 'express';
@@ -17,7 +19,9 @@ import {
   CreateStreetDTO,
   UpdateStreetDTO,
   ReadStreetDTO,
-} from 'src/dtos/streetDTO';
+  AutocompleteStreetDTO,
+  MaxResponseStreetDTO,
+} from 'src/dtos/street.dto';
 
 @Controller('streets')
 @UseGuards(AuthGuard)
@@ -99,5 +103,34 @@ export class StreetController {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     await this.streetService.recover(requestorRoleIDs, requestorID, [streetID]);
+  }
+
+  // ===========================================
+  // =      🔍 AUTOCOMPLETE & MAX ENDPOINTS    =
+  // ===========================================
+  /**
+   * Endpoint: streets/autocomplete
+   * Trả về danh sách autocomplete cho streets
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('autocomplete')
+  @ApiOkResponse({ type: [AutocompleteStreetDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=10')
+  async getAutocomplete(@Query('offsetID', ParseIntPipe) offsetID: number) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.streetService.getAutocomplete(offsetID);
+  }
+  /**
+   * Endpoint: streets/max
+   * Trả về thông tin max cho streets
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('max')
+  @ApiOkResponse({ type: MaxResponseStreetDTO })
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxStreet() {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.streetService.getMaxStreetID();
   }
 }

@@ -5,17 +5,17 @@ import { In, IsNull, Not, Repository } from 'typeorm';
 import { Room } from 'src/models/room.model';
 import { House } from 'src/models/house.model';
 import { Tenant } from 'src/models/tenant.model';
-import { DepositAgreement } from 'src/models/depositAgreement.model';
+import { DepositAgreement } from 'src/models/deposit-agreement.model';
 import { Appointment } from 'src/models/appointment.model';
 import { Street } from 'src/models/street.model';
-import { UpdateAppointmentDTO } from 'src/dtos/appointmentDTO';
-import { UpdateHouseDTO } from 'src/dtos/houseDTO';
-import { UpdateRoomDTO } from 'src/dtos/roomDTO';
-import { UpdateDepositAgreementDTO } from 'src/dtos/depositAgreementDTO';
-import { UpdateTenantDTO } from 'src/dtos/tenantDTO';
-import { UpdateUserDTO } from 'src/dtos/userDTO';
+import { UpdateAppointmentDTO } from 'src/dtos/appointment.dto';
+import { UpdateHouseDTO } from 'src/dtos/house.dto';
+import { UpdateRoomDTO } from 'src/dtos/room.dto';
+import { UpdateDepositAgreementDTO } from 'src/dtos/deposit-agreement.dto';
+import { UpdateTenantDTO } from 'src/dtos/tenant.dto';
+import { UpdateUserDTO } from 'src/dtos/user.dto';
 import { Team } from 'src/models/team.model';
-import { UpdateStreetDTO } from 'src/dtos/streetDTO';
+import { UpdateStreetDTO } from 'src/dtos/street.dto';
 
 @Injectable()
 export class UserConstraint {

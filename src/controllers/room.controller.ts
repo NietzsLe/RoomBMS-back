@@ -20,9 +20,9 @@ import { extname } from 'path';
 import {
   DeleteImagesDTO,
   UploadResponseImageDTO,
-} from 'src/dtos/roomImagesDTO';
+} from 'src/dtos/room-images.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { RoomImageService } from 'src/services/roomImage.service';
+import { RoomImageService } from 'src/services/room-image.service';
 import { Request } from 'express';
 import { RoomService } from 'src/services/room.service';
 import {
@@ -31,7 +31,9 @@ import {
   CreateRoomDTO,
   HardDeleteAndRecoverRoomDTO,
   UpdateRoomDTO,
-} from 'src/dtos/roomDTO';
+  AutocompleteRoomDTO,
+  MaxResponseRoomDTO,
+} from 'src/dtos/room.dto';
 import {
   ApiBody,
   ApiConsumes,
@@ -39,12 +41,13 @@ import {
   ApiOkResponse,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
+import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 import {
   ImageNamesCheckPipe,
   RoomIDsCheckPipe,
-} from './pipes/notDuplicateValue.pipe';
-import { FileTypeValidationPipe } from './pipes/roomImage.pipe';
+} from './pipes/not-duplicate-value.pipe';
+import { FileTypeValidationPipe } from './pipes/room-image.pipe';
+import { CacheTTL } from '@nestjs/cache-manager';
 
 @UseGuards(AuthGuard)
 @Controller('rooms')
@@ -260,53 +263,6 @@ export class RoomController {
       streetID,
     );
   }
-  // @Get('for-saler')
-  // @ApiOkResponse({ type: [ReadRoomDTO] })
-  // @ApiQuery({ name: 'roomID', required: false })
-  // @ApiQuery({ name: 'offsetID', required: false })
-  // @ApiQuery({ name: 'provinceCode', required: false })
-  // @ApiQuery({ name: 'districtCode', required: false })
-  // @ApiQuery({ name: 'wardCode', required: false })
-  // @ApiQuery({ name: 'houseID', required: false })
-  // @ApiQuery({ name: 'minPrice', required: false })
-  // @ApiQuery({ name: 'maxPrice', required: false })
-  // @ApiQuery({ name: 'isHot', required: false })
-  // @ApiQuery({ name: 'sortBy', required: false })
-  // @ApiQuery({ name: 'name', required: false })
-  // @Header('Cache-Control', 'max-age=2')
-  // async findAllForSaler(
-  //   @Req() request: Request,
-  //   @Query('offsetID', new ParseIntPipe({ optional: true }))
-  //   offsetID: number = 0,
-  //   @Query('roomID', new ParseIntPipe({ optional: true })) roomID: number,
-  //   @Query('provinceCode', new ParseIntPipe({ optional: true }))
-  //   provinceCode: number,
-  //   @Query('districtCode', new ParseIntPipe({ optional: true }))
-  //   districtCode: number,
-  //   @Query('wardCode', new ParseIntPipe({ optional: true })) wardCode: number,
-  //   @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
-  //   @Query('minPrice', new ParseIntPipe({ optional: true })) minPrice: number,
-  //   @Query('maxPrice', new ParseIntPipe({ optional: true })) maxPrice: number,
-  //   @Query('isHot', new ParseBoolPipe({ optional: true })) isHot: boolean,
-  //   @Query('sortBy') sortBy: string,
-  //   @Query('name') name: string,
-  // ) {
-  //   const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-  //   return await this.roomService.findAllForSaler(
-  //     roomID,
-  //     offsetID,
-  //     provinceCode,
-  //     districtCode,
-  //     wardCode,
-  //     houseID,
-  //     minPrice,
-  //     maxPrice,
-  //     isHot,
-  //     sortBy,
-  //     name,
-  //     requestorRoleIDs,
-  //   );
-  // }
   @Get('inactive')
   @ApiOkResponse({ type: [ReadRoomDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
@@ -408,6 +364,7 @@ export class RoomController {
   ) {
     await this.roomImageService.hardDelete(roomID, dto.imageNames);
   }
+
   @UseGuards(JustSuperAdminRoleGuard)
   @Post(':roomID/images/recover')
   async imageRecover(
@@ -415,5 +372,44 @@ export class RoomController {
     @Body(ImageNamesCheckPipe) dto: DeleteImagesDTO,
   ) {
     await this.roomImageService.recover(roomID, dto.imageNames);
+  }
+
+  // ===========================================
+  // =      🔍 AUTOCOMPLETE & MAX ENDPOINTS    =
+  // ===========================================
+  /**
+   * Endpoint: rooms/autocomplete
+   * Trả về danh sách autocomplete cho rooms
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('autocomplete')
+  @ApiOkResponse({ type: [AutocompleteRoomDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @ApiQuery({ name: 'houseID', required: false })
+  @CacheTTL(10000)
+  @Header('Cache-Control', 'max-age=10')
+  async getAutocomplete(
+    @Query('offsetID', ParseIntPipe)
+    offsetID: number = 0,
+    @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
+  ) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.roomService.getAutocomplete(offsetID, houseID);
+  }
+  /**
+   * Endpoint: rooms/max
+   * Trả về thông tin max cho rooms
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('max')
+  @ApiOkResponse({ type: MaxResponseRoomDTO })
+  @ApiQuery({ name: 'houseID', required: false })
+  @CacheTTL(5000)
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxRoom(
+    @Query('houseID', new ParseIntPipe({ optional: true })) houseID: number,
+  ) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.roomService.getMaxRoom(houseID);
   }
 }

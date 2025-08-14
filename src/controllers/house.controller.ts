@@ -20,12 +20,15 @@ import {
   CreateResponseHouseDTO,
   HardDeleteAndRecoverHouseDTO,
   UpdateHouseDTO,
-} from 'src/dtos/houseDTO';
+  AutocompleteHouseDTO,
+  MaxResponseHouseDTO,
+} from 'src/dtos/house.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
+import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 import { HouseService } from 'src/services/house.service';
-import { HouseIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
+import { HouseIDsCheckPipe } from './pipes/not-duplicate-value.pipe';
 import { ParseDatePipe } from './pipes/date.pipe';
+import { CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('houses')
 @UseGuards(AuthGuard)
@@ -113,5 +116,39 @@ export class HouseController {
   @Post('recover')
   async recover(@Body(HouseIDsCheckPipe) dto: HardDeleteAndRecoverHouseDTO) {
     await this.houseService.recover(dto.houseIDs);
+  }
+
+  // ===========================================
+  // =      🔍 AUTOCOMPLETE & MAX ENDPOINTS    =
+  // ===========================================
+  /**
+   * Endpoint: houses/autocomplete
+   * Trả về danh sách autocomplete cho houses
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('autocomplete')
+  @ApiOkResponse({ type: [AutocompleteHouseDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @CacheTTL(10000)
+  @Header('Cache-Control', 'max-age=10')
+  async getAutocomplete(
+    @Query('offsetID', ParseIntPipe)
+    offsetID: number = 0,
+  ) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.houseService.getAutocomplete(offsetID);
+  }
+  /**
+   * Endpoint: houses/max
+   * Trả về thông tin max cho houses
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('max')
+  @ApiOkResponse({ type: MaxResponseHouseDTO })
+  @CacheTTL(5000)
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxHouse() {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.houseService.getMaxHouse();
   }
 }

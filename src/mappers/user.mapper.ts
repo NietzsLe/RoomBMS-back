@@ -6,9 +6,9 @@ import {
   CreateUserDTO,
   UpdateUserDTO,
   ReadUserDTO,
-} from 'src/dtos/userDTO';
+} from 'src/dtos/user.dto';
 import { User } from 'src/models/user.model';
-import { AccessRuleMapper } from './accessRule.mapper';
+import { AccessRuleMapper } from './access-rule.mapper';
 
 function mergeAccessRuleMap(
   map1: Map<string, AccessRuleWithoutRoleDTO>,

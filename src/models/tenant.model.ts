@@ -10,7 +10,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { DepositAgreement } from './depositAgreement.model'; // Đảm bảo đường dẫn đúng đến file DepositAgreement
+import { DepositAgreement } from './deposit-agreement.model'; // Đảm bảo đường dẫn đúng đến file DepositAgreement
 
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
 import { Appointment } from './appointment.model';

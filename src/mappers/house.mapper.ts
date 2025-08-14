@@ -3,7 +3,7 @@ import {
   CreateHouseDTO,
   ReadHouseDTO,
   UpdateHouseDTO,
-} from 'src/dtos/houseDTO';
+} from 'src/dtos/house.dto';
 import { House } from 'src/models/house.model';
 
 export class HouseMapper {

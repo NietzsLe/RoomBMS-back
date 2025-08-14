@@ -1,5 +1,5 @@
 import { classToPlain, plainToClass } from '@nestjs/class-transformer';
-import { CreateRoleDTO } from 'src/dtos/roleDTO';
+import { CreateRoleDTO } from 'src/dtos/role.dto';
 import { Role } from 'src/models/role.model';
 
 export class RoleMapper {

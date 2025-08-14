@@ -13,7 +13,7 @@ import { Room } from './room.model';
 import { Street } from './street.model';
 
 import { Expose, Transform, Type } from '@nestjs/class-transformer';
-import { AdministrativeUnit } from './administrativeUnit.model';
+import { AdministrativeUnit } from './administrative-unit.model';
 import { User } from './user.model';
 import { StreetMapper } from 'src/mappers/street.mapper';
 

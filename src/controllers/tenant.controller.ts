@@ -20,11 +20,13 @@ import {
   CreateTenantDTO,
   HardDeleteAndRecoverTenantDTO,
   UpdateTenantDTO,
-} from 'src/dtos/tenantDTO';
+  AutocompleteTenantDTO,
+  MaxResponseTenantDTO,
+} from 'src/dtos/tenant.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { JustSuperAdminRoleGuard } from 'src/guards/justAdminRoles.guard';
+import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 import { TenantService } from 'src/services/tenant.service';
-import { TenantIDsCheckPipe } from './pipes/notDuplicateValue.pipe';
+import { TenantIDsCheckPipe } from './pipes/not-duplicate-value.pipe';
 
 @Controller('tenants')
 @UseGuards(AuthGuard)
@@ -101,5 +103,36 @@ export class TenantController {
   @Post('recover')
   async recover(@Body(TenantIDsCheckPipe) dto: HardDeleteAndRecoverTenantDTO) {
     await this.tenantService.recover(dto.tenantIDs);
+  }
+  // ===========================================
+  // =      🔍 AUTOCOMPLETE & MAX ENDPOINTS    =
+  // ===========================================
+  /**
+   * Endpoint: tenants/autocomplete
+   * Trả về danh sách autocomplete cho tenants
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('autocomplete')
+  @ApiOkResponse({ type: [AutocompleteTenantDTO] })
+  @ApiQuery({ name: 'offsetID', required: false })
+  @Header('Cache-Control', 'max-age=10')
+  async getAutocomplete(
+    @Query('offsetID', ParseIntPipe)
+    offsetID: number = 0,
+  ) {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.tenantService.getAutocomplete(offsetID);
+  }
+  /**
+   * Endpoint: tenants/max
+   * Trả về thông tin max cho tenants
+   * Được di chuyển từ SupportServiceController
+   */
+  @Get('max')
+  @ApiOkResponse({ type: MaxResponseTenantDTO })
+  @Header('Cache-Control', 'max-age=5')
+  async getMaxTenant() {
+    // 💡 NOTE(assistant): Di chuyển từ support-service.controller.ts
+    return await this.tenantService.getMaxTenant();
   }
 }
