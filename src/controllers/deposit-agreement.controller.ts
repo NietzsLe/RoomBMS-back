@@ -30,11 +30,11 @@ import { DepositAgreementIDsCheckPipe } from './pipes/not-duplicate-value.pipe';
 import { ParseDatePipe } from './pipes/date.pipe';
 
 @Controller('deposit-agreements')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class DepositAgreementController {
   constructor(private depositAgreementService: DepositAgreementService) {}
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
   @ApiQuery({ name: 'depositAgreementID', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
@@ -64,6 +64,8 @@ export class DepositAgreementController {
     );
   }
   @Get('for-sheet')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
   @ApiQuery({ name: 'depositAgreementID', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
@@ -93,6 +95,8 @@ export class DepositAgreementController {
     );
   }
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadDepositAgreementDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'depositAgreementID', required: false })
@@ -108,8 +112,10 @@ export class DepositAgreementController {
       offsetID,
     );
   }
-  @ApiOkResponse({ type: CreateResponseDepositAgreementDTO })
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: CreateResponseDepositAgreementDTO })
   async create(
     @Req() request: Request,
     @Body() dto: CreateDepositAgreementDTO,
@@ -118,6 +124,8 @@ export class DepositAgreementController {
     return await this.depositAgreementService.create(requestorID, dto);
   }
   @Patch()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(
     @Req() request: Request,
     @Body() dto: UpdateDepositAgreementDTO,
@@ -132,6 +140,8 @@ export class DepositAgreementController {
     );
   }
   @Delete(':depositAgreementID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async softDelete(
     @Req() request: Request,
     @Param('depositAgreementID', ParseIntPipe) depositAgreementID: number,
@@ -144,8 +154,10 @@ export class DepositAgreementController {
       depositAgreementID,
     );
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async hardDelete(
     @Body(DepositAgreementIDsCheckPipe)
     dto: HardDeleteAndRecoverDepositAgreementDTO,
@@ -154,6 +166,9 @@ export class DepositAgreementController {
   }
   // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async recover(
     @Body(DepositAgreementIDsCheckPipe)
     dto: HardDeleteAndRecoverDepositAgreementDTO,

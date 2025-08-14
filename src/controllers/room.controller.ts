@@ -49,15 +49,15 @@ import {
 import { FileTypeValidationPipe } from './pipes/room-image.pipe';
 import { CacheTTL } from '@nestjs/cache-manager';
 
-@UseGuards(AuthGuard)
 @Controller('rooms')
-@ApiCookieAuth('JWTAuth')
 export class RoomController {
   constructor(
     private roomImageService: RoomImageService,
     private roomService: RoomService,
   ) {}
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadRoomDTO] })
   @ApiQuery({ name: 'roomID', required: false })
   @ApiQuery({ name: 'provinceCode', required: false })
@@ -264,6 +264,8 @@ export class RoomController {
     );
   }
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadRoomDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'roomID', required: false })
@@ -276,12 +278,16 @@ export class RoomController {
     return await this.roomService.findInactiveAll(roomID, offsetID);
   }
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: CreateResponseRoomDTO })
   async create(@Req() request: Request, @Body() dto: CreateRoomDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     return await this.roomService.create(requestorID, dto);
   }
   @Patch()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(@Req() request: Request, @Body() dto: UpdateRoomDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
@@ -290,6 +296,8 @@ export class RoomController {
   }
 
   @Post(':roomID/images')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @UseInterceptors(FilesInterceptor('files'))
   @Post('upload')
   @ApiOkResponse({ type: [UploadResponseImageDTO] })
@@ -322,6 +330,8 @@ export class RoomController {
   }
 
   @Delete(':roomID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async softDelete(
     @Req() request: Request,
     @Param('roomID', ParseIntPipe) roomID: number,
@@ -330,18 +340,24 @@ export class RoomController {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     await this.roomService.softRemove(requestorRoleIDs, requestorID, roomID);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async hardDelete(@Body(RoomIDsCheckPipe) dto: HardDeleteAndRecoverRoomDTO) {
     await this.roomService.hardRemove(dto.roomIDs);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async recover(@Body(RoomIDsCheckPipe) dto: HardDeleteAndRecoverRoomDTO) {
     await this.roomService.recover(dto.roomIDs);
   }
 
   @Delete(':roomID/images')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async imageSoftDelete(
     @Req() request: Request,
     @Param('roomID', ParseIntPipe) roomID: number,
@@ -356,8 +372,10 @@ export class RoomController {
       dto.imageNames,
     );
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete(':roomID/images/hard-delete')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async imageHardDelete(
     @Param('roomID', ParseIntPipe) roomID: number,
     @Body(ImageNamesCheckPipe) dto: DeleteImagesDTO,
@@ -365,8 +383,10 @@ export class RoomController {
     await this.roomImageService.hardDelete(roomID, dto.imageNames);
   }
 
-  @UseGuards(JustSuperAdminRoleGuard)
   @Post(':roomID/images/recover')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async imageRecover(
     @Param('roomID', ParseIntPipe) roomID: number,
     @Body(ImageNamesCheckPipe) dto: DeleteImagesDTO,

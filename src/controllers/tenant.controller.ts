@@ -29,11 +29,11 @@ import { TenantService } from 'src/services/tenant.service';
 import { TenantIDsCheckPipe } from './pipes/not-duplicate-value.pipe';
 
 @Controller('tenants')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class TenantController {
   constructor(private tenantService: TenantService) {}
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadTenantDTO] })
   @ApiQuery({ name: 'tenantID', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -55,6 +55,8 @@ export class TenantController {
     );
   }
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadTenantDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'tenantID', required: false })
@@ -66,13 +68,17 @@ export class TenantController {
   ) {
     return await this.tenantService.findInactiveAll(tenantID, offsetID);
   }
-  @ApiOkResponse({ type: CreateResponseTenantDTO })
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: CreateResponseTenantDTO })
   async create(@Req() request: Request, @Body() dto: CreateTenantDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     return await this.tenantService.create(requestorID, dto);
   }
   @Patch()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(@Req() request: Request, @Body() dto: UpdateTenantDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
@@ -80,6 +86,8 @@ export class TenantController {
     await this.tenantService.update(requestorRoleIDs, requestorID, dto);
   }
   @Delete(':tenantID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async softDelete(
     @Req() request: Request,
     @Param('tenantID', ParseIntPipe) tenantID: number,
@@ -92,8 +100,10 @@ export class TenantController {
       tenantID,
     );
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async hardDelete(
     @Body(TenantIDsCheckPipe) dto: HardDeleteAndRecoverTenantDTO,
   ) {
@@ -101,6 +111,9 @@ export class TenantController {
   }
   // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async recover(@Body(TenantIDsCheckPipe) dto: HardDeleteAndRecoverTenantDTO) {
     await this.tenantService.recover(dto.tenantIDs);
   }

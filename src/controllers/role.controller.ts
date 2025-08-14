@@ -25,11 +25,11 @@ import { Request } from 'express';
 import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 
 @Controller('roles')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class RoleController {
   constructor(private roleService: RoleService) {}
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadRoleDTO] })
   @ApiQuery({ name: 'roleID', required: false })
   @ApiQuery({ name: 'offsetID', required: false })
@@ -42,14 +42,18 @@ export class RoleController {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     return await this.roleService.findAll(roleID, offsetID, requestorRoleIDs);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Post()
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: CreateResponseRoleDTO })
   async create(@Body() dto: CreateRoleDTO) {
     return await this.roleService.create(dto);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete/:id')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async delete_soft(@Param('id', NotEmptyCheckPipe) id: string) {
     await this.roleService.hardRemove(id);
   }
