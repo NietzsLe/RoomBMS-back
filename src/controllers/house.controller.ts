@@ -31,11 +31,11 @@ import { ParseDatePipe } from './pipes/date.pipe';
 import { CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('houses')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class HouseController {
   constructor(private houseService: HouseService) {}
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadHouseDTO] })
   @ApiQuery({ name: 'houseID', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -74,6 +74,8 @@ export class HouseController {
     );
   }
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadHouseDTO] })
   // @UseGuards(JustSuperAdminRoleGuard)
   @ApiQuery({ name: 'houseID', required: false })
@@ -86,12 +88,16 @@ export class HouseController {
     return await this.houseService.findInactiveAll(houseID, offsetID);
   }
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: CreateResponseHouseDTO })
   async create(@Req() request: Request, @Body() dto: CreateHouseDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     return await this.houseService.create(requestorID, dto);
   }
   @Patch()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(@Req() request: Request, @Body() dto: UpdateHouseDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
@@ -99,6 +105,8 @@ export class HouseController {
     await this.houseService.update(requestorRoleIDs, requestorID, dto);
   }
   @Delete(':houseID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   async softDelete(
     @Req() request: Request,
     @Param('houseID', ParseIntPipe) houseID: number,
@@ -107,13 +115,18 @@ export class HouseController {
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
     await this.houseService.softRemove(requestorRoleIDs, requestorID, houseID);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async hardDelete(@Body(HouseIDsCheckPipe) dto: HardDeleteAndRecoverHouseDTO) {
     await this.houseService.hardRemove(dto.houseIDs);
   }
   // @UseGuards(JustSuperAdminRoleGuard)
   @Post('recover')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async recover(@Body(HouseIDsCheckPipe) dto: HardDeleteAndRecoverHouseDTO) {
     await this.houseService.recover(dto.houseIDs);
   }

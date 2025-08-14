@@ -24,24 +24,28 @@ import {
 } from 'src/dtos/street.dto';
 
 @Controller('streets')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class StreetController {
   constructor(private streetService: StreetService) {}
 
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadStreetDTO] })
   async findAll() {
     return this.streetService.findAll();
   }
 
   @Get('inactive')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [ReadStreetDTO] })
   async findInactiveAll() {
     return this.streetService.findInactiveAll();
   }
 
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: ReadStreetDTO })
   async create(
     @Req() request: Request,
@@ -52,6 +56,8 @@ export class StreetController {
   }
 
   @Post('update')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: ReadStreetDTO })
   async update(
     @Req() request: Request,
@@ -67,6 +73,8 @@ export class StreetController {
   }
 
   @Delete(':streetID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async softRemove(
     @Req() request: Request,
@@ -82,6 +90,8 @@ export class StreetController {
   }
 
   @Delete('hard/:streetID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async hardRemove(
     @Req() request: Request,
@@ -95,6 +105,8 @@ export class StreetController {
   }
 
   @Post('recover/:streetID')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse()
   async recover(
     @Req() request: Request,

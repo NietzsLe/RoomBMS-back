@@ -24,14 +24,14 @@ import { Request } from 'express';
 import { JustSuperAdminRoleGuard } from 'src/guards/just-admin-roles.guard';
 
 @Controller('access-rules')
-@UseGuards(AuthGuard)
-@ApiCookieAuth('JWTAuth')
 export class AccessRuleController {
   constructor(private accessRuleService: AccessRuleService) {}
 
   @Get()
-  @ApiOkResponse({ type: [ReadAccessRuleDTO] })
+  @UseGuards(AuthGuard)
   @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: [ReadAccessRuleDTO] })
   @ApiQuery({ name: 'roleID', required: false })
   @ApiQuery({ name: 'resourceID', required: false })
   @ApiQuery({ name: 'roleIDOffsetID', required: false })
@@ -53,19 +53,25 @@ export class AccessRuleController {
       requestorRoleIDs,
     );
   }
-  @UseGuards(JustSuperAdminRoleGuard)
-  @ApiOkResponse({ type: CreateAccessRuleDTO })
   @Post()
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
+  @ApiOkResponse({ type: CreateAccessRuleDTO })
   async create(@Body() dto: CreateAccessRuleDTO) {
     return await this.accessRuleService.create(dto);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Patch()
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async update(@Body() dto: UpdateAccessRuleDTO) {
     await this.accessRuleService.update(dto);
   }
-  @UseGuards(JustSuperAdminRoleGuard)
   @Delete('hard-delete/:roleID/:resourceID')
+  @UseGuards(AuthGuard)
+  @UseGuards(JustSuperAdminRoleGuard)
+  @ApiCookieAuth('JWTAuth')
   async hardDelete(
     @Param('roleID', NotEmptyCheckPipe) roleID: string = '',
     @Param('resourceID', NotEmptyCheckPipe) resourceID: string = '',
