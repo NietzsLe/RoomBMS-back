@@ -1,8 +1,9 @@
-import { Controller, Get, Query, Req, Header } from '@nestjs/common';
-import { ApiOkResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Query, Req, Header, UseGuards } from '@nestjs/common';
+import { ApiCookieAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import { NotEmptyCheckPipe } from 'src/controllers/pipes/not-empty-check.pipe';
 import { AutocompleteTeamDTO, MaxResponseTeamDTO } from 'src/dtos/user.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
 import { TeamService } from 'src/services/team.service';
 
 @Controller('teams')
@@ -18,6 +19,8 @@ export class TeamController {
    * Được di chuyển từ UserController
    */
   @Get('autocomplete')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [AutocompleteTeamDTO] })
   @ApiQuery({ name: 'offsetID', required: false })
   @ApiQuery({ name: 'type', required: false })
@@ -43,6 +46,8 @@ export class TeamController {
    * Được di chuyển từ UserController
    */
   @Get('max')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [MaxResponseTeamDTO] })
   @Header('Cache-Control', 'max-age=5')
   async getMaxTeam() {

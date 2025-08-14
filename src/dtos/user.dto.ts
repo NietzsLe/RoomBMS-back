@@ -73,6 +73,21 @@ export class CreateUserDTO {
   )
   password: string;
   @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  @Expose({ name: 'leader' })
+  @Transform(
+    ({ value }: { value: string }) => {
+      if (value) {
+        const obj = new User();
+        obj.username = value;
+        return obj;
+      } else if (value == null) return null;
+    },
+    { toPlainOnly: true },
+  )
+  leaderID?: string;
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   bankAccount: string;
