@@ -71,7 +71,7 @@ export class UserService {
         order: {
           username: 'ASC',
         },
-        relations: { roles: true, team: true, manager: true },
+        relations: { roles: true, team: true, manager: true, leader: true },
         take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
       }),
       this.authService.getBlacklist(
