@@ -126,6 +126,13 @@ export class User {
     if (this.leader?.username) return this.leader.username;
     return undefined;
   }
+  @Expose({
+    groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
+  })
+  managerID() {
+    if (this.manager?.username) return this.manager.username;
+    return undefined;
+  }
 
   @Expose({
     groups: ['TO-DTO', 'TO-APPOINTMENT-DTO', 'TO-DEPOSITAGREEMENT-DTO'],
