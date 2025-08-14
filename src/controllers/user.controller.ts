@@ -127,6 +127,8 @@ export class UserController {
    * Được di chuyển từ SupportServiceController
    */
   @Get('autocomplete')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [AutocompleteUserDTO] })
   @ApiQuery({ name: 'offsetID', required: false })
   @ApiQuery({ name: 'type', required: false })
@@ -152,6 +154,8 @@ export class UserController {
    * Được di chuyển từ SupportServiceController
    */
   @Get('max')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth('JWTAuth')
   @ApiOkResponse({ type: [MaxResponseUserDTO] })
   @Header('Cache-Control', 'max-age=5')
   async getMaxUser() {
