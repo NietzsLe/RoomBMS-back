@@ -55,8 +55,8 @@ export class DiscordService {
         depositAgreement: { room: { house: { administrativeUnit: true } } },
         tenant: true,
         room: { house: { administrativeUnit: true } },
-        madeUser: { team: true, roles: true, leader: true },
-        takenOverUser: { team: true, roles: true, leader: true },
+        madeUser: { team: true, roles: true, leader: { team: true } },
+        takenOverUser: { team: true, roles: true, leader: { team: true } },
       },
     });
     let embed: EmbedBuilder;
@@ -104,8 +104,8 @@ export class DiscordService {
         depositAgreement: { room: { house: { administrativeUnit: true } } },
         tenant: true,
         room: { house: { administrativeUnit: true } },
-        madeUser: { team: true, roles: true, leader: true },
-        takenOverUser: { team: true, roles: true, leader: true },
+        madeUser: { team: true, roles: true, leader: { team: true } },
+        takenOverUser: { team: true, roles: true, leader: { team: true } },
       },
     });
     if (appointment?.status == AppointmentStatus.NOT_YET_RECEIVED) return;
@@ -232,8 +232,8 @@ export class DiscordService {
         depositAgreement: { room: { house: { administrativeUnit: true } } },
         tenant: true,
         room: { house: { administrativeUnit: true } },
-        madeUser: { team: true, roles: true, leader: true },
-        takenOverUser: { team: true, roles: true, leader: true },
+        madeUser: { team: true, roles: true, leader: { team: true } },
+        takenOverUser: { team: true, roles: true, leader: { team: true } },
       },
     });
     if (
@@ -290,8 +290,8 @@ export class DiscordService {
         depositAgreement: { room: { house: { administrativeUnit: true } } },
         tenant: true,
         room: { house: { administrativeUnit: true } },
-        madeUser: { team: true, roles: true, leader: true },
-        takenOverUser: { team: true, roles: true, leader: true },
+        madeUser: { team: true, roles: true, leader: { team: true } },
+        takenOverUser: { team: true, roles: true, leader: { team: true } },
       },
     });
 
@@ -394,9 +394,9 @@ export class DiscordService {
   private thankString(user: User | null | undefined): string {
     if (user) {
       if (this.isCTV(user.roles.map((role) => role.roleID))) {
-        return `CTV${user?.name ? ' + ' + user?.name : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.leader?.name ? ' + ' + this.toShortName(user?.leader?.name) : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
+        return `CTV${user?.name ? ' + ' + user?.name : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.leader?.name ? ' + ' + this.toShortName(user?.leader?.name) : ''}${user?.leader?.team?.teamID ? ' + ' + user?.leader?.team.teamID : ''}`;
       } else {
-        return `${user?.name ? this.toShortName(user?.name) : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
+        return `${user?.name ? this.toShortName(user?.name) : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.leader?.team?.teamID ? ' + ' + user?.leader?.team.teamID : ''}`;
       }
     } else return '';
   }
