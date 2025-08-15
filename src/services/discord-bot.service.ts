@@ -396,7 +396,7 @@ export class DiscordService {
       if (this.isCTV(user.roles.map((role) => role.roleID))) {
         return `CTV${user?.name ? ' + ' + user?.name : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.leader?.name ? ' + ' + this.toShortName(user?.leader?.name) : ''}${user?.leader?.team?.teamID ? ' + ' + user?.leader?.team.teamID : ''}`;
       } else {
-        return `${user?.name ? this.toShortName(user?.name) : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.leader?.team?.teamID ? ' + ' + user?.leader?.team.teamID : ''}`;
+        return `${user?.name ? this.toShortName(user?.name) : ''}${user?.phoneNumber ? ' + ' + user?.phoneNumber : ''}${user?.team?.teamID ? ' + ' + user?.team.teamID : ''}`;
       }
     } else return '';
   }
