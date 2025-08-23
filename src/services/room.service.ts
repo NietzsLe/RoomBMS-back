@@ -305,7 +305,7 @@ export class RoomService {
     const rooms = await this.roomRepository.find({
       where: {
         roomID: MoreThan(offsetID),
-        ...(houseID ? { house: { houseID: houseID } } : {}),
+        ...(houseID && houseID != 0 ? { house: { houseID: houseID } } : {}),
       },
       order: {
         roomID: 'ASC',
