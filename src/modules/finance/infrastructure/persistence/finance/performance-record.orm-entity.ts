@@ -8,11 +8,11 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { PerformancePeriodOrmEntity } from './performance-period.orm-entity';
+import { PerformancePeriodOrmEntity } from './period/performance-period.orm-entity';
 import { Team } from 'src/models/team.model';
-import { PerformanceRecordObjectType } from '../../domain/finance.enum';
-import { SalerOrmEntity } from './organization/saler.orm-entity';
-import { CollaboratorOrmEntity } from './organization/collaborator.orm-entity';
+import { PerformanceRecordObjectType } from '../../../domain/finance.enum';
+import { SalerOrmEntity } from '../organization/saler.orm-entity';
+import { CollaboratorOrmEntity } from '../organization/collaborator.orm-entity';
 
 /*
 ┌────────────────────────────────────────────┐

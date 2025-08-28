@@ -1,5 +1,5 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
-import { PerformancePeriodType } from '../../domain/finance.enum';
+import { PerformancePeriodType } from '../../../../domain/finance.enum';
 
 /*
 ┌────────────────────────────────────────────┐

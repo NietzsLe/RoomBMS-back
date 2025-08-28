@@ -1,4 +1,4 @@
-import { PerformancePeriod } from '../performance-period.entity';
+import { PerformancePeriod } from '../period/performance-period.entity';
 
 export class AppointmentAccounting {
   id: number; // Khóa chính, liên kết đến Appointment
