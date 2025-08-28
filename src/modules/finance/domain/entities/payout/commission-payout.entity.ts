@@ -1,6 +1,6 @@
-import { Violation } from './violation.entity';
-import { CommissionPayoutPeriod } from './commission-payout-period.entity';
-import { Commission } from './commission.entity';
+import { Violation } from '../payout-source/violation.entity';
+import { CommissionPayoutPeriod } from '../period/commission-payout-period.entity';
+import { Commission } from '../payout-source/commission.entity';
 
 export class CommissionPayout {
   id: number;

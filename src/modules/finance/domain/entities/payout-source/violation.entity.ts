@@ -1,4 +1,4 @@
-import { CommissionPayoutPeriod } from './commission-payout-period.entity';
+import { CommissionPayoutPeriod } from '../period/commission-payout-period.entity';
 
 export class Violation {
   id: number;

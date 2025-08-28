@@ -1,5 +1,5 @@
 import { PerformanceRecordObjectType } from '../finance.enum';
-import { PerformancePeriod } from './performance-period.entity';
+import { PerformancePeriod } from './period/performance-period.entity';
 
 export class PerformanceRecord {
   id: number;

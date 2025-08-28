@@ -11,10 +11,11 @@ import {
 } from 'typeorm';
 import { DepositAgreement } from 'src/models/deposit-agreement.model';
 import { Team } from 'src/models/team.model';
-import { User } from 'src/models/user.model';
-import { CommissionOrmEntity } from '../payout/commission.orm-entity';
-import { AgreementPaymentOrmEntity } from '../agreement-payment.orm-entity';
-import { PerformancePeriodOrmEntity } from '../performance-period.orm-entity';
+import { SalerOrmEntity } from '../organization/saler.orm-entity';
+import { CollaboratorOrmEntity } from '../organization/collaborator.orm-entity';
+import { CommissionOrmEntity } from '../finance/payout-source/commission.orm-entity';
+import { PerformancePeriodOrmEntity } from '../finance/period/performance-period.orm-entity';
+import { AgreementReceiptOrmEntity } from '../finance/receipt/agreement-receipt.orm-entity';
 
 @Entity({ name: 'deposit-agreement-accounting' })
 export class DepositAgreementAccountingOrmEntity {
@@ -43,39 +44,39 @@ export class DepositAgreementAccountingOrmEntity {
   takenOverTeam: Team;
 
   // 1-n: madeSaler
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => SalerOrmEntity, { nullable: true })
   @JoinColumn({ name: 'madeSalerID' })
-  madeSaler: User;
+  madeSaler: SalerOrmEntity;
 
   // 1-n: madeCollaborator
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => CollaboratorOrmEntity, { nullable: true })
   @JoinColumn({ name: 'madeCollaboratorID' })
-  madeCollaborator: User;
+  madeCollaborator: CollaboratorOrmEntity;
 
   // 1-n: takenOverSaler
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => SalerOrmEntity, { nullable: true })
   @JoinColumn({ name: 'takenOverSalerID' })
-  takenOverSaler: User;
+  takenOverSaler: SalerOrmEntity;
 
-  // 1-1: madeSalerCommissionOrmEntity
+  // 1-1: madeSalerCommission
   @OneToOne(() => CommissionOrmEntity, { nullable: true })
-  @JoinColumn({ name: 'madeSalerCommissionOrmEntityID' })
-  madeSalerCommissionOrmEntity: CommissionOrmEntity;
+  @JoinColumn({ name: 'madeSalerCommissionID' })
+  madeSalerCommission: CommissionOrmEntity;
 
-  // 1-1: madeCollaboratorCommissionOrmEntity
+  // 1-1: madeCollaboratorCommission
   @OneToOne(() => CommissionOrmEntity, { nullable: true })
-  @JoinColumn({ name: 'madeCollaboratorCommissionOrmEntityID' })
-  madeCollaboratorCommissionOrmEntity: CommissionOrmEntity;
+  @JoinColumn({ name: 'madeCollaboratorCommissionID' })
+  madeCollaboratorCommission: CommissionOrmEntity;
 
-  // 1-1: takenOverSalerCommissionOrmEntity
+  // 1-1: takenOverSalerCommission
   @OneToOne(() => CommissionOrmEntity, { nullable: true })
-  @JoinColumn({ name: 'takenOverSalerCommissionOrmEntityID' })
-  takenOverSalerCommissionOrmEntity: CommissionOrmEntity;
+  @JoinColumn({ name: 'takenOverSalerCommissionID' })
+  takenOverSalerCommission: CommissionOrmEntity;
 
-  // 1-1: agreementPayment
-  @OneToOne(() => AgreementPaymentOrmEntity, { nullable: true })
-  @JoinColumn({ name: 'agreementPaymentID' })
-  agreementPayment: AgreementPaymentOrmEntity;
+  // 1-1: agreementReceipt
+  @OneToOne(() => AgreementReceiptOrmEntity, { nullable: true })
+  @JoinColumn({ name: 'agreementReceiptID' })
+  agreementReceipt: AgreementReceiptOrmEntity;
 
   // Revenue fields
   @Column('numeric', { nullable: true })

@@ -1,49 +1,34 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { AgreementPaymentStatus } from '../../domain/finance.enum';
-import { DepositAgreementAccountingOrmEntity } from './leasing/deposit-agreement-accounting.orm-entity';
+import { DepositAgreementAccountingOrmEntity } from '../../leasing/deposit-agreement-accounting.orm-entity';
+import { EmployeeOrmEntity } from '../../organization/employee.orm-entity';
+import { AccruedItemOrmEntity } from '../payout/accrued-item.orm-entity';
 
 /*
 ┌────────────────────────────────────────────┐
-│      ENTITY: AgreementPayment              │
-│      Bảng: agreement-payment               │
-│      Mục đích: Đại diện tiền phải thu về   │
-│      công ty trên hợp đồng                 │
+│      ENTITY: CommissionOrmEntity                    │
+│      Bảng: commission                      │
+│      Mục đích: Đại diện hoa hồng user      │
+│      nhận trên hợp đồng cọc                │
 └────────────────────────────────────────────┘
 */
-@Entity({ name: 'agreement-payment' })
-export class AgreementPaymentOrmEntity {
+@Entity({ name: 'commission' })
+export class CommissionOrmEntity {
   // ──────────────── PRIMARY KEY ────────────────
   @PrimaryGeneratedColumn()
   id: number; // Khóa chính
 
-  // ──────────────── AMOUNT ────────────────
-  @Column('decimal', { precision: 15, scale: 2 })
-  amount: number; // Lượng phải thu
-
-  // ──────────────── STATUS ENUM ────────────────
-  @Column({
-    type: 'enum',
-    enum: AgreementPaymentStatus,
-    default: AgreementPaymentStatus.NOT_COLLECTED,
-  })
-  status: AgreementPaymentStatus;
-
-  // ──────────────── PAID DATE ────────────────
-  @Column({ type: 'timestamp', nullable: true })
-  paidDate?: Date; // Ngày đã thu tiền
-
   // ──────────────── TIMESTAMPS ────────────────
   @CreateDateColumn()
-  createdAt: Date; // Thời gian thêm
+  createdAt: Date; // Thời gian tạo
 
   @UpdateDateColumn()
   updatedAt: Date; // Thời gian sửa
@@ -51,20 +36,34 @@ export class AgreementPaymentOrmEntity {
   @DeleteDateColumn({ nullable: true })
   deletedAt?: Date; // Thời gian xóa (nếu có)
 
+  // ──────────────── USER RELATION ────────────────
+  /**
+   * Quan hệ 1-n: Một employee có thể nhận nhiều commission
+   */
+  @ManyToOne(() => EmployeeOrmEntity, { nullable: false })
+  @JoinColumn({ name: 'employeeID' })
+  employee: EmployeeOrmEntity;
+
   // ──────────────── DEPOSIT AGREEMENT ACCOUNTING RELATION ────────────────
   /**
-   * Quan hệ 1-1: Một AgreementPayment liên kết với một DepositAgreementAccountingOrmEntity
+   * Quan hệ 1-1: Một commission liên kết với một DepositAgreementAccountingOrmEntity
    */
   @OneToOne(() => DepositAgreementAccountingOrmEntity, { nullable: false })
-  @JoinColumn({ name: 'depositAgreementAccountingID' })
   depositAgreementAccounting: DepositAgreementAccountingOrmEntity;
+
+  /**
+   * Liên kết đến accrued item (khoản chi/khấu trừ)
+   */
+  @ManyToOne(() => AccruedItemOrmEntity, { nullable: true })
+  @JoinColumn({ name: 'accruedItemID' })
+  accruedItem?: AccruedItemOrmEntity;
 }
 
 /*
 ──────────────────────────────────────────────
   SYMBOL DEPENDENCIES
 ──────────────────────────────────────────────
-- DepositAgreementAccountingOrmEntity: Entity đại diện cho bảng deposit-agreement-accounting, liên kết 1-1 với AgreementPayment.
-- AgreementPaymentStatus: Enum trạng thái đã thu, chưa thu, bị hủy (domain/finance.enum).
+- User: Entity đại diện cho người dùng, có thuộc tính commissions (OneToMany).
+- DepositAgreementAccountingOrmEntity: Entity đại diện cho bảng deposit-agreement-accounting, liên kết 1-1 với CommissionOrmEntity.
 ──────────────────────────────────────────────
 */

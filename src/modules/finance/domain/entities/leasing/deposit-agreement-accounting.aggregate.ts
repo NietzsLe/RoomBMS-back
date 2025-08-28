@@ -1,6 +1,6 @@
-import { AgreementPayment } from '../../entities/agreement-payment.entity';
-import { Commission } from '../../entities/payout/commission.entity';
-import { AgreementPaymentStatus } from '../../finance.enum';
+import { AgreementReceipt } from '../receipt/agreement-receipt.entity';
+import { Commission } from '../payout-source/commission.entity';
+import { AgreementReceiptStatus } from '../../finance.enum';
 
 export class DepositAgreementAccounting {
   id: number;
@@ -13,7 +13,7 @@ export class DepositAgreementAccounting {
   madeSalerCommission?: Commission;
   madeCollaboratorCommission?: Commission;
   takenOverSalerCommission?: Commission;
-  agreementPayment?: AgreementPayment;
+  agreementReceipt?: AgreementReceipt;
   revenue: number;
   madeSalerRevenue?: number;
   madeCollaboratorRevenue?: number;
@@ -58,11 +58,11 @@ export class DepositAgreementAccounting {
         `Không thể cập nhật đối tượng đã bị xóa [DepositAgreementAccounting] (id: ${this.id})`,
       );
     }
-    // 🚫 Không cho phép update nếu agreementPayment đã thu hoặc bị hủy
-    const agreementStatus = this.agreementPayment?.status;
-    if (agreementStatus === AgreementPaymentStatus.COLLECTED) {
+    // 🚫 Không cho phép update nếu agreementReceipt đã thu hoặc bị hủy
+    const agreementStatus = this.agreementReceipt?.status;
+    if (agreementStatus === AgreementReceiptStatus.COLLECTED) {
       throw new Error(
-        `Không được phép cập nhật đối tượng [DepositAgreementAccounting] khi agreementPayment đã thu hoặc bị hủy (id: ${this.id})`,
+        `Không được phép cập nhật đối tượng [DepositAgreementAccounting] khi agreementReceipt đã thu hoặc bị hủy (id: ${this.id})`,
       );
     }
     // 🚫 Không cho phép update các trường đặc biệt

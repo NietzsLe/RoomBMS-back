@@ -41,7 +41,7 @@ async function bootstrap() {
 
   const shortStaticLimiter = rateLimit({
     windowMs: 30 * 1000, // 30 seconds
-    limit: 100,
+    limit: 200,
   });
   app.use('/images/rooms', shortStaticLimiter);
   app.use(

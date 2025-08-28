@@ -7,10 +7,11 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { User } from 'src/models/user.model';
+import { SalerOrmEntity } from '../organization/saler.orm-entity';
+import { CollaboratorOrmEntity } from '../organization/collaborator.orm-entity';
 import { Appointment } from 'src/models/appointment.model';
 import { Team } from 'src/models/team.model';
-import { PerformancePeriodOrmEntity } from '../performance-period.orm-entity';
+import { PerformancePeriodOrmEntity } from '../finance/period/performance-period.orm-entity';
 
 /*
 ┌────────────────────────────────────────────┐
@@ -41,23 +42,23 @@ export class AppointmentAccountingOrmEntity {
   /**
    * Người tạo (Saler)
    */
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => SalerOrmEntity, { nullable: true })
   @JoinColumn({ name: 'madeSalerID' })
-  madeSaler: User;
+  madeSaler: SalerOrmEntity;
 
   /**
    * Người tạo (Collaborator)
    */
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => CollaboratorOrmEntity, { nullable: true })
   @JoinColumn({ name: 'madeCollaboratorID' })
-  madeCollaborator: User;
+  madeCollaborator: CollaboratorOrmEntity;
 
   /**
    * Người tiếp nhận (Saler)
    */
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => SalerOrmEntity, { nullable: true })
   @JoinColumn({ name: 'takenOverSalerID' })
-  takenOverSaler: User;
+  takenOverSaler: SalerOrmEntity;
 
   /**
    * Team tạo
