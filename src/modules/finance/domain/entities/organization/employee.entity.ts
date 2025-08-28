@@ -1,4 +1,4 @@
-import { BankType } from '../bank-type.entity';
+import { BankType } from './bank-type.entity';
 
 export class Employee {
   id: string; // Khóa chính

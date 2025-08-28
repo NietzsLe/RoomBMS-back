@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 import { ManyToOne, JoinColumn } from 'typeorm';
-import { BankTypeOrmEntity } from '../bank-type.orm-entity';
+import { BankTypeOrmEntity } from './bank-type.orm-entity';
 
 @Entity({ name: 'employee-accounting' })
 export class EmployeeOrmEntity {
