@@ -4,7 +4,7 @@ import { Client, TextChannel, EmbedBuilder } from 'discord.js';
 import { Inject } from '@nestjs/common';
 import { Appointment } from 'src/models/appointment.model';
 import { Room } from 'src/models/room.model';
-import { ArrayContains, Repository } from 'typeorm';
+import { ArrayContains, EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatGroup } from 'src/models/chat-group.model';
 import * as dayjs from 'dayjs';
@@ -46,8 +46,16 @@ export class DiscordService {
       );
     }
   }
-  async notifyCreateAppointment(appointmentID: number) {
-    const appointment = await this.appointmentReponsitory.findOne({
+  async notifyCreateAppointment(
+    appointmentID: number,
+    manager?: EntityManager,
+  ) {
+    // Nếu có EntityManager từ transaction, dùng nó; nếu không dùng repository thường
+    const appointmentRepo = manager
+      ? manager.getRepository(Appointment)
+      : this.appointmentReponsitory;
+
+    const appointment = await appointmentRepo.findOne({
       where: {
         appointmentID: appointmentID,
       },
