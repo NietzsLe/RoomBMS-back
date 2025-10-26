@@ -13,6 +13,7 @@ import { AppointmentMapper } from 'src/mappers/appointment.mapper';
 import { Appointment } from 'src/models/appointment.model';
 import {
   And,
+  DataSource,
   Equal,
   FindOperator,
   FindOptionsWhere,
@@ -50,6 +51,7 @@ import { DiscordService } from './discord-bot.service';
 @Injectable()
 export class AppointmentService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
     @InjectRepository(DepositAgreement)
@@ -600,14 +602,21 @@ export class AppointmentService {
     this.userProcess.CreatorIsDefaultManager(requestorID, appointment);
     this.process.RequestorIsMadeUserWhenCreate(requestorID, appointment);
 
-    const insertResult = await this.appointmentRepository.insert(appointment);
-    await this.discordService.notifyCreateAppointment(
-      (insertResult.identifiers[0] as { appointmentID: number }).appointmentID,
-    );
-    return {
-      appointmentID: (insertResult.identifiers[0] as { appointmentID: number })
-        .appointmentID,
-    };
+    // Sử dụng transaction: Insert vào DB, gửi notification, nếu notification fail thì rollback
+    return await this.dataSource.transaction(async (manager) => {
+      // Bước 1: Lưu appointment vào database
+      const insertResult = await manager.insert(Appointment, appointment);
+      const appointmentID = (
+        insertResult.identifiers[0] as { appointmentID: number }
+      ).appointmentID;
+
+      // Bước 2: Gửi thông báo Discord (bắt buộc phải thành công)
+      // Nếu fail, transaction sẽ rollback (xóa appointment vừa insert)
+      // Truyền manager vào để notifyCreateAppointment dùng transaction này
+      await this.discordService.notifyCreateAppointment(appointmentID, manager);
+
+      return { appointmentID };
+    });
   }
 
   async takenOver(requestorID: string, dto: TakenOverAppointmentDTO) {
