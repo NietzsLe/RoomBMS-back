@@ -26,6 +26,7 @@ export class AuthController {
         ? (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none')
         : 'none',
       secure: process.env.COOKIE_SECURE == 'true',
+      maxAge: parseInt(process.env.COOKIE_MAX_AGE ?? '0', 10) || undefined,
     };
   }
   @Throttle({
