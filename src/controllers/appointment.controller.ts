@@ -54,7 +54,7 @@ export class AppointmentController {
   @ApiQuery({ name: 'appointmentTime_desc_cursor', required: false })
   @ApiQuery({ name: 'appointmentTime_asc_cursor', required: false })
   @ApiQuery({ name: 'order_type', required: false })
-  @Header('Cache-Control', 'max-age=2')
+  @Header('Cache-Control', 'max-age=1')
   async findAll(
     @Req() request: Request,
     @Query('appointmentID', new ParseIntPipe({ optional: true }))

@@ -146,7 +146,7 @@ import {
         },
       ],
     }),
-    CacheModule.register({ ttl: 10000, isGlobal: true }),
+    CacheModule.register({ ttl: 1000, isGlobal: true }),
     MulterModule.register({
       limits: {
         fileSize:
