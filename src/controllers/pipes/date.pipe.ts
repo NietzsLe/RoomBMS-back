@@ -11,10 +11,10 @@ export class ParseDatePipe implements PipeTransform {
       if (isNaN(transformedValue.getTime())) {
         throw new BadRequestException('Invalid date');
       }
-      console.log(transformedValue);
+      //console.log(transformedValue);
       return transformedValue;
     }
-    console.log(value);
+    //console.log(value);
     return undefined;
   }
 }

@@ -301,7 +301,7 @@ export class RoomService {
   }
 
   async getAutocomplete(offsetID: number, houseID: number) {
-    console.log('@Service: autocomplete');
+    //console.log('@Service: autocomplete');
     const rooms = await this.roomRepository.find({
       where: {
         roomID: MoreThan(offsetID),
@@ -313,7 +313,7 @@ export class RoomService {
       select: { roomID: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    console.log('@Service: \n', rooms);
+    //console.log('@Service: \n', rooms);
     return rooms.map((room) => RoomMapper.EntityToReadDTO(room));
   }
 
@@ -377,7 +377,7 @@ export class RoomService {
     this.userConstraint.JustAdminCanUpdateManagerField(IsAdmin, updateRoomDTO);
     if (result[1]) room.house = result[1];
     if (result[2]) room.manager = result[2];
-    console.log('@Service: \n', room);
+    //console.log('@Service: \n', room);
     await this.roomRepository.save(room);
   }
 

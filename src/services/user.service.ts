@@ -139,7 +139,7 @@ export class UserService {
       ];
     }
     if (type == 'all') where = [{ username: MoreThan(offsetID) }];
-    console.log('@Service: autocomplete');
+    //console.log('@Service: autocomplete');
     const users = await this.userRepository.find({
       where: where,
       order: {
@@ -245,7 +245,7 @@ export class UserService {
       this.constraint.TeamIsAlive(updateUserDTO.teamID),
       this.constraint.UserIsAlive(updateUserDTO.leaderID),
     ]);
-    console.log('@Service: \n', user);
+    //console.log('@Service: \n', user);
     let IsAdmin = 0;
     if (result[0]) {
       IsAdmin = this.constraint.RequestorManageUser(

@@ -51,7 +51,7 @@ export class RoleService {
   }
 
   async getAutocomplete(offsetID: string) {
-    console.log('@Service: autocomplete');
+    //console.log('@Service: autocomplete');
     const roles = await this.roleRepository.find({
       where: {
         roleID: MoreThan(offsetID),

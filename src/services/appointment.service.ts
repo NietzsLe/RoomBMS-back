@@ -138,7 +138,7 @@ export class AppointmentService {
       basicWhere.appointmentID = Equal(appointmentID);
       where = basicWhere;
     } else {
-      console.log('@Appointment Serice: here');
+      //console.log('@Appointment Serice: here');
       let secondNotEqualOrder:
         | FindOptionsWhere<Appointment>
         | FindOptionsWhere<Appointment>[]
@@ -531,7 +531,7 @@ export class AppointmentService {
       }
       return dto;
     });
-    console.log(roomBlacklist.blacklist);
+    //console.log(roomBlacklist.blacklist);
     return dto;
   }
 
@@ -544,7 +544,7 @@ export class AppointmentService {
   }
 
   async getAutocomplete(offsetID: number) {
-    console.log('@Service: autocomplete', offsetID);
+    //console.log('@Service: autocomplete', offsetID);
     const appointments = await this.appointmentRepository.find({
       where: {
         appointmentID: MoreThan(offsetID),
@@ -656,7 +656,7 @@ export class AppointmentService {
       this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
     if (result[1]) appointment.depositAgreement = result[1];
     if (result[2]) appointment.takenOverUser = result[2];
-    console.log('@Service: \n', appointment);
+    //console.log('@Service: \n', appointment);
     await this.appointmentRepository.save(appointment);
     if (updateAppointmentDTO.status && result[0])
       await this.discordService.notifyReturnDepositAgreementResult(
