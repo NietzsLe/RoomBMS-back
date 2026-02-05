@@ -154,7 +154,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    console.log('@Controller: \n', requestorRoleIDs);
+    //console.log('@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateByRelatedUser(
       requestorRoleIDs,
       requestorID,
@@ -171,7 +171,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    console.log('@Controller: \n', requestorRoleIDs);
+    //console.log('@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateDepositAgreementByRelatedUser(
       requestorRoleIDs,
       requestorID,

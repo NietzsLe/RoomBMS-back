@@ -35,7 +35,7 @@ export function createFindOptionSelectWithBlacklist(
   //   TransformationType.CLASS_TO_PLAIN,
   // );
 
-  console.log('@Service: \n', { select: select, relations: relations });
+  //console.log('@Service: \n', { select: select, relations: relations });
   return { select: select, relations: relations };
 }
 // B1: Lấy tất cả thuộc tính từ DTO kèm theo với expose relation và tên entity

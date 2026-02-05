@@ -71,7 +71,7 @@ export class TenantService {
   }
 
   async getAutocomplete(offsetID: number) {
-    console.log('@Service: autocomplete');
+    //console.log('@Service: autocomplete');
     const tenants = await this.tenantRepository.find({
       where: {
         tenantID: MoreThan(offsetID),

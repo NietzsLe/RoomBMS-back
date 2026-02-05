@@ -139,7 +139,7 @@ export class HouseService {
   }
 
   async getAutocomplete(offsetID: number) {
-    console.log('@Service: autocomplete');
+    //console.log('@Service: autocomplete');
     const houses = await this.houseRepository.find({
       where: {
         houseID: MoreThan(offsetID),
@@ -200,7 +200,7 @@ export class HouseService {
   ) {
     const house = HouseMapper.DTOToEntity(updateHouseDTO);
 
-    console.log('@Service: \n', updateHouseDTO);
+    //console.log('@Service: \n', updateHouseDTO);
     const [houseAlive, administrativeUnit, manager, street] = await Promise.all(
       [
         this.constraint.HouseIsAlive(updateHouseDTO.houseID),
@@ -232,7 +232,7 @@ export class HouseService {
     houseID: number,
   ) {
     const result = await this.constraint.HouseIsAlive(houseID);
-    console.log('@Service: \n', result);
+    //console.log('@Service: \n', result);
     if (result) {
       this.userConstraint.RequestorManageNonUserResource(
         requestorRoleIDs,
