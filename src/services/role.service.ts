@@ -51,7 +51,7 @@ export class RoleService {
   }
 
   async getAutocomplete(offsetID: string) {
-    //console.log('@Service: autocomplete');
+    // console.log('@Service: autocomplete');
     const roles = await this.roleRepository.find({
       where: {
         roleID: MoreThan(offsetID),
@@ -62,13 +62,13 @@ export class RoleService {
       select: { roleID: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', roles);
+    // console.log('@Service: \n', roles);
     return roles.map((role) => RoleMapper.EntityToReadDTO(role));
   }
 
   async create(createRoleDTOs: CreateRoleDTO) {
     const role = RoleMapper.DTOToEntity(createRoleDTOs);
-    //console.log('@Service: \n', role);
+    // console.log('@Service: \n', role);
     await this.constraint.RoleIsNotPersisted(role.roleID);
 
     const insertResult = await this.roleRepository.insert(role);

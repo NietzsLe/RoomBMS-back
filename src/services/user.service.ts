@@ -80,7 +80,7 @@ export class UserService {
         PermTypeEnum.READ,
       ),
     ]);
-    //console.log('@Service: \n', users);
+    // console.log('@Service: \n', users);
     return users.map((user) => {
       const dto = UserMapper.EntityToReadDTO(user);
       removeByBlacklist(dto, userBlacklist.blacklist);
@@ -139,7 +139,7 @@ export class UserService {
       ];
     }
     if (type == 'all') where = [{ username: MoreThan(offsetID) }];
-    //console.log('@Service: autocomplete');
+    // console.log('@Service: autocomplete');
     const users = await this.userRepository.find({
       where: where,
       order: {
@@ -148,7 +148,7 @@ export class UserService {
       select: { username: true, name: true },
       take: +'1000',
     });
-    //console.log('@Service: \n', users);
+    // console.log('@Service: \n', users);
     return users.map((user) => UserMapper.EntityToReadDTO(user));
   }
 
@@ -212,13 +212,13 @@ export class UserService {
       withDeleted: true,
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', users);
+    // console.log('@Service: \n', users);
     return users.map((user) => UserMapper.EntityToReadDTO(user));
   }
 
   async create(requestorID: string, createUserDTOs: CreateUserDTO) {
     const user = UserMapper.DTOToEntity(createUserDTOs);
-    //console.log('@Service: \n', user);
+    // console.log('@Service: \n', user);
     await this.constraint.UserIsNotPersisted(user.username);
     this.proccess.CreatorIsDefaultManager(requestorID, user);
     const insertResult = await this.userRepository.insert(user);
@@ -245,7 +245,7 @@ export class UserService {
       this.constraint.TeamIsAlive(updateUserDTO.teamID),
       this.constraint.UserIsAlive(updateUserDTO.leaderID),
     ]);
-    //console.log('@Service: \n', user);
+    // console.log('@Service: \n', user);
     let IsAdmin = 0;
     if (result[0]) {
       IsAdmin = this.constraint.RequestorManageUser(

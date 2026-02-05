@@ -87,7 +87,7 @@ export class RoomImageService {
     this.constraint.FilesIsNotEmpty(files);
     const result = await this.imageRepository.insert(images);
 
-    //console.log('@Service :\n', result.identifiers);
+    // console.log('@Service :\n', result.identifiers);
     await this.process.SaveFilesToStorage(result, files);
     return {
       imageNames: result.identifiers.map<string>((item) =>

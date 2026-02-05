@@ -58,7 +58,7 @@ export class AuthGuard implements CanActivate {
 
     const perm = HttpMethodToPerm(request.method);
 
-    //console.log('@Guard: \n', resourceID);
+    // console.log('@Guard: \n', resourceID);
     const result = await this.authService.checkAuthorization(
       request,
       payload.username,
@@ -77,7 +77,7 @@ export class AuthGuard implements CanActivate {
       const jwt = isString(request.headers['authorization'])
         ? request.headers['authorization']
         : undefined;
-      //console.log('@Guard: \n', request.headers);
+      // console.log('@Guard: \n', request.headers);
       if (!jwt)
         throw new HttpException(
           'Missing authentication token',

@@ -13,7 +13,7 @@ export class DepositAgreementMapper {
     depositAgreementDTO: CreateDepositAgreementDTO | UpdateDepositAgreementDTO,
   ) {
     const plainObj = classToPlain(depositAgreementDTO);
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(DepositAgreement, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
       excludeExtraneousValues: true,
@@ -24,14 +24,14 @@ export class DepositAgreementMapper {
     const plainObj = classToPlain(depositAgreement, {
       groups: ['TO-APPOINTMENT-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(ReadDepositAgreementDTO, plainObj);
   }
   static EntityToReadDTO(depositAgreement: DepositAgreement) {
     const plainObj = classToPlain(depositAgreement, {
       groups: ['TO-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(ReadDepositAgreementDTO, plainObj);
   }
 }

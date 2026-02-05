@@ -240,9 +240,9 @@ export class AuthService {
     else if (!user.hashedAccessTokens) throw new UnauthorizedException();
     else if (user.hashedAccessTokens) {
       let has = false;
-      //console.log(accessToken);
+      // console.log(accessToken);
       for (const token of user.hashedAccessTokens) {
-        //console.log(compareHash('Bearer ' + accessToken, token));
+        // console.log(compareHash('Bearer ' + accessToken, token));
         if (compareHash('Bearer ' + accessToken, token)) {
           has = true;
           break;
@@ -262,7 +262,7 @@ export class AuthService {
     }
 
     if (accessRules.length != 0) {
-      //console.log('@Service: \n', accessRules);
+      // console.log('@Service: \n', accessRules);
       let attrBlackList: Set<string>;
       if (perm == PermTypeEnum.READ)
         attrBlackList = new Set<string>(accessRules[0].readAttrDTOBlackList);
@@ -369,7 +369,7 @@ export class AuthService {
       },
     });
     if (accessRules.length != 0) {
-      //console.log('@Service: \n', accessRules);
+      // console.log('@Service: \n', accessRules);
       let attrBlackList: Set<string>;
       if (perm == PermTypeEnum.READ)
         attrBlackList = new Set<string>(accessRules[0].readAttrDTOBlackList);

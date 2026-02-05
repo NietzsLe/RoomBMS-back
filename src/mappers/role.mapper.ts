@@ -6,7 +6,7 @@ export class RoleMapper {
   // Chuyển đổi từ CreateAppointmentDTO sang Appointment entity
   static DTOToEntity(roleDTO: CreateRoleDTO) {
     const plainObj = classToPlain(roleDTO, {});
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(Role, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
     });
@@ -16,7 +16,7 @@ export class RoleMapper {
     const plainObj = classToPlain(role, {
       groups: ['TO-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainObj;
   }
 }

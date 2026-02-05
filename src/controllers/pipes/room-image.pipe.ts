@@ -10,7 +10,7 @@ import { extname } from 'path';
 export class FileTypeValidationPipe implements PipeTransform {
   transform(files: Express.Multer.File[]) {
     // "value" is an object containing the file's attributes and metadata
-    //console.log('@Pipe: \n', files);
+    // console.log('@Pipe: \n', files);
     files.forEach((file) => {
       const ext = extname(file.originalname);
       if (

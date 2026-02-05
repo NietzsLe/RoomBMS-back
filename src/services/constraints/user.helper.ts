@@ -214,7 +214,7 @@ export class UserConstraint {
       | UpdateTenantDTO
       | UpdateStreetDTO, // allow UpdateStreetDTO, but should be type-safe in future
   ) {
-    //console.log('@Constraint: \n', IsAdmin);
+    // console.log('@Constraint: \n', IsAdmin);
     if (dto.managerID)
       if (!IsAdmin)
         throw new HttpException(
@@ -228,7 +228,7 @@ export class UserConstraint {
     user: User,
     dto: UpdateUserDTO,
   ) {
-    //console.log('@Constraint: \n', IsAdmin);
+    // console.log('@Constraint: \n', IsAdmin);
     if (dto.managerID)
       if (!IsAdmin)
         throw new HttpException(

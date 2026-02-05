@@ -7,7 +7,7 @@ export class RoomMapper {
   // Chuyển đổi từ CreateAppointmentDTO sang Appointment entity
   static DTOToEntity(roomDTO: CreateRoomDTO | UpdateRoomDTO) {
     const plainObj = classToPlain(roomDTO);
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(Room, plainObj, { groups: ['TO-DTO', 'NOT-TO-DTO'] });
   }
 
@@ -17,7 +17,7 @@ export class RoomMapper {
       excludeExtraneousValues: true,
     });
 
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(ReadRoomDTO, plainObj);
   }
 

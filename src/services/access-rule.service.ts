@@ -64,7 +64,7 @@ export class AccessRuleService {
 
   async create(createAccessRuleDTOs: CreateAccessRuleDTO) {
     const accessRule = AccessRuleMapper.DTOToEntity(createAccessRuleDTOs);
-    //console.log('@Service: \n', accessRule);
+    // console.log('@Service: \n', accessRule);
     const result = await Promise.all([
       this.constraint.AccessRuleIsNotPersisted(
         accessRule.roleID,

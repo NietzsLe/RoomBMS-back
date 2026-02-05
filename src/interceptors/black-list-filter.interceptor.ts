@@ -11,8 +11,8 @@ import { HttpMethodToPerm, PermTypeEnum } from 'src/services/auth.service';
 
 export class BlackListFilterInterceptors implements NestInterceptor {
   intercept(context: ExecutionContext, handler: CallHandler): Observable<any> {
-    //console.log('Before...');
-    const now = Date.now();
+    // console.log('Before...');
+    // const now = Date.now();
     const request: Request = context.switchToHttp().getRequest();
     const perm = HttpMethodToPerm(request.method);
     const blackList: string[] = request['resourceBlackListAttrs'] as string[];
@@ -25,7 +25,7 @@ export class BlackListFilterInterceptors implements NestInterceptor {
       const invalidProperties = classProperties.filter((property) =>
         blackList.includes(property),
       );
-      //console.log(request.body);
+      // console.log(request.body);
 
       if (invalidProperties.length > 0) {
         throw new HttpException(
@@ -37,13 +37,13 @@ export class BlackListFilterInterceptors implements NestInterceptor {
 
     return handler.handle().pipe(
       map((data: object[]) => {
-        //console.log(
-          'After....',
-          'Guard: ',
-          Date.now() - request['requestGuardStartTime'],
-          '-Interceptor: ',
-          Date.now() - now,
-        );
+        // console.log(
+        //   'After....',
+        //   'Guard: ',
+        //   Date.now() - request['requestGuardStartTime'],
+        //   '-Interceptor: ',
+        //   Date.now() - now,
+        // );
         return data;
       }),
     );

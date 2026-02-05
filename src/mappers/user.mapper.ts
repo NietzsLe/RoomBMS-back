@@ -108,7 +108,7 @@ export class UserMapper {
     const plainObj = classToPlain(user, {
       groups: ['TO-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainObj;
   }
   static EntityToReadForAppointmentDTO(user: User) {

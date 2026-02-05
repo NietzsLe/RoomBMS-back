@@ -132,7 +132,7 @@ export class DepositAgreementController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.log('@Controller: \n', requestorRoleIDs);
     await this.depositAgreementService.update(
       requestorRoleIDs,
       requestorID,

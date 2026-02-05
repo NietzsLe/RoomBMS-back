@@ -138,7 +138,7 @@ export class AppointmentService {
       basicWhere.appointmentID = Equal(appointmentID);
       where = basicWhere;
     } else {
-      //console.log('@Appointment Serice: here');
+      // console.log('@Appointment Serice: here');
       let secondNotEqualOrder:
         | FindOptionsWhere<Appointment>
         | FindOptionsWhere<Appointment>[]
@@ -531,7 +531,7 @@ export class AppointmentService {
       }
       return dto;
     });
-    //console.log(roomBlacklist.blacklist);
+    // console.log(roomBlacklist.blacklist);
     return dto;
   }
 
@@ -544,7 +544,7 @@ export class AppointmentService {
   }
 
   async getAutocomplete(offsetID: number) {
-    //console.log('@Service: autocomplete', offsetID);
+    // console.log('@Service: autocomplete', offsetID);
     const appointments = await this.appointmentRepository.find({
       where: {
         appointmentID: MoreThan(offsetID),
@@ -555,7 +555,7 @@ export class AppointmentService {
       select: { appointmentID: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', appointments);
+    // console.log('@Service: \n', appointments);
     return appointments.map((appointment) =>
       AppointmentMapper.EntityToReadDTO(appointment),
     );
@@ -581,7 +581,7 @@ export class AppointmentService {
       withDeleted: true,
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', appointments);
+    // console.log('@Service: \n', appointments);
     return appointments.map((appointment) =>
       AppointmentMapper.EntityToReadDTO(appointment),
     );
@@ -592,7 +592,7 @@ export class AppointmentService {
     createAppointmentDTOs: CreateAppointmentDTO,
   ) {
     const appointment = AppointmentMapper.DTOToEntity(createAppointmentDTOs);
-    //console.log('@Service: \n', appointment);
+    // console.log('@Service: \n', appointment);
     const result = await Promise.all([
       this.roomConstraint.RoomIsAlive(createAppointmentDTOs.roomID),
       this.tenantConstraint.TenantIsAlive(createAppointmentDTOs.tenantID),
@@ -656,7 +656,7 @@ export class AppointmentService {
       this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
     if (result[1]) appointment.depositAgreement = result[1];
     if (result[2]) appointment.takenOverUser = result[2];
-    //console.log('@Service: \n', appointment);
+    // console.log('@Service: \n', appointment);
     await this.appointmentRepository.save(appointment);
     if (updateAppointmentDTO.status && result[0])
       await this.discordService.notifyReturnDepositAgreementResult(
@@ -688,7 +688,7 @@ export class AppointmentService {
     if (result[0])
       this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
     if (result[1]) {
-      //console.log('@Service: \n', appointment);
+      // console.log('@Service: \n', appointment);
       await this.tenantRepository.update(tenant.tenantID, tenant);
     }
   }
@@ -714,7 +714,7 @@ export class AppointmentService {
       this.constraint.IsRelatedUser(requestorRoleIDs, requestorID, result[0]);
 
     if (result[1]) {
-      //console.log('@Service: \n', appointment);
+      // console.log('@Service: \n', appointment);
       await this.depositAgreementRepository.update(
         depositAgreement.depositAgreementID,
         depositAgreement,
@@ -770,7 +770,7 @@ export class AppointmentService {
     if (result[4]) appointment.tenant = result[4];
     if (result[5]) appointment.depositAgreement = result[5];
     if (result[6]) appointment.manager = result[6];
-    //console.log('@Service: \n', appointment);
+    // console.log('@Service: \n', appointment);
     await this.appointmentRepository.update(
       appointment.appointmentID,
       appointment,

@@ -80,7 +80,7 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    //console.log('@Controller: ', 'refresh');
+    // console.log('@Controller: ', 'refresh');
     const refreshToken = isString(request.cookies['refreshToken'])
       ? request.cookies['refreshToken']
       : undefined;
