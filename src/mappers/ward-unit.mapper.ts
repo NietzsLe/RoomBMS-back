@@ -9,7 +9,7 @@ export class WardUnitMapper {
     const plainObj = classToPlain(wardUnit, {
       groups: ['TO-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainObj;
   }
 }

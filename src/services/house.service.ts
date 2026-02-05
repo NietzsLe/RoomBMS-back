@@ -121,7 +121,7 @@ export class HouseService {
         PermTypeEnum.READ,
       ),
     ]);
-    //console.log('@Service: \n', houses);
+    // console.log('@Service: \n', houses);
     return houses.map((house) => {
       const dto = HouseMapper.EntityToReadDTO(house);
       removeByBlacklist(dto, houseBlacklist.blacklist);
@@ -139,7 +139,7 @@ export class HouseService {
   }
 
   async getAutocomplete(offsetID: number) {
-    //console.log('@Service: autocomplete');
+    // console.log('@Service: autocomplete');
     const houses = await this.houseRepository.find({
       where: {
         houseID: MoreThan(offsetID),
@@ -150,7 +150,7 @@ export class HouseService {
       select: { houseID: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', houses);
+    // console.log('@Service: \n', houses);
     return houses.map((house) => HouseMapper.EntityToReadDTO(house));
   }
 
@@ -170,13 +170,13 @@ export class HouseService {
       withDeleted: true,
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', houses);
+    // console.log('@Service: \n', houses);
     return houses.map((house) => HouseMapper.EntityToReadDTO(house));
   }
 
   async create(requestorID: string, createHouseDTOs: CreateHouseDTO) {
     const house = HouseMapper.DTOToEntity(createHouseDTOs);
-    //console.log('@Service: \n', house);
+    // console.log('@Service: \n', house);
     const [administrativeUnit, street] = await Promise.all([
       this.administrativeUnitConstraint.AdministrativeUnitIsAlive(
         createHouseDTOs.administrativeUnitID,
@@ -200,7 +200,7 @@ export class HouseService {
   ) {
     const house = HouseMapper.DTOToEntity(updateHouseDTO);
 
-    //console.log('@Service: \n', updateHouseDTO);
+    // console.log('@Service: \n', updateHouseDTO);
     const [houseAlive, administrativeUnit, manager, street] = await Promise.all(
       [
         this.constraint.HouseIsAlive(updateHouseDTO.houseID),
@@ -232,7 +232,7 @@ export class HouseService {
     houseID: number,
   ) {
     const result = await this.constraint.HouseIsAlive(houseID);
-    //console.log('@Service: \n', result);
+    // console.log('@Service: \n', result);
     if (result) {
       this.userConstraint.RequestorManageNonUserResource(
         requestorRoleIDs,

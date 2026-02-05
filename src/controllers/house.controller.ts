@@ -101,7 +101,7 @@ export class HouseController {
   async update(@Req() request: Request, @Body() dto: UpdateHouseDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.log('@Controller: \n', requestorRoleIDs);
     await this.houseService.update(requestorRoleIDs, requestorID, dto);
   }
   @Delete(':houseID')

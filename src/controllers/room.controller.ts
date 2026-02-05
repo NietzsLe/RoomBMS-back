@@ -291,7 +291,7 @@ export class RoomController {
   async update(@Req() request: Request, @Body() dto: UpdateRoomDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.log('@Controller: \n', requestorRoleIDs);
     await this.roomService.update(requestorRoleIDs, requestorID, dto);
   }
 
@@ -321,7 +321,7 @@ export class RoomController {
     files: Array<Express.Multer.File>,
     @Param('roomID', ParseIntPipe) roomID: number,
   ) {
-    //console.log('@Controller: \n', files);
+    // console.log('@Controller: \n', files);
     return await this.roomImageService.upload(
       roomID,
       files.map((file) => extname(file.originalname).slice(1)),

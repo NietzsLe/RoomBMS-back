@@ -131,7 +131,7 @@ export class AppointmentController {
     @Body() dto: TakenOverAppointmentDTO,
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.log('@Controller: \n', requestorRoleIDs);
     return await this.appointmentService.takenOver(requestorID, dto);
   }
 
@@ -141,7 +141,7 @@ export class AppointmentController {
   async update(@Req() request: Request, @Body() dto: UpdateAppointmentDTO) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.log('@Controller: \n', requestorRoleIDs);
     await this.appointmentService.update(requestorRoleIDs, requestorID, dto);
   }
 
@@ -154,7 +154,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.logg'@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateByRelatedUser(
       requestorRoleIDs,
       requestorID,
@@ -171,7 +171,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.logog@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateDepositAgreementByRelatedUser(
       requestorRoleIDs,
       requestorID,
@@ -187,7 +187,7 @@ export class AppointmentController {
   ) {
     const requestorID = request['resourceRequestUserID'] as string;
     const requestorRoleIDs = request['resourceRequestRoleIDs'] as string[];
-    //console.log('@Controller: \n', requestorRoleIDs);
+    // console.log('@Controller: \n', requestorRoleIDs);
     await this.appointmentService.updateTenantByRelatedUser(
       requestorRoleIDs,
       requestorID,

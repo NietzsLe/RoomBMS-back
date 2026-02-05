@@ -53,7 +53,7 @@ export class TenantService {
         PermTypeEnum.READ,
       ),
     ]);
-    //console.log('@Service: \n', tenants);
+    // console.log('@Service: \n', tenants);
     return tenants.map((tenant) => {
       const dto = TenantMapper.EntityToReadDTO(tenant);
       removeByBlacklist(dto, tenantBlacklist.blacklist);
@@ -71,7 +71,7 @@ export class TenantService {
   }
 
   async getAutocomplete(offsetID: number) {
-    //console.log('@Service: autocomplete');
+    // console.log('@Service: autocomplete');
     const tenants = await this.tenantRepository.find({
       where: {
         tenantID: MoreThan(offsetID),
@@ -82,7 +82,7 @@ export class TenantService {
       select: { tenantID: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', tenants);
+    // console.log('@Service: \n', tenants);
     return tenants.map((tenant) => TenantMapper.EntityToReadDTO(tenant));
   }
 
@@ -103,14 +103,14 @@ export class TenantService {
       withDeleted: true,
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', tenants);
+    // console.log('@Service: \n', tenants);
     return tenants.map((tenant) => TenantMapper.EntityToReadDTO(tenant));
   }
 
   async create(requestorID: string, createTenantDTOs: CreateTenantDTO) {
     const tenant = TenantMapper.DTOToEntity(createTenantDTOs);
 
-    //console.log('@Service: \n', tenant);
+    // console.log('@Service: \n', tenant);
     this.userProcess.CreatorIsDefaultManager(requestorID, tenant);
 
     const insertResult = await this.tenantRepository.insert(tenant);
@@ -141,7 +141,7 @@ export class TenantService {
       updateTenantDTO,
     );
     if (result[1]) tenant.manager = result[1];
-    //console.log('@Service: \n', tenant);
+    // console.log('@Service: \n', tenant);
     await this.tenantRepository.save(tenant);
   }
 

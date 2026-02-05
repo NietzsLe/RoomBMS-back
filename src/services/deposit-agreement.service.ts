@@ -121,7 +121,7 @@ export class DepositAgreementService {
         PermTypeEnum.READ,
       ),
     ]);
-    //console.log('@Service: \n', depositAgreements);
+    // console.log('@Service: \n', depositAgreements);
 
     return depositAgreements.map((depositAgreement) => {
       const dto = DepositAgreementMapper.EntityToReadDTO(depositAgreement);
@@ -283,11 +283,11 @@ export class DepositAgreementService {
         PermTypeEnum.READ,
       ),
     ]);
-    //console.log('@Service: \n', depositAgreements);
+    // console.log('@Service: \n', depositAgreements);
 
     return depositAgreements.map((depositAgreement) => {
       const dto = DepositAgreementMapper.EntityToReadDTO(depositAgreement);
-      //console.log(dto);
+      // console.log(dto);
       removeByBlacklist(dto, depositAgreementBlacklist.blacklist);
       if (dto.room) {
         if (roomBlacklist.canAccess)
@@ -364,7 +364,7 @@ export class DepositAgreementService {
   }
 
   async getAutocomplete(offsetID: number) {
-    //console.log('@Service: autocomplete');
+    // console.log('@Service: autocomplete');
     const depositAgreements = await this.depositAgreementRepository.find({
       where: {
         depositAgreementID: MoreThan(offsetID),
@@ -375,7 +375,7 @@ export class DepositAgreementService {
       select: { depositAgreementID: true, name: true },
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', depositAgreements);
+    // console.log('@Service: \n', depositAgreements);
     return depositAgreements.map((depositAgreement) =>
       DepositAgreementMapper.EntityToReadDTO(depositAgreement),
     );
@@ -397,7 +397,7 @@ export class DepositAgreementService {
       withDeleted: true,
       take: +(process.env.DEFAULT_SELECT_LIMIT ?? '10'),
     });
-    //console.log('@Service: \n', depositAgreements);
+    // console.log('@Service: \n', depositAgreements);
     return depositAgreements.map((depositAgreement) =>
       DepositAgreementMapper.EntityToReadDTO(depositAgreement),
     );
@@ -410,7 +410,7 @@ export class DepositAgreementService {
     const depositAgreement = DepositAgreementMapper.DTOToEntity(
       createDepositAgreementDTOs,
     );
-    //console.log('@Service: \n', depositAgreement);
+    // console.log('@Service: \n', depositAgreement);
     const result = await Promise.all([
       this.roomConstraint.RoomIsAlive(createDepositAgreementDTOs.roomID),
       this.tenantConstraint.TenantIsAlive(createDepositAgreementDTOs.tenantID),

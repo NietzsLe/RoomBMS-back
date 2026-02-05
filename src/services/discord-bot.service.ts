@@ -38,8 +38,8 @@ export class DiscordService {
     try {
       const message = await (channel as TextChannel).send({ embeds: [embed] });
       return { messageId: message.id };
-    } catch (error) {
-      //console.log(error);
+    } catch {
+      // console.log(error);
       throw new HttpException(
         'Error in send message',
         HttpStatus.FAILED_DEPENDENCY,
@@ -78,20 +78,20 @@ export class DiscordService {
         },
       });
       embed = this.genCreateAppointmentNotify(appointment);
-      //console.log('@Discord: ', embed);
+      // console.log('@Discord: ', embed);
       try {
         await Promise.all(
           chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
         );
-      } catch (error) {
-        //console.log(error);
+      } catch {
+        // console.log(error);
         try {
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await Promise.all(
             chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
           );
-        } catch (error) {
-          //console.log(error);
+        } catch {
+          // console.log(error);
           throw new HttpException(
             'Error in send message',
             HttpStatus.FAILED_DEPENDENCY,
@@ -146,7 +146,7 @@ export class DiscordService {
         isLate,
         'extra-care',
       );
-      //console.log('@Discord: ', embed);
+      // console.log('@Discord: ', embed);
     } else if (
       appointment &&
       appointment?.status == AppointmentStatus.SUCCESS
@@ -161,7 +161,7 @@ export class DiscordService {
         isLate,
         'deposit',
       );
-      //console.log('@Discord: ', embed);
+      // console.log('@Discord: ', embed);
     }
 
     if (Array.isArray(chatGroups) && embed) {
@@ -173,8 +173,8 @@ export class DiscordService {
             return { channelId: item.chatGroupID, messageId: result.messageId };
           }),
         );
-      } catch (error) {
-        //console.log(error);
+      } catch {
+        // // console.log(error);
         try {
           await new Promise((resolve) => setTimeout(resolve, 2000));
           sentMessages = await Promise.all(
@@ -186,8 +186,8 @@ export class DiscordService {
               };
             }),
           );
-        } catch (error) {
-          //console.log(error);
+        } catch {
+          // console.log(error);
           throw new HttpException(
             'Error in send message',
             HttpStatus.FAILED_DEPENDENCY,
@@ -205,8 +205,8 @@ export class DiscordService {
         for (const warningGroup of warningGroups) {
           try {
             await this.sendMessage(warningGroup.chatGroupID, embed);
-          } catch (error) {
-            //console.log(error);
+          } catch {
+            // console.log(error);
           }
         }
         // Sau đó forward link tin nhắn gốc
@@ -223,8 +223,8 @@ export class DiscordService {
                   content: `Forwarded: ${messageUrl}`,
                 });
               }
-            } catch (error) {
-              //console.log(error);
+            } catch {
+              // console.log(error);
             }
           }
         }
@@ -256,21 +256,21 @@ export class DiscordService {
           chatGroupName: 'Result:Deposit',
         },
       });
-      //console.log('@Discord: ', embed);
+      // console.log('@Discord: ', embed);
 
       try {
         await Promise.all(
           chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
         );
-      } catch (error) {
-        //console.log(error);
+      } catch {
+        // console.log(error);
         try {
           await new Promise((resolve) => setTimeout(resolve, 2000));
           await Promise.all(
             chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
           );
-        } catch (error) {
-          //console.log(error);
+        } catch {
+          // console.log(error);
           throw new HttpException(
             'Error in send message',
             HttpStatus.FAILED_DEPENDENCY,
@@ -337,16 +337,16 @@ export class DiscordService {
       await Promise.all(
         chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
       );
-    } catch (error) {
-      //console.log(error);
+    } catch {
+      // console.log(error);
       // Thử lại sau 2s nếu lỗi
       try {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         await Promise.all(
           chatGroups.map((item) => this.sendMessage(item.chatGroupID, embed)),
         );
-      } catch (error) {
-        //console.log(error);
+      } catch {
+        // console.log(error);
         throw new HttpException(
           'Error in send message',
           HttpStatus.FAILED_DEPENDENCY,

@@ -7,7 +7,7 @@ export function getInitialsOrFullText(text: string) {
   let result = '';
 
   // Duyệt qua từng từ trong mảng
-  //console.log(words);
+  // console.log(words);
   words.forEach((word) => {
     // Kiểm tra nếu từ chỉ chứa chữ cái
     if (

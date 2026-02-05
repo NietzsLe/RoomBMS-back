@@ -53,7 +53,7 @@ export class AdministrativeUnitService {
       },
       withDeleted: true,
     });
-    //console.log('@Service: \n', provinces);
+    // console.log('@Service: \n', provinces);
     return provinces.map((province) =>
       ProvinceUnitMapper.EntityToReadDTO(province),
     );
@@ -67,7 +67,7 @@ export class AdministrativeUnitService {
         districtCode: 'ASC',
       },
     });
-    //console.log('@Service: \n', districts);
+    // console.log('@Service: \n', districts);
     return districts.map((district) =>
       DistrictUnitMapper.EntityToReadDTO(district),
     );
@@ -82,7 +82,7 @@ export class AdministrativeUnitService {
         districtCode: 'ASC',
       },
     });
-    //console.log('@Service: \n', districts);
+    // console.log('@Service: \n', districts);
     return districts.map((district) =>
       DistrictUnitMapper.EntityToReadDTO(district),
     );
@@ -98,7 +98,7 @@ export class AdministrativeUnitService {
         districtCode: 'ASC',
       },
     });
-    //console.log('@Service: \n', districts);
+    // console.log('@Service: \n', districts);
     return districts.map((district) =>
       DistrictUnitMapper.EntityToReadDTO(district),
     );
@@ -113,7 +113,7 @@ export class AdministrativeUnitService {
         wardCode: 'ASC',
       },
     });
-    //console.log('@Service: \n', wards);
+    // console.log('@Service: \n', wards);
     return wards.map((ward) => WardUnitMapper.EntityToReadDTO(ward));
   }
   async getWardAutocomplete(districtCode: number) {
@@ -125,7 +125,7 @@ export class AdministrativeUnitService {
         wardCode: 'ASC',
       },
     });
-    //console.log('@Service: \n', wards);
+    // console.log('@Service: \n', wards);
     return wards.map((ward) => WardUnitMapper.EntityToReadDTO(ward));
   }
   async findInactiveAllWard(districtCode: number) {
@@ -139,7 +139,7 @@ export class AdministrativeUnitService {
         wardCode: 'ASC',
       },
     });
-    //console.log('@Service: \n', wards);
+    // console.log('@Service: \n', wards);
     return wards.map((ward) => WardUnitMapper.EntityToReadDTO(ward));
   }
 
@@ -238,7 +238,7 @@ export class AdministrativeUnitService {
       provinceCodes,
       provinceNames,
     );
-    //console.log('@Constraint: \n', result);
+    // console.log('@Constraint: \n', result);
     await this.trustRecoverDistricts(provinceCodes);
     await this.provinceUnitRepository.recover(result as ProvinceUnit[]);
   }

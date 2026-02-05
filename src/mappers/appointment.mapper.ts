@@ -18,7 +18,7 @@ export class AppointmentMapper {
     appointmentDTO: CreateAppointmentDTO | UpdateAppointmentDTO,
   ) {
     const plainObj = classToPlain(appointmentDTO);
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(Appointment, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
       excludeExtraneousValues: true,
@@ -31,7 +31,7 @@ export class AppointmentMapper {
   ) {
     const plainObj = classToPlain(appointmentDTO);
     delete plainObj.appointmentID;
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(cls, plainObj, {
       groups: ['TO-DTO', 'NOT-TO-DTO'],
     });
@@ -48,7 +48,7 @@ export class AppointmentMapper {
     const plainObj = classToPlain(appointment, {
       groups: ['TO-DEPOSITAGREEMENT-DTO'],
     });
-    //console.log('@Mapper: \n', plainObj);
+    // console.log('@Mapper: \n', plainObj);
     return plainToClass(ReadAppointmentDTO, plainObj);
   }
 }
