@@ -67,6 +67,12 @@ export class DiscordService {
         takenOverUser: { team: true, roles: true, leader: { team: true } },
       },
     });
+    console.log(
+      '@DiscordService: notifyCreateAppointment for appointmentID',
+      appointmentID,
+      'with appointment:',
+      appointment,
+    );
     let embed: EmbedBuilder;
     let chatGroups: ChatGroup[];
     if (appointment) {
