@@ -273,6 +273,17 @@ export class UserService {
       );
     }
 
+    // Debug log
+    console.log('=== DEBUG update ===');
+    console.log('requestorRoleIDs:', requestorRoleIDs);
+    console.log('SALER_ROLEID env:', process.env.SALER_ROLEID);
+    console.log('SUPER_ADMIN_ROLEID env:', process.env.SUPER_ADMIN_ROLEID);
+    console.log('ADMIN_ROLEID env:', process.env.ADMIN_ROLEID);
+    console.log('includes saler:', requestorRoleIDs.includes('saler'));
+    console.log('includes super-admin:', requestorRoleIDs.includes('super-admin'));
+    console.log('includes admin:', requestorRoleIDs.includes('admin'));
+    console.log('=== END DEBUG ===');
+
     // Determine if requestor is Saler-only (not Admin/SuperAdmin)
     const isSalerOnly =
       requestorRoleIDs.includes(process.env.SALER_ROLEID ?? 'saler') &&
