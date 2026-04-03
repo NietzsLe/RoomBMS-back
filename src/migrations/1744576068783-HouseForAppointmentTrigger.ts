@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class HouseForAppointmentTrigger1744576068783
-  implements MigrationInterface
-{
+export class HouseForAppointmentTrigger1744576068783 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         CREATE OR REPLACE FUNCTION compute_house_for_appointment() 

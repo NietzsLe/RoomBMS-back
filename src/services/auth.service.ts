@@ -315,13 +315,13 @@ export class AuthService {
         'Bearer ' +
         (await this.jwtService.signAsync(accessPayload, {
           secret: process.env.ACCESS_TOKEN_SECRET,
-          expiresIn: process.env.ACCESS_TOKEN_EXPIRATION_TIME,
+          expiresIn: (process.env.ACCESS_TOKEN_EXPIRATION_TIME || '15m') as any,
         })),
       refreshToken:
         'Bearer ' +
         (await this.jwtService.signAsync(refreshPayload, {
           secret: process.env.REFRESH_TOKEN_SECRET,
-          expiresIn: process.env.REFRESH_TOKEN_EXPIRATION_TIME,
+          expiresIn: (process.env.REFRESH_TOKEN_EXPIRATION_TIME || '7d') as any,
         })),
     };
     // console.log('@Service: \n', out);

@@ -13,9 +13,7 @@ import { DepositAgreementStatus } from 'src/models/helper';
 └────────────────────────────────────────────┘
 */
 @Injectable()
-export class DepositAgreementRevenueStrategy
-  implements IDepositAgreementRevenueStrategy
-{
+export class DepositAgreementRevenueStrategy implements IDepositAgreementRevenueStrategy {
   process(data: DepositAgreementRevenueData): DepositAgreementRevenueResult {
     // 💡 NOTE(GitHub Copilot): Tính revenue cho từng đối tượng dựa trên status
     if (data.status === DepositAgreementStatus.CANCELLED) {

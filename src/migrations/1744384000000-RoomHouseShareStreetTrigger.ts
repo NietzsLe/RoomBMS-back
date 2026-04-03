@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class RoomHouseShareStreetTrigger1744384000000
-  implements MigrationInterface
-{
+export class RoomHouseShareStreetTrigger1744384000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE OR REPLACE FUNCTION share_street_for_related_rooms()
