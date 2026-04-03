@@ -253,16 +253,53 @@ export class UserService {
         requestorID,
         result[0],
       );
+
+      // Also check if Saler can manage this user
+      if (
+        IsAdmin === 0 &&
+        requestorRoleIDs.includes(process.env.SALER_ROLEID ?? 'saler')
+      ) {
+        this.constraint.SalerCanManageUser(
+          requestorRoleIDs,
+          requestorID,
+          result[0],
+        );
+      }
+
       this.constraint.JustAdminCanUpdateManagerFieldOfUser(
         IsAdmin,
         result[0],
         updateUserDTO,
       );
     }
-    this.constraint.JustAdminCanAssignRoles(
-      requestorRoleIDs,
-      updateUserDTO.roleIDs,
-    );
+
+    // Determine if requestor is Saler-only (not Admin/SuperAdmin)
+    const isSalerOnly =
+      requestorRoleIDs.includes(process.env.SALER_ROLEID ?? 'saler') &&
+      !requestorRoleIDs.includes(
+        process.env.SUPER_ADMIN_ROLEID ?? 'super-admin',
+      ) &&
+      !requestorRoleIDs.includes(process.env.ADMIN_ROLEID ?? 'admin');
+
+    if (
+      isSalerOnly &&
+      updateUserDTO.roleIDs &&
+      updateUserDTO.roleIDs.length > 0 &&
+      result[0]
+    ) {
+      // Saler can only assign CTV role
+      this.constraint.JustSalerCanAssignCTV(
+        requestorRoleIDs,
+        requestorID,
+        result[0],
+      );
+    } else if (!isSalerOnly) {
+      // Admin/SuperAdmin flow - existing logic
+      this.constraint.JustAdminCanAssignRoles(
+        requestorRoleIDs,
+        updateUserDTO.roleIDs,
+      );
+    }
     this.constraint.CantChangeManagerByYourself(requestorID, user);
     if (result[1]) {
       user.roles = result[1];

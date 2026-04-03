@@ -276,6 +276,105 @@ export class UserConstraint {
       return exist;
     }
   }
+
+  /**
+   * Check if requestor (Saler) can assign CTV role to target user.
+   * Conditions:
+   * - Requestor must have SALER role
+   * - Target user must have no roles yet
+   * - Target user must have manager = requestor
+   *
+   * @returns void on success, throws HttpException on failure
+   */
+  JustSalerCanAssignCTV(
+    requestorRoleIDs: string[],
+    requestorID: string,
+    targetUser: User,
+  ) {
+    // Check if requestor has SALER role
+    let isSaler = false;
+    for (const role of requestorRoleIDs) {
+      if (role == process.env.SUPER_ADMIN_ROLEID) return; // Super Admin bypasses
+      if (role == process.env.ADMIN_ROLEID) return; // Admin bypasses
+      if (role == process.env.SALER_ROLEID) isSaler = true;
+    }
+
+    if (!isSaler) {
+      throw new HttpException(
+        'Only Saler can assign CTV role',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Check if target user already has roles
+    if (targetUser.roles && targetUser.roles.length > 0) {
+      throw new HttpException(
+        'Target user already has a role',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Check if requestor is the manager of target user
+    if (!targetUser.manager || targetUser.manager.username !== requestorID) {
+      throw new HttpException(
+        'Target user must have you as manager',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
+
+  /**
+   * Check if Saler can manage (edit info of) target user.
+   * Conditions:
+   * - Requestor must have SALER role
+   * - Target user must have manager = requestor
+   * - Target user must NOT be admin or super-admin
+   *
+   * @returns void on success, throws HttpException on failure
+   */
+  SalerCanManageUser(
+    requestorRoleIDs: string[],
+    requestorID: string,
+    targetUser: User,
+  ) {
+    // Check if requestor has SALER role
+    let isSaler = false;
+    for (const role of requestorRoleIDs) {
+      if (role == process.env.SUPER_ADMIN_ROLEID) return; // Super Admin bypasses
+      if (role == process.env.ADMIN_ROLEID) return; // Admin bypasses
+      if (role == process.env.SALER_ROLEID) isSaler = true;
+    }
+
+    if (!isSaler) {
+      throw new HttpException(
+        'Only Saler can manage this user',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Check if requestor is the manager of target user
+    if (!targetUser.manager || targetUser.manager.username !== requestorID) {
+      throw new HttpException(
+        'You are not the manager of this user',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Check if target user is admin or super-admin - Saler cannot manage
+    if (targetUser.roles && targetUser.roles.length > 0) {
+      for (const role of targetUser.roles) {
+        if (
+          role.roleID == process.env.SUPER_ADMIN_ROLEID ||
+          role.roleID == process.env.ADMIN_ROLEID
+        ) {
+          throw new HttpException(
+            "You can't manage an admin",
+            HttpStatus.FORBIDDEN,
+          );
+        }
+      }
+    }
+  }
 }
 
 // Extend UserProcess for Street
