@@ -233,10 +233,19 @@ export class UserService {
     updateUserDTO: UpdateUserDTO,
   ) {
     const user = UserMapper.DTOToEntity(updateUserDTO);
-    // Nếu managerID null thì bỏ liên kết manager
-    if (updateUserDTO.managerID == null) user.manager = null;
-    // Nếu leaderID null thì bỏ liên kết leader
-    if (updateUserDTO.leaderID == null) user.leader = null;
+    // Debug log
+    console.log('=== DEBUG DTO ===');
+    console.log('updateUserDTO.managerID:', updateUserDTO.managerID, typeof updateUserDTO.managerID);
+    console.log('updateUserDTO.leaderID:', updateUserDTO.leaderID, typeof updateUserDTO.leaderID);
+    console.log('user.manager after DTOToEntity:', user.manager);
+    console.log('user.leader after DTOToEntity:', user.leader);
+    console.log('=== END DEBUG DTO ===');
+    // Nếu managerID === null thì bỏ liên kết manager (chỉ khi explicitly truyền null, không phải undefined)
+    if (updateUserDTO.managerID === null) user.manager = null;
+    // Nếu leaderID === null thì bỏ liên kết leader (chỉ khi explicitly truyền null, không phải undefined)
+    if (updateUserDTO.leaderID === null) user.leader = null;
+    console.log('user.manager after null check:', user.manager);
+    console.log('user.leader after null check:', user.leader);
     // Kiểm tra tồn tại cho cả manager và leader
     const result = await Promise.all([
       this.constraint.UserIsAlive(user.username),
@@ -245,6 +254,14 @@ export class UserService {
       this.constraint.TeamIsAlive(updateUserDTO.teamID),
       this.constraint.UserIsAlive(updateUserDTO.leaderID),
     ]);
+    // Debug log
+    console.log('=== DEBUG result ===');
+    console.log('result[0] (user):', result[0]?.username);
+    console.log('result[1] (roles):', result[1]);
+    console.log('result[2] (manager):', result[2]?.username);
+    console.log('result[3] (team):', result[3]?.teamID);
+    console.log('result[4] (leader):', result[4]?.username);
+    console.log('=== END DEBUG result ===');
     // console.log('@Service: \n', user);
     let IsAdmin = 0;
     if (result[0]) {
@@ -320,6 +337,13 @@ export class UserService {
     if (result[2]) user.manager = result[2];
     if (result[3]) user.team = result[3];
     if (result[4]) user.leader = result[4];
+
+    // Debug log before save
+    console.log('=== DEBUG save ===');
+    console.log('user.manager before save:', user.manager);
+    console.log('user.leader before save:', user.leader);
+    console.log('user.roles before save:', user.roles);
+    console.log('=== END DEBUG save ===');
 
     await this.userRepository.save(user);
   }
