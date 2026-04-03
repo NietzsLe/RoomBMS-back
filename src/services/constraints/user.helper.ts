@@ -281,7 +281,7 @@ export class UserConstraint {
    * Check if requestor (Saler) can assign CTV role to target user.
    * Conditions:
    * - Requestor must have SALER role
-   * - Target user must have no roles yet
+   * - Target user must have no roles OR only CTV role (can reassign CTV)
    * - Target user must have manager = requestor
    *
    * @returns void on success, throws HttpException on failure
@@ -306,12 +306,18 @@ export class UserConstraint {
       );
     }
 
-    // Check if target user already has roles
+    // Check if target user already has roles other than CTV
     if (targetUser.roles && targetUser.roles.length > 0) {
-      throw new HttpException(
-        'Target user already has a role',
-        HttpStatus.FORBIDDEN,
+      const hasNonCtvRole = targetUser.roles.some(
+        (role) => role.roleID !== 'ctv',
       );
+      if (hasNonCtvRole) {
+        throw new HttpException(
+          'Target user already has a role',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+      // If user only has CTV role, allow reassignment
     }
 
     // Check if requestor is the manager of target user
@@ -373,6 +379,42 @@ export class UserConstraint {
           );
         }
       }
+    }
+  }
+
+  /**
+   * Check if Saler can assign teamID to target user.
+   * Saler can only assign teamID that matches their own team.
+   *
+   * @returns void on success, throws HttpException on failure
+   */
+  async SalerCanAssignTeamID(
+    requestorID: string,
+    teamID: string | undefined | null,
+  ) {
+    // If teamID is undefined or null, don't check (user is not changing team)
+    if (teamID === undefined || teamID === null) {
+      return;
+    }
+
+    // Get requestor's user entity with team relation
+    const requestor = await this.userRepository.findOne({
+      where: { username: requestorID },
+      relations: { team: true },
+    });
+
+    if (!requestor || !requestor.team) {
+      throw new HttpException(
+        'Your account is not associated with any team',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (requestor.team.teamID !== teamID) {
+      throw new HttpException(
+        'You can only assign users to your own team',
+        HttpStatus.FORBIDDEN,
+      );
     }
   }
 }

@@ -321,6 +321,11 @@ export class UserService {
         requestorID,
         result[0],
       );
+      // Saler can only assign teamID to their own team
+      await this.constraint.SalerCanAssignTeamID(
+        requestorID,
+        updateUserDTO.teamID,
+      );
     } else if (!isSalerOnly) {
       // Admin/SuperAdmin flow - existing logic
       this.constraint.JustAdminCanAssignRoles(
