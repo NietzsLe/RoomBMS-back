@@ -148,7 +148,7 @@ export class UpdateUserDTO {
         const obj = new User();
         obj.username = value;
         return obj;
-      } else if (value == null) return null;
+      } else if (value === null) return null;
     },
     { toPlainOnly: true },
   )
@@ -164,7 +164,7 @@ export class UpdateUserDTO {
         const obj = new User();
         obj.username = value;
         return obj;
-      } else if (value == null) return null;
+      } else if (value === null) return null;
     },
     { toPlainOnly: true },
   )
