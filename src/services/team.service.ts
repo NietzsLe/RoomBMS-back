@@ -42,6 +42,7 @@ export class TeamService {
     if (!isAdmin && type !== 'all') {
       where = [
         { leader: { username: requestorID }, teamID: MoreThan(offsetID) },
+        { members: { username: requestorID }, teamID: MoreThan(offsetID) },
       ];
     }
     if (type === 'all') {
